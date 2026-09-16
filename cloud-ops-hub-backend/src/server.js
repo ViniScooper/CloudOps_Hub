@@ -409,6 +409,30 @@ fastify.get('/api/deploy/history', async () => {
 });
 
 // =========================================================================
+// 1.3 AUTO-SETUP & AUTENTICAÇÃO DO GIT NA VM VIA SSH (1-CLIQUE)
+// =========================================================================
+fastify.post('/api/git/setup-vm', async (request, reply) => {
+  const { name, email, githubUser, githubToken } = request.body || {};
+
+  try {
+    const result = await deployService.setupGitOnVm({ name, email, githubUser, githubToken });
+    return result;
+  } catch (err) {
+    return reply.status(500).send({
+      success: false,
+      error: err.message,
+      logs: [
+        `[${new Date().toLocaleTimeString('pt-BR')}] ❌ Falha ao configurar Git na VM: ${err.message}`
+      ]
+    });
+  }
+});
+
+fastify.get('/api/git/status-vm', async () => {
+  return deployService.getGitVmStatus();
+});
+
+// =========================================================================
 // 2. GERENCIADOR VISUAL DE VARIÁVEIS DE AMBIENTE (.env)
 // =========================================================================
 fastify.get('/api/env', async (request) => {

@@ -273,6 +273,88 @@ async function executeRollback({ project = 'cardapio_digital' }) {
   }
 }
 
+async function setupGitOnVm({ name, email, githubUser, githubToken }) {
+  const logs = [];
+  const timestamp = new Date().toLocaleTimeString('pt-BR');
+
+  logs.push(`[${timestamp}] 🚀 Iniciando configuração automática do Git na VM via SSH...`);
+
+  if (!name || !email) {
+    throw new Error('Nome e E-mail são obrigatórios para configurar o Git.');
+  }
+
+  // 1. Verifica ou instala o Git
+  logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Verificando instalação do Git...`);
+  const gitCheck = await runRemoteSsh('which git || (sudo apt-get update -qq && sudo apt-get install -y -qq git)');
+  
+  const gitVersionRes = await runRemoteSsh('git --version');
+  const gitVersion = gitVersionRes.stdout || 'Git instalado';
+  logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] ${gitVersion}`);
+
+  // 2. Configura Nome e Email Global
+  logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Configurando git config --global user.name "${name}"...`);
+  await runRemoteSsh(`git config --global user.name "${name}"`);
+  await runRemoteSsh(`git config --global user.email "${email}"`);
+  await runRemoteSsh(`git config --global credential.helper store`);
+  logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Identidade Git registrada: ${name} <${email}>`);
+
+  // 3. Salva Token de autenticação se fornecido
+  if (githubToken && githubToken.trim()) {
+    const userHandle = githubUser || name.replace(/\s+/g, '');
+    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Salvando token de autenticação permanente para @${userHandle}...`);
+    await runRemoteSsh(`echo "https://${userHandle}:${githubToken.trim()}@github.com" > ~/.git-credentials && chmod 600 ~/.git-credentials`);
+    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] ✅ Credenciais salvas em ~/.git-credentials! Downloads e envios não pedirão senha.`);
+  }
+
+  // 4. Garante Chave SSH para Deploy Key no GitHub caso não exista
+  logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Verificando chave SSH para repositórios privados...`);
+  await runRemoteSsh(`[ -f ~/.ssh/id_ed25519 ] || ssh-keygen -t ed25519 -C "${email}" -f ~/.ssh/id_ed25519 -N ""`);
+  const pubKeyRes = await runRemoteSsh(`cat ~/.ssh/id_ed25519.pub 2>/dev/null || cat ~/.ssh/id_rsa.pub 2>/dev/null`);
+  const deployKeyPublic = pubKeyRes.stdout || '';
+
+  if (deployKeyPublic) {
+    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Deploy Key (SSH pública) pronta para repositórios privados.`);
+  }
+
+  logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] ✅ Setup do Git na VM concluído com 100% de sucesso!`);
+
+  // Notificação WhatsApp
+  oracleScraper.sendWhatsAppNotification(`⚡ *CloudOps Hub:* Git configurado com sucesso na VM!\n\nUsuário: *${name}* (${email})\nStatus: Git ativo e autenticado para deploys automáticos.`);
+
+  return {
+    success: true,
+    gitVersion,
+    name,
+    email,
+    deployKeyPublic,
+    logs
+  };
+}
+
+async function getGitVmStatus() {
+  try {
+    const gitRes = await runRemoteSsh('git --version 2>/dev/null');
+    const nameRes = await runRemoteSsh('git config --global user.name 2>/dev/null');
+    const emailRes = await runRemoteSsh('git config --global user.email 2>/dev/null');
+    const hasCreds = await runRemoteSsh('[ -f ~/.git-credentials ] && echo "yes" || echo "no"');
+
+    return {
+      success: true,
+      installed: !!gitRes.stdout,
+      version: gitRes.stdout || 'Não instalado',
+      name: nameRes.stdout || 'Não configurado',
+      email: emailRes.stdout || 'Não configurado',
+      hasStoredCredentials: hasCreds.stdout.includes('yes')
+    };
+  } catch (err) {
+    return {
+      success: false,
+      installed: false,
+      error: err.message
+    };
+  }
+}
+
 function getDeployHistory() {
   return loadHistory().slice(0, 10);
 }
@@ -280,5 +362,8 @@ function getDeployHistory() {
 module.exports = {
   executeDeploy,
   executeRollback,
-  getDeployHistory
+  getDeployHistory,
+  setupGitOnVm,
+  getGitVmStatus
 };
+
