@@ -433,6 +433,26 @@ fastify.get('/api/git/status-vm', async () => {
 });
 
 // =========================================================================
+// 1.4 CLONAR & SUBIR NOVO PROJETO DO GITHUB NA VM VIA SSH (1-CLIQUE)
+// =========================================================================
+fastify.post('/api/projects/clone-and-launch', async (request, reply) => {
+  const { repoUrl, projectName, branch = 'main', runMode = 'docker', port = '' } = request.body || {};
+
+  try {
+    const result = await deployService.cloneAndLaunchProject({ repoUrl, projectName, branch, runMode, port });
+    return result;
+  } catch (err) {
+    return reply.status(500).send({
+      success: false,
+      error: err.message,
+      logs: [
+        `[${new Date().toLocaleTimeString('pt-BR')}] ❌ Falha ao clonar e lançar projeto: ${err.message}`
+      ]
+    });
+  }
+});
+
+// =========================================================================
 // 2. GERENCIADOR VISUAL DE VARIÁVEIS DE AMBIENTE (.env)
 // =========================================================================
 fastify.get('/api/env', async (request) => {
