@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react'
 import { 
   Rocket, GitBranch, Check, RefreshCw, Terminal, GitPullRequest, 
-  GitMerge, ShieldCheck, ArrowRight, RotateCcw, History, AlertTriangle, Clock
+  GitMerge, ShieldCheck, ArrowRight, RotateCcw, History, AlertTriangle, Clock, Sparkles
 } from 'lucide-react'
+import { GitSetupModal } from './GitSetupModal'
 
 interface DeployViewProps {
   server: any
@@ -28,6 +29,7 @@ export function DeployView({ server, doAction }: DeployViewProps) {
   const [isDeploying, setIsDeploying] = useState(false)
   const [isMerging, setIsMerging] = useState(false)
   const [isRollingBack, setIsRollingBack] = useState(false)
+  const [gitSetupOpen, setGitSetupOpen] = useState(false)
   const [deployLogs, setDeployLogs] = useState<string[]>([])
   const [selectedBranch, setSelectedBranch] = useState('main')
   const [mergeSourceBranch, setMergeSourceBranch] = useState('develop')
@@ -181,20 +183,40 @@ export function DeployView({ server, doAction }: DeployViewProps) {
             </small>
           </div>
 
-          <button
-            onClick={() => setShowTokenInput(!showTokenInput)}
-            style={{
-              background: 'transparent',
-              border: '1px solid #1f2e32',
-              color: '#8fa4a8',
-              borderRadius: '4px',
-              padding: '4px 10px',
-              fontSize: '11px',
-              cursor: 'pointer'
-            }}
-          >
-            {showTokenInput ? 'Ocultar Config GitHub' : '⚙️ Configurar GitHub Token'}
-          </button>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => setGitSetupOpen(true)}
+              style={{
+                background: '#133538',
+                border: '1px solid #20d6c7',
+                color: '#20d6c7',
+                borderRadius: '4px',
+                padding: '5px 12px',
+                fontSize: '11px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                fontWeight: 600
+              }}
+            >
+              <Sparkles size={12} /> Auto-Configurar Git na VM
+            </button>
+            <button
+              onClick={() => setShowTokenInput(!showTokenInput)}
+              style={{
+                background: 'transparent',
+                border: '1px solid #1f2e32',
+                color: '#8fa4a8',
+                borderRadius: '4px',
+                padding: '5px 10px',
+                fontSize: '11px',
+                cursor: 'pointer'
+              }}
+            >
+              {showTokenInput ? 'Ocultar Config' : '⚙️ GitHub Token'}
+            </button>
+          </div>
         </div>
 
         {showTokenInput && (
@@ -522,6 +544,13 @@ export function DeployView({ server, doAction }: DeployViewProps) {
           </table>
         </div>
       </section>
+
+      {/* Modal de Auto-Configuração do Git na VM */}
+      <GitSetupModal 
+        isOpen={gitSetupOpen} 
+        onClose={() => setGitSetupOpen(false)} 
+        doAction={doAction} 
+      />
     </div>
   )
 }

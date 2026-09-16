@@ -48,8 +48,8 @@ export function HelpView({ onNavigate }: HelpViewProps) {
       num: '04',
       title: 'GitFlow & Pull Request Automático',
       icon: GitPullRequest,
-      desc: 'Trabalhe na branch develop e mescle para a main direto pelo painel sem abrir o site do GitHub. Na VM só precisa do Git instalado (git clone). No Hub você pode colar seu GitHub Token ou usar o Git local do seu PC.',
-      actionLabel: 'Ver GitFlow',
+      desc: 'Trabalhe na branch develop e mescle para a main direto pelo painel. Com o novo recurso "Auto-Configurar Git na VM", o Hub instala o Git e grava as credenciais na sua máquina virtual em 1 clique via SSH!',
+      actionLabel: 'Ver GitFlow & Setup',
       targetTab: 'Deploy'
     },
     {
