@@ -10,6 +10,7 @@
 *.ppk
 VM_DADPS*.TXT
 INFOS_VM*.TXT
+AI_CONTEXT.md
 
 # ==========================================
 # DEPENDÊNCIAS & COMPILAÇÃO
