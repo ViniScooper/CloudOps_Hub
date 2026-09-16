@@ -55,6 +55,7 @@ flowchart TD
 ## 📁 Estrutura do Repositório
 
 ```text
+├── AI_CONTEXT.md              # Documento mestre de contexto para IAs e novos agentes
 ├── cloud-ops-hub/             # Frontend Web (Next.js 16, React 19, Tailwind CSS 4, PWA)
 │   ├── app/                   # App Router e páginas principais
 │   ├── components/            # Componentes visuais (DeployView, Logs, Terminal, Metrics)
