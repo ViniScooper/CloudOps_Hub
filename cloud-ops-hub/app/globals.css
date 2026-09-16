@@ -237,3 +237,12 @@ body { background:#0b1010; color:#dfe8e5; }
 .parsed-item span { display: block; font-size: 8px; color: #6f8387; text-transform: uppercase; }
 .parsed-item strong { display: block; font-size: 10px; color: #a3e635; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+/* Odisseu AI Full Height Container */
+.odisseu-page-content {
+  padding: 10px 18px 12px !important;
+  max-width: 100% !important;
+  height: calc(100vh - 65px);
+  display: flex;
+  flex-direction: column;
+}

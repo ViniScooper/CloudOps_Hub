@@ -446,7 +446,8 @@ module.exports = {
   getDeployHistory,
   setupGitOnVm,
   getGitVmStatus,
-  cloneAndLaunchProject
+  cloneAndLaunchProject,
+  runRemoteSsh
 };
 
 

@@ -12,11 +12,13 @@ import { DashboardView } from '../components/DashboardView'
 import { DeployView } from '../components/DeployView'
 import { EnvManagerView } from '../components/EnvManagerView'
 import { HelpView } from '../components/HelpView'
-import { Rocket, KeyRound } from 'lucide-react'
+import { OdisseuChatView } from '../components/OdisseuChatView'
+import { Rocket, KeyRound, Bot } from 'lucide-react'
 
 
 const nav = [
   { label: 'Dashboard', icon: LayoutDashboard },
+  { label: 'Odisseu AI', icon: Bot, badge: 'Copilot' },
   { label: 'VM Scraper', icon: Zap, badge: 'Auto' },
   { label: 'Deploy', icon: Rocket, badge: 'CI/CD' },
   { label: 'Variáveis (.env)', icon: KeyRound },
@@ -470,74 +472,78 @@ echo "============================================================"`
           </div>
         </div>
       </header>
-      <div className="page-content">
-        {/* Cabeçalho da página */}
-        <div className="page-heading">
-          <div>
-            <div className="eyebrow"><span className="live-dot" /> Multi-cloud command center • Zero Trust</div>
-            <h1>Painel de Controle</h1>
-            <p>{server ? `Conectado em ${server.name} (${server.ip}) via SSH seguro.` : 'Nenhum servidor conectado no momento. Conecte sua VM Oracle ou AWS.'}</p>
-          </div>
-          <div className="heading-actions">
-            {server && <button className={`refresh-button ${refreshed ? 'spinning' : ''}`} onClick={() => { setRefreshed(true); setTimeout(() => setRefreshed(false), 700); doAction('Telemetria atualizada') }}><RefreshCw size={14} /> Refresh</button>}
-            <button className="primary-button" onClick={() => setConnectModalOpen(true)}><Server size={15} /> {server ? 'Adicionar Servidor' : 'Conectar Minha VM (SSH)'}</button>
-            <button className="refresh-button" onClick={() => setCloudShellOpen(true)} style={{ borderColor: ociCreds ? '#20d6c7' : '#182326' }}>
-              <Zap size={14} style={{ color: ociCreds ? '#20d6c7' : '#6f8387' }} /> {ociCreds ? `OCI Conectado (${ociCreds.region || 'sa-saopaulo-1'})` : 'Conectar OCI (Terraform)'}
-            </button>
-          </div>
-        </div>
-
-        {/* Barra de contexto do servidor */}
-        {server ? (
-          <div className="server-switcher">
-            <div className="server-context">
-              <span className={`provider-mark ${server.color || 'oracle'}`}>{server.provider === 'aws' ? 'aws' : 'OC'}</span>
+      <div className={active === 'Odisseu AI' ? 'page-content odisseu-page-content' : 'page-content'}>
+        {/* Cabeçalho da página (oculto no Odisseu AI para dar espaço total ao chat) */}
+        {active !== 'Odisseu AI' && (
+          <>
+            <div className="page-heading">
               <div>
-                <small>Servidor Ativo em Execução</small>
-                <strong>{server.name}</strong>
+                <div className="eyebrow"><span className="live-dot" /> Multi-cloud command center • Zero Trust</div>
+                <h1>Painel de Controle</h1>
+                <p>{server ? `Conectado em ${server.name} (${server.ip}) via SSH seguro.` : 'Nenhum servidor conectado no momento. Conecte sua VM Oracle ou AWS.'}</p>
+              </div>
+              <div className="heading-actions">
+                {server && <button className={`refresh-button ${refreshed ? 'spinning' : ''}`} onClick={() => { setRefreshed(true); setTimeout(() => setRefreshed(false), 700); doAction('Telemetria atualizada') }}><RefreshCw size={14} /> Refresh</button>}
+                <button className="primary-button" onClick={() => setConnectModalOpen(true)}><Server size={15} /> {server ? 'Adicionar Servidor' : 'Conectar Minha VM (SSH)'}</button>
+                <button className="refresh-button" onClick={() => setCloudShellOpen(true)} style={{ borderColor: ociCreds ? '#20d6c7' : '#182326' }}>
+                  <Zap size={14} style={{ color: ociCreds ? '#20d6c7' : '#6f8387' }} /> {ociCreds ? `OCI Conectado (${ociCreds.region || 'sa-saopaulo-1'})` : 'Conectar OCI (Terraform)'}
+                </button>
               </div>
             </div>
-            <div className="server-meta">
-              <span><Globe2 size={13} /> {server.region || 'sa-saopaulo-1'}</span>
-              <span className="server-ip">{server.ip}</span>
-              <span className="healthy-label"><span className="status-dot emerald" /> {server.status}</span>
-            </div>
-            {serverList.length > 1 && (
-              <button className="server-select" onClick={() => setServerMenu(!serverMenu)} aria-label="Trocar servidor">
-                <span>Trocar VM ({serverList.length})</span><ChevronDown size={15} />
-              </button>
-            )}
-            {serverMenu && (
-              <div className="server-menu">
-                {serverList.map(item => (
-                  <button key={item.id} onClick={() => { setServer(item); setServerMenu(false); doAction(`Contexto alterado para ${item.name}`) }}>
-                    <span className="provider-mark small oracle">OC</span>
-                    <span><b>{item.name}</b><small>{item.region} · {item.ip}</small></span>
-                    {item.id === server.id && <Check size={15} />}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="step-box" style={{ padding: '24px', textAlign: 'center', borderColor: '#20d6c744', marginBottom: '20px' }}>
-            <Server size={32} style={{ color: '#20d6c7', margin: '0 auto 10px' }} />
-            <h3 style={{ color: '#d9e2e1', margin: '0 0 6px', fontSize: '15px' }}>Nenhum servidor conectado</h3>
-            <p style={{ color: '#6f8387', fontSize: '11px', margin: '0 0 16px' }}>Conecte sua VM da Oracle Cloud inserindo o IP e a sua chave privada SSH para liberar métricas ao vivo, Docker e Nginx.</p>
-            <button className="primary-button" style={{ margin: '0 auto' }} onClick={() => setConnectModalOpen(true)}>
-              <Plus size={14} /> Conectar Minha Primeira VM
-            </button>
-          </div>
-        )}
 
-        {/* Métricas ao vivo */}
-        {server && (
-          <div className="metrics-grid">
-            <Metric label="CPU usage" value={server.cpu || '0'} unit="%" change="Normal" icon={Activity} tone="indigo" progress={Number.parseInt(server.cpu || '0')} />
-            <Metric label="Memory (RAM)" value={server.ramUsed || '0'} unit={`MB / ${server.ramTotal || '1024'} MB`} change={`${server.ram || '0'}%`} icon={Server} tone="violet" progress={Number.parseInt(server.ram || '0')} />
-            <Metric label="Disk NVMe" value={server.diskUsed || '0'} unit={`GB / ${server.diskTotal || '45'} GB`} change={`${server.disk || '0'}%`} icon={HardDrive} tone="amber" progress={Number.parseInt(server.disk || '0')} />
-            <Metric label="Status SSH" value="100" unit="% Ativo" change="Porta 22" icon={Network} tone="emerald" progress={100} />
-          </div>
+            {/* Barra de contexto do servidor */}
+            {server ? (
+              <div className="server-switcher">
+                <div className="server-context">
+                  <span className={`provider-mark ${server.color || 'oracle'}`}>{server.provider === 'aws' ? 'aws' : 'OC'}</span>
+                  <div>
+                    <small>Servidor Ativo em Execução</small>
+                    <strong>{server.name}</strong>
+                  </div>
+                </div>
+                <div className="server-meta">
+                  <span><Globe2 size={13} /> {server.region || 'sa-saopaulo-1'}</span>
+                  <span className="server-ip">{server.ip}</span>
+                  <span className="healthy-label"><span className="status-dot emerald" /> {server.status}</span>
+                </div>
+                {serverList.length > 1 && (
+                  <button className="server-select" onClick={() => setServerMenu(!serverMenu)} aria-label="Trocar servidor">
+                    <span>Trocar VM ({serverList.length})</span><ChevronDown size={15} />
+                  </button>
+                )}
+                {serverMenu && (
+                  <div className="server-menu">
+                    {serverList.map(item => (
+                      <button key={item.id} onClick={() => { setServer(item); setServerMenu(false); doAction(`Contexto alterado para ${item.name}`) }}>
+                        <span className="provider-mark small oracle">OC</span>
+                        <span><b>{item.name}</b><small>{item.region} · {item.ip}</small></span>
+                        {item.id === server.id && <Check size={15} />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="step-box" style={{ padding: '24px', textAlign: 'center', borderColor: '#20d6c744', marginBottom: '20px' }}>
+                <Server size={32} style={{ color: '#20d6c7', margin: '0 auto 10px' }} />
+                <h3 style={{ color: '#d9e2e1', margin: '0 0 6px', fontSize: '15px' }}>Nenhum servidor conectado</h3>
+                <p style={{ color: '#6f8387', fontSize: '11px', margin: '0 0 16px' }}>Conecte sua VM da Oracle Cloud inserindo o IP e a sua chave privada SSH para liberar métricas ao vivo, Docker e Nginx.</p>
+                <button className="primary-button" style={{ margin: '0 auto' }} onClick={() => setConnectModalOpen(true)}>
+                  <Plus size={14} /> Conectar Minha Primeira VM
+                </button>
+              </div>
+            )}
+
+            {/* Métricas ao vivo */}
+            {server && (
+              <div className="metrics-grid">
+                <Metric label="CPU usage" value={server.cpu || '0'} unit="%" change="Normal" icon={Activity} tone="indigo" progress={Number.parseInt(server.cpu || '0')} />
+                <Metric label="Memory (RAM)" value={server.ramUsed || '0'} unit={`MB / ${server.ramTotal || '1024'} MB`} change={`${server.ram || '0'}%`} icon={Server} tone="violet" progress={Number.parseInt(server.ram || '0')} />
+                <Metric label="Disk NVMe" value={server.diskUsed || '0'} unit={`GB / ${server.diskTotal || '45'} GB`} change={`${server.disk || '0'}%`} icon={HardDrive} tone="amber" progress={Number.parseInt(server.disk || '0')} />
+                <Metric label="Status SSH" value="100" unit="% Ativo" change="Porta 22" icon={Network} tone="emerald" progress={100} />
+              </div>
+            )}
+          </>
         )}
         
         {server && active === 'Dashboard' && (
@@ -548,6 +554,17 @@ echo "============================================================"`
             setServer={setServer}
             setActive={setActive}
             doAction={doAction}
+          />
+        )}
+
+        {/* ========================================================================= */}
+        {/* ABA: ODISSEU AI — COPILOTO DEVOPS COM RAG & MULTI-PROVEDOR (GROQ, GEMINI) */}
+        {/* ========================================================================= */}
+        {active === 'Odisseu AI' && (
+          <OdisseuChatView 
+            server={server} 
+            doAction={doAction} 
+            onNavigate={(target) => setActive(target)} 
           />
         )}
 
@@ -849,6 +866,7 @@ echo "============================================================"`
         </>}
 
 
+        {active !== 'Odisseu AI' && (
         <section className="panel terminal-panel command-panel" style={{ marginTop: active === 'Terminal' ? '0' : '14px' }}>
           <div className="terminal-header">
             <div>
@@ -1016,6 +1034,7 @@ echo "============================================================"`
             </div>
           </div>
         </section>
+        )}
         <div className="bottom-strip">
           <div><Check size={16} /><span>{server ? 'Servidor conectado e túnel seguro ativo' : 'Aguardando conexão com servidor'}</span></div>
           <span>{server ? 'Verificado há 12 segundos' : 'Status: Offline'}</span>

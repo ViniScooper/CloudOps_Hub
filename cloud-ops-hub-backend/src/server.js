@@ -509,6 +509,49 @@ fastify.post('/api/docker/optimize-logs', async () => {
   };
 });
 
+// =========================================================================
+// 4. AGENTE ODISSEU AI — COPILOTO DEVOPS COM RAG & MULTI-PROVEDOR (GROQ, GEMINI, OPENAI)
+// =========================================================================
+const odisseuAgent = require('./odisseuAgent');
+
+fastify.post('/api/odisseu/chat', async (request, reply) => {
+  const { message, chatHistory = [], provider = 'groq', apiKey = '', model = '' } = request.body || {};
+
+  if (!message || typeof message !== 'string') {
+    return reply.status(400).send({ error: 'Mensagem do usuário é obrigatória.' });
+  }
+
+  try {
+    const result = await odisseuAgent.askOdisseu({
+      message,
+      chatHistory,
+      provider,
+      apiKey,
+      model
+    });
+    return result;
+  } catch (err) {
+    return reply.status(500).send({
+      success: false,
+      error: err.message
+    });
+  }
+});
+
+fastify.post('/api/odisseu/test-key', async (request, reply) => {
+  const { provider = 'groq', apiKey = '', model = '' } = request.body || {};
+
+  try {
+    const result = await odisseuAgent.testApiKey({ provider, apiKey, model });
+    return result;
+  } catch (err) {
+    return reply.status(500).send({
+      valid: false,
+      error: err.message
+    });
+  }
+});
+
 const start = async () => {
   try {
     const port = process.env.PORT || 3005;
