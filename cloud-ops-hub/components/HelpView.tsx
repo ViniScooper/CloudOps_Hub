@@ -48,7 +48,7 @@ export function HelpView({ onNavigate }: HelpViewProps) {
       num: '04',
       title: 'GitFlow & Pull Request Automático',
       icon: GitPullRequest,
-      desc: 'Trabalhe na branch develop e mescle para a main direto pelo painel sem precisar abrir o site do GitHub.',
+      desc: 'Trabalhe na branch develop e mescle para a main direto pelo painel sem abrir o site do GitHub. Na VM só precisa do Git instalado (git clone). No Hub você pode colar seu GitHub Token ou usar o Git local do seu PC.',
       actionLabel: 'Ver GitFlow',
       targetTab: 'Deploy'
     },
@@ -71,6 +71,10 @@ export function HelpView({ onNavigate }: HelpViewProps) {
   ]
 
   const faqs = [
+    {
+      q: 'O que o usuário precisa configurar para usar o GitFlow & Pull Request no Hub?',
+      a: 'É super simples e dividido em 2 partes: 1) Na VM da Nuvem: Apenas ter o Git instalado (sudo apt install git) e o repositório clonado. Se o repositório for privado, adicione uma Deploy Key no GitHub para a VM poder dar "git pull"; 2) No CloudOps Hub: O usuário pode clicar em "⚙️ Configurar GitHub Token" e colar seu Personal Access Token com permissão de "repo" para criar PRs pelo celular ou outro PC. Se estiver rodando o Hub no PC onde já programa, o sistema usa o Git local automaticamente sem precisar de token!'
+    },
     {
       q: 'Preciso abrir portas no firewall da Oracle Cloud para acessar o painel ou APIs?',
       a: 'Não! O sistema utiliza o Cloudflare Tunnel (Zero Trust). O tráfego passa por um túnel criptografado direto da VM para a rede global da Cloudflare, oferecendo HTTPS automático sem portas expostas.'
