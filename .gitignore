@@ -11,6 +11,7 @@
 VM_DADPS*.TXT
 INFOS_VM*.TXT
 AI_CONTEXT.md
+documentacoes/07_AGENTE_ODISSEU_RAG_LANGCHAIN.md
 
 # ==========================================
 # DEPENDÊNCIAS & COMPILAÇÃO
