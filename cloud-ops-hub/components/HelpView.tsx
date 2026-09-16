@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { 
   CircleHelp, BookOpen, Rocket, Shield, Container, Terminal, HardDrive, 
   Zap, CheckCircle2, ArrowRight, RotateCcw, GitPullRequest, ExternalLink, 
-  HelpCircle, MessageSquare, AlertCircle, ChevronDown, ChevronUp, Lock, Globe
+  HelpCircle, MessageSquare, AlertCircle, ChevronDown, ChevronUp, Lock, Globe, FolderPlus
 } from 'lucide-react'
 
 interface HelpViewProps {
@@ -301,6 +301,115 @@ export function HelpView({ onNavigate }: HelpViewProps) {
             3. O banco opera isolado na rede privada local, acessível apenas internamente ou via túnel SSH autenticado.
           </div>
         )}
+      </section>
+
+      {/* Guia Especial: Clonar & Subir Novo Projeto do GitHub */}
+      <section className="panel" style={{ padding: '22px', marginBottom: '28px', borderColor: '#1b3236', background: 'linear-gradient(180deg, #091214 0%, #0d171a 100%)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '14px', marginBottom: '16px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <FolderPlus size={18} style={{ color: '#20d6c7' }} />
+              <h3 style={{ margin: 0, fontSize: '16px', color: '#d9e2e1' }}>
+                Clonar & Subir Novo Projeto do GitHub na VM
+              </h3>
+            </div>
+            <p style={{ color: '#8fa4a8', fontSize: '12px', margin: 0 }}>
+              Baixe qualquer repositório na sua VM Oracle e inicie a execução via Docker ou PM2 automaticamente sem abrir terminal manual.
+            </p>
+          </div>
+
+          <button
+            className="primary-button"
+            onClick={() => onNavigate('Deploy')}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', padding: '6px 14px' }}
+          >
+            <Rocket size={13} /> Ir para Tela de Deploy
+          </button>
+        </div>
+
+        {/* Campos Explicados */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px', marginBottom: '18px' }}>
+          <div style={{ background: '#070a0c', padding: '12px', borderRadius: '6px', border: '1px solid #142023', fontSize: '11px' }}>
+            <strong style={{ color: '#20d6c7', display: 'block', marginBottom: '4px' }}>🔗 URL do Repositório Git *</strong>
+            <span style={{ color: '#d9e2e1', fontFamily: 'monospace' }}>https://github.com/ViniScooper/meu-novo-app.git</span>
+            <small style={{ display: 'block', color: '#6f8387', marginTop: '4px' }}>Link HTTPS ou SSH do repositório no GitHub.</small>
+          </div>
+
+          <div style={{ background: '#070a0c', padding: '12px', borderRadius: '6px', border: '1px solid #142023', fontSize: '11px' }}>
+            <strong style={{ color: '#20d6c7', display: 'block', marginBottom: '4px' }}>📁 Nome da Pasta na VM & Branch</strong>
+            <span style={{ color: '#d9e2e1' }}>Pasta: <code>/home/ubuntu/meu-app</code> | Branch: <code>main</code></span>
+            <small style={{ display: 'block', color: '#6f8387', marginTop: '4px' }}>Onde os arquivos ficarão salvos no Linux da VM.</small>
+          </div>
+        </div>
+
+        {/* Comparação dos 3 Modos de Execução */}
+        <h4 style={{ fontSize: '12px', color: '#d9e2e1', textTransform: 'uppercase', margin: '0 0 10px 0', letterSpacing: '0.5px' }}>
+          Como escolher o Modo de Execução correto?
+        </h4>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+          <div style={{ background: '#070a0c', padding: '14px', borderRadius: '6px', border: '1px solid #162428' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', color: '#20d6c7', fontWeight: 600, fontSize: '12px' }}>
+              <Container size={15} /> 🐳 Docker Compose
+            </div>
+            <p style={{ color: '#8fa4a8', fontSize: '11px', lineHeight: '1.5', margin: '0 0 8px 0' }}>
+              Roda <code>docker compose up -d --build</code>.
+            </p>
+            <span style={{ display: 'block', color: '#d9e2e1', fontSize: '11px', lineHeight: '1.5' }}>
+              • <b>Quando usar:</b> Projetos com <code>docker-compose.yml</code>, banco de dados ou múltiplos containers.<br/>
+              • <b>Vantagem:</b> Isolamento total de bibliotecas e versões.
+            </span>
+          </div>
+
+          <div style={{ background: '#070a0c', padding: '14px', borderRadius: '6px', border: '1px solid #162428' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', color: '#a3e635', fontWeight: 600, fontSize: '12px' }}>
+              <Terminal size={15} /> ⚡ Node.js / PM2
+            </div>
+            <p style={{ color: '#8fa4a8', fontSize: '11px', lineHeight: '1.5', margin: '0 0 8px 0' }}>
+              Instala dependências e roda <code>pm2 start</code>.
+            </p>
+            <span style={{ display: 'block', color: '#d9e2e1', fontSize: '11px', lineHeight: '1.5' }}>
+              • <b>Quando usar:</b> APIs REST em Node.js/Express/Fastify.<br/>
+              • <b>Vantagem para sua VM:</b> Consome míseros <b>~15 MB de RAM</b>, ideal para não sobrecarregar servidores de 1 GB.
+            </span>
+          </div>
+
+          <div style={{ background: '#070a0c', padding: '14px', borderRadius: '6px', border: '1px solid #162428' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', color: '#f59e0b', fontWeight: 600, fontSize: '12px' }}>
+              <FolderPlus size={15} /> 📂 Apenas Clonar
+            </div>
+            <p style={{ color: '#8fa4a8', fontSize: '11px', lineHeight: '1.5', margin: '0 0 8px 0' }}>
+              Apenas baixa os arquivos para a VM.
+            </p>
+            <span style={{ display: 'block', color: '#d9e2e1', fontSize: '11px', lineHeight: '1.5' }}>
+              • <b>Quando usar:</b> Quando você precisa configurar arquivos <code>.env</code>, senhas ou migrações antes de inicializar.
+            </span>
+          </div>
+        </div>
+
+        {/* Alerta Crítico: Proxy Reverso e Evitar Conflito de Portas */}
+        <div style={{ background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.25)', borderRadius: '6px', padding: '14px', fontSize: '11px', lineHeight: '1.6' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f59e0b', fontWeight: 700, marginBottom: '6px', fontSize: '12px' }}>
+            <AlertCircle size={15} /> ⚠️ IMPORTANTE: Como evitar Conflito de Portas com o Proxy Reverso (Nginx)
+          </div>
+          <p style={{ color: '#d9e2e1', margin: '0 0 8px 0' }}>
+            No Linux, duas aplicações <b>NUNCA</b> podem escutar na mesma porta ao mesmo tempo. Suas portas atuais já utilizadas são:
+          </p>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '10px', fontFamily: 'monospace', fontSize: '10px' }}>
+            <span style={{ background: '#070a0c', padding: '2px 8px', borderRadius: '4px', border: '1px solid #1e282a', color: '#6f8387' }}>Porta 3001: Lottus API</span>
+            <span style={{ background: '#070a0c', padding: '2px 8px', borderRadius: '4px', border: '1px solid #1e282a', color: '#6f8387' }}>Porta 3002: Boteco Backend</span>
+            <span style={{ background: '#070a0c', padding: '2px 8px', borderRadius: '4px', border: '1px solid #1e282a', color: '#6f8387' }}>Porta 3003: Inglês API</span>
+            <span style={{ background: '#070a0c', padding: '2px 8px', borderRadius: '4px', border: '1px solid #1e282a', color: '#6f8387' }}>Porta 3306: MySQL</span>
+            <span style={{ background: '#133538', padding: '2px 8px', borderRadius: '4px', border: '1px solid #20d6c7', color: '#20d6c7', fontWeight: 700 }}>Porta 3004+: DISPONÍVEIS</span>
+          </div>
+          <p style={{ color: '#a2b3b6', margin: 0 }}>
+            <b>Como publicar seu novo app na internet:</b><br/>
+            1. Configure a sua aplicação para escutar em uma porta livre (ex: <code>3004</code>);<br/>
+            2. Vá até a aba <b>Nginx</b> do CloudOps Hub e clique em <b>"Adicionar Host"</b>;<br/>
+            3. Aponte seu domínio (ex: <code>app.meudominio.com</code>) para <code>http://127.0.0.1:3004</code> e ative o <b>SSL Let's Encrypt</b>.<br/>
+            Dessa forma, os usuários acessam na porta padrão 443 (HTTPS) e o Nginx faz o encaminhamento sem nenhum conflito de portas!
+          </p>
+        </div>
       </section>
 
       {/* FAQ Acordeão */}
