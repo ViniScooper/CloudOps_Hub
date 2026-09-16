@@ -355,6 +355,87 @@ async function getGitVmStatus() {
   }
 }
 
+async function cloneAndLaunchProject({ repoUrl, projectName, branch = 'main', runMode = 'docker', port = '' }) {
+  const startTime = Date.now();
+  const timestamp = new Date().toLocaleTimeString('pt-BR');
+  const logs = [];
+
+  if (!repoUrl) {
+    throw new Error('A URL do repositório Git é obrigatória.');
+  }
+
+  // Extrai nome do projeto a partir da URL se não informado
+  let folder = projectName ? projectName.trim().replace(/[^a-zA-Z0-9_-]/g, '') : '';
+  if (!folder) {
+    const parts = repoUrl.split('/');
+    const last = parts[parts.length - 1] || 'app';
+    folder = last.replace(/\.git$/, '');
+  }
+
+  const targetDir = `/home/ubuntu/${folder}`;
+  logs.push(`[${timestamp}] 📦 Iniciando clone e inicialização do projeto "${folder}" na VM...`);
+
+  // 1. Verifica se pasta já existe
+  const checkDir = await runRemoteSsh(`[ -d "${targetDir}" ] && echo "exists" || echo "not_exists"`);
+  if (checkDir.stdout.includes('exists')) {
+    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Diretório ${targetDir} já existe na VM. Atualizando código (git pull)...`);
+    const pullRes = await runRemoteSsh(`cd ${targetDir} && git fetch origin && git checkout ${branch} && git pull origin ${branch}`);
+    logs.push(`[Git] ${pullRes.stdout || 'Repositório atualizado'}`);
+  } else {
+    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Clonando ${repoUrl} (branch: ${branch}) para ${targetDir}...`);
+    const cloneRes = await runRemoteSsh(`git clone -b ${branch} ${repoUrl} ${targetDir}`);
+    logs.push(`[Git] ${cloneRes.stdout || cloneRes.stderr || 'Clone concluído com sucesso'}`);
+  }
+
+  // 2. Executa de acordo com o runMode
+  if (runMode === 'docker') {
+    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Compilando e subindo containers Docker (docker compose up -d --build)...`);
+    const dockerRes = await runRemoteSsh(`cd ${targetDir} && (docker compose up -d --build || docker-compose up -d --build)`);
+    if (dockerRes.stdout) dockerRes.stdout.split('\n').forEach(l => logs.push(`[Docker] ${l}`));
+    if (dockerRes.stderr) dockerRes.stderr.split('\n').forEach(l => logs.push(`[Docker Info] ${l}`));
+  } else if (runMode === 'pm2') {
+    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Instalando dependências e iniciando processo PM2...`);
+    await runRemoteSsh(`cd ${targetDir} && (npm install --production || true)`);
+    const pm2Res = await runRemoteSsh(`cd ${targetDir} && (source ~/.bashrc 2>/dev/null; pm2 start server.js --name "${folder}" || pm2 start index.js --name "${folder}" || pm2 start app.js --name "${folder}" || pm2 start npm --name "${folder}" -- start)`);
+    logs.push(`[PM2] ${pm2Res.stdout || 'Processo registrado no PM2'}`);
+  } else {
+    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Modo clone_only: Repositório baixado e pronto em ${targetDir}.`);
+  }
+
+  const durationSeconds = ((Date.now() - startTime) / 1000).toFixed(1) + 's';
+  logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] ✅ Projeto ${folder} lançado com sucesso na VM em ${durationSeconds}!`);
+
+  // Salva no histórico de auditoria
+  const history = loadHistory();
+  const newEntry = {
+    id: `dep-${Date.now().toString().slice(-4)}`,
+    timestamp: new Date().toLocaleString('pt-BR'),
+    project: folder,
+    type: 'NOVO PROJETO',
+    branch,
+    commitHash: 'initial',
+    commitMessage: `Clone & Launch do repositório: ${repoUrl} (${runMode})`,
+    author: 'Vinicius Lourenco',
+    duration: durationSeconds,
+    status: 'Sucesso'
+  };
+  history.unshift(newEntry);
+  saveHistory(history);
+
+  // Alerta WhatsApp
+  oracleScraper.sendWhatsAppNotification(`🚀 *CloudOps Hub:* Novo projeto *${folder}* adicionado na VM com sucesso!\n\nOrigem: ${repoUrl}\nModo: ${runMode.toUpperCase()}\nDuração: ${durationSeconds}`);
+
+  return {
+    success: true,
+    folder,
+    targetDir,
+    runMode,
+    duration: durationSeconds,
+    logs,
+    history: history.slice(0, 10)
+  };
+}
+
 function getDeployHistory() {
   return loadHistory().slice(0, 10);
 }
@@ -364,6 +445,8 @@ module.exports = {
   executeRollback,
   getDeployHistory,
   setupGitOnVm,
-  getGitVmStatus
+  getGitVmStatus,
+  cloneAndLaunchProject
 };
+
 

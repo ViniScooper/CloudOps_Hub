@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from 'react'
 import { 
   Rocket, GitBranch, Check, RefreshCw, Terminal, GitPullRequest, 
-  GitMerge, ShieldCheck, ArrowRight, RotateCcw, History, AlertTriangle, Clock, Sparkles
+  GitMerge, ShieldCheck, ArrowRight, RotateCcw, History, AlertTriangle, Clock, Sparkles, FolderPlus, Plus
 } from 'lucide-react'
 import { GitSetupModal } from './GitSetupModal'
+import { CloneRepoModal } from './CloneRepoModal'
 
 interface DeployViewProps {
   server: any
@@ -30,6 +31,8 @@ export function DeployView({ server, doAction }: DeployViewProps) {
   const [isMerging, setIsMerging] = useState(false)
   const [isRollingBack, setIsRollingBack] = useState(false)
   const [gitSetupOpen, setGitSetupOpen] = useState(false)
+  const [cloneRepoOpen, setCloneRepoOpen] = useState(false)
+  const [customProjects, setCustomProjects] = useState<any[]>([])
   const [deployLogs, setDeployLogs] = useState<string[]>([])
   const [selectedBranch, setSelectedBranch] = useState('main')
   const [mergeSourceBranch, setMergeSourceBranch] = useState('develop')
@@ -294,6 +297,20 @@ export function DeployView({ server, doAction }: DeployViewProps) {
       </div>
 
       {/* Seção 2: Cards de Aplicações */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: '15px', color: '#d9e2e1' }}>Aplicações em Execução na VM</h3>
+          <small style={{ color: '#6f8387' }}>Gerencie deploys contínuos, reinicializações e novos clones de repositórios</small>
+        </div>
+        <button 
+          className="primary-button"
+          onClick={() => setCloneRepoOpen(true)}
+          style={{ padding: '6px 14px', fontSize: '11px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
+        >
+          <FolderPlus size={13} /> Clonar Novo Projeto do GitHub
+        </button>
+      </div>
+
       <div className="overview-grid" style={{ marginBottom: '20px' }}>
         {/* Card do Cardápio Digital com Rollback */}
         <div className="panel" style={{ padding: '20px' }}>
@@ -420,6 +437,44 @@ export function DeployView({ server, doAction }: DeployViewProps) {
             </button>
           </div>
         </div>
+
+        {/* Cards de Novos Projetos Clonados Dinamicamente */}
+        {customProjects.map((proj, idx) => (
+          <div key={idx} className="panel" style={{ padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <span className="status-dot emerald" />
+                  <h3 style={{ margin: 0, fontSize: '15px' }}>{proj.name}</h3>
+                </div>
+                <small style={{ color: '#6f8387' }}>Modo: {proj.runMode.toUpperCase()} | Porta: {proj.port}</small>
+              </div>
+              <span className="status-text emerald">Ativo na VM</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', background: '#070a0c', padding: '12px', borderRadius: '6px', border: '1px solid #142023', marginBottom: '16px', fontSize: '11px' }}>
+              <div>
+                <span style={{ color: '#6f8387', display: 'block', fontSize: '9px', textTransform: 'uppercase' }}>Branch</span>
+                <strong style={{ color: '#d9e2e1', display: 'block', marginTop: '4px' }}>{proj.branch}</strong>
+              </div>
+              <div>
+                <span style={{ color: '#6f8387', display: 'block', fontSize: '9px', textTransform: 'uppercase' }}>Status</span>
+                <strong style={{ color: '#a3e635', display: 'block', marginTop: '4px' }}>Healthy</strong>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button 
+                className="primary-button"
+                disabled={isDeploying || isMerging || isRollingBack}
+                onClick={() => triggerDeploy(proj.name)}
+                style={{ padding: '7px 14px' }}
+              >
+                <Rocket size={13} /> Fazer Deploy
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Seção 3: Terminal de Saída do Deploy */}
@@ -550,6 +605,14 @@ export function DeployView({ server, doAction }: DeployViewProps) {
         isOpen={gitSetupOpen} 
         onClose={() => setGitSetupOpen(false)} 
         doAction={doAction} 
+      />
+
+      {/* Modal de Clonar & Subir Novo Projeto do GitHub */}
+      <CloneRepoModal 
+        isOpen={cloneRepoOpen}
+        onClose={() => setCloneRepoOpen(false)}
+        doAction={doAction}
+        onProjectAdded={p => setCustomProjects(prev => [...prev, p])}
       />
     </div>
   )
