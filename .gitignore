@@ -1,0 +1,40 @@
+# ==========================================
+# SEGURANÇA MÁXIMA & ARQUIVOS SENSÍVEIS
+# ==========================================
+.env
+.env*.local
+*.env
+*.key
+*.pem
+*.pub
+*.ppk
+VM_DADPS*.TXT
+INFOS_VM*.TXT
+
+# ==========================================
+# DEPENDÊNCIAS & COMPILAÇÃO
+# ==========================================
+node_modules/
+.next/
+dist/
+build/
+out/
+
+# ==========================================
+# LOGS E ARQUIVOS TEMPORÁRIOS
+# ==========================================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+cloud-ops-hub.zip
+
+# ==========================================
+# SISTEMA OPERACIONAL & IDES
+# ==========================================
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
