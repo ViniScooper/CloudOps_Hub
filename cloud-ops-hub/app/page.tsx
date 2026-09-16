@@ -11,6 +11,7 @@ import { VmScraper } from '../components/VmScraper'
 import { DashboardView } from '../components/DashboardView'
 import { DeployView } from '../components/DeployView'
 import { EnvManagerView } from '../components/EnvManagerView'
+import { HelpView } from '../components/HelpView'
 import { Rocket, KeyRound } from 'lucide-react'
 
 
@@ -24,6 +25,7 @@ const nav = [
   { label: 'Tunnels', icon: Shield, badge: 'Zero Trust' },
   { label: 'Storage', icon: HardDrive },
   { label: 'Terminal', icon: TerminalSquare },
+  { label: 'Ajuda & Guia', icon: CircleHelp, badge: 'Help' },
 ]
 
 const servers = [
@@ -427,6 +429,18 @@ echo "============================================================"`
             <Search size={17} />
           </button>
           <button 
+            className="icon-button" 
+            title="Central de Ajuda e Primeiros Passos"
+            onClick={() => {
+              setActive('Ajuda & Guia')
+              doAction('Abrindo Central de Ajuda e Primeiros Passos')
+            }} 
+            aria-label="Ajuda"
+            style={{ color: active === 'Ajuda & Guia' ? '#20d6c7' : undefined }}
+          >
+            <CircleHelp size={17} />
+          </button>
+          <button 
             className="icon-button notification" 
             title="Configurações de notificações e alertas"
             onClick={() => {
@@ -561,6 +575,13 @@ echo "============================================================"`
         {/* ========================================================================= */}
         {server && active === 'Variáveis (.env)' && (
           <EnvManagerView server={server} doAction={doAction} />
+        )}
+
+        {/* ========================================================================= */}
+        {/* ABA: CENTRAL DE AJUDA & GUIA DE PRIMEIROS PASSOS */}
+        {/* ========================================================================= */}
+        {active === 'Ajuda & Guia' && (
+          <HelpView onNavigate={(target) => setActive(target)} />
         )}
 
         {server && active === 'Docker' && <>
