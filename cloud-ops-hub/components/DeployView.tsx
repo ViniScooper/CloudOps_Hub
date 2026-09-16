@@ -218,9 +218,11 @@ export function DeployView({ server, doAction }: DeployViewProps) {
                 fontSize: '11px'
               }}
             />
-            <span style={{ display: 'block', color: '#52666a', fontSize: '10px', marginTop: '4px' }}>
-              Se deixar em branco, o Hub utiliza o Git local já autenticado na sua máquina para fazer a mesclagem e o push direto.
-            </span>
+            <div style={{ display: 'block', color: '#8fa4a8', fontSize: '11px', marginTop: '8px', lineHeight: '1.6', background: '#0e1619', padding: '8px 10px', borderRadius: '4px', border: '1px solid #162428' }}>
+              <span style={{ color: '#20d6c7', fontWeight: 600 }}>💡 Como funciona a autenticação:</span><br/>
+              • <b>Na sua VM (Nuvem):</b> Só precisa do Git instalado e do projeto clonado (<code>git clone</code>). Se for repositório privado, adicione a chave SSH da VM como Deploy Key no GitHub.<br/>
+              • <b>No CloudOps Hub:</b> Cole seu token aqui se estiver acessando de outro dispositivo para criar PRs pela API oficial. Se estiver no seu PC onde já programa, pode deixar em branco que o Hub usa o Git local já autenticado!
+            </div>
           </div>
         )}
 

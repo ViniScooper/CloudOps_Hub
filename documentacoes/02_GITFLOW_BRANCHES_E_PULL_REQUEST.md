@@ -76,9 +76,24 @@ Em vez de abrir o site do GitHub, criar Pull Request manual e clicar em botões 
 
 ---
 
-## 4. Usando com ou sem Token do GitHub
+## 4. O que o Usuário Precisa Configurar (Na VM vs no CloudOps Hub)
 
-* **Modo Padrão (Sem Token):**
-  O CloudOps Hub utiliza a autenticação Git já salva no seu Windows (Windows Credential Manager). Você não precisa configurar nada; basta clicar no botão.
-* **Modo Formal (Com Token):**
-  Se clicar em **"⚙️ Configurar GitHub Token"** e colar seu token, o CloudOps Hub chama a API oficial do GitHub e cria o Pull Request numerado com página de discussão no site (`github.com/.../pull/X`).
+Uma dúvida comum é: *"Preciso cadastrar meu Git na plataforma ou só instalar na VM?"*
+
+Aqui está o resumo prático:
+
+### A) Na sua VM (Servidor na Nuvem):
+* **Apenas o Git instalado:** Rodar `sudo apt install git` na máquina virtual.
+* **Repositório clonado:** Clonar o projeto (`git clone https://github.com/...`).
+* **Permissão de Download (`git pull`):**
+  * Se o repositório for **público**: Não precisa de nenhuma senha.
+  * Se o repositório for **privado**: Gere uma chave SSH na VM (`ssh-keygen -t ed25519`) e cole a chave pública no seu GitHub em *Settings ➔ Deploy keys*. Isso dá permissão permanente para a VM baixar o código sem pedir senha.
+
+### B) No Painel do CloudOps Hub (Para criar PR e Merge automático):
+O usuário escolhe entre dois modos:
+1. **Modo Token (Qualquer dispositivo / Novo Usuário):**
+   * Clica em **"⚙️ Configurar GitHub Token"**;
+   * Cola um Personal Access Token gerado no GitHub (com escopo `repo`);
+   * O CloudOps Hub se comunica diretamente com a **API oficial do GitHub** (`https://api.github.com`), criando o PR e fazendo o merge pelo próprio site do GitHub. O usuário nem precisa ter o repositório clonado no computador!
+2. **Modo Local (PC de Desenvolvimento):**
+   * Se você estiver rodando o CloudOps Hub no mesmo computador onde já programa com VS Code e Git logado, pode deixar o campo de token em branco. O sistema usará o Git local autenticado da sua máquina automaticamente!
