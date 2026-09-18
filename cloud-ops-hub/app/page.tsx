@@ -15,7 +15,9 @@ import { HelpView } from '../components/HelpView'
 import { OdisseuChatView } from '../components/OdisseuChatView'
 import { CloudflareTunnelView } from '../components/CloudflareTunnelView'
 import { StorageExplorerView } from '../components/StorageExplorerView'
-import { Rocket, KeyRound, Bot } from 'lucide-react'
+import { LogsTelemetryView } from '../components/LogsTelemetryView'
+import { MigrationWorkspaceView } from '../components/MigrationWorkspaceView'
+import { Rocket, KeyRound, Bot, ArrowLeftRight } from 'lucide-react'
 
 
 const nav = [
@@ -23,6 +25,8 @@ const nav = [
   { label: 'Odisseu AI', icon: Bot, badge: 'Copilot' },
   { label: 'VM Scraper', icon: Zap, badge: 'Nuvem 24/7' },
   { label: 'Deploy', icon: Rocket, badge: 'CI/CD' },
+  { label: 'Monitoramento & Logs', icon: Activity, badge: 'Realtime' },
+  { label: 'Migração Multi-Cloud', icon: ArrowLeftRight, badge: '1-Click' },
   { label: 'Variáveis (.env)', icon: KeyRound },
   { label: 'Docker', icon: Container, badge: '3' },
   { label: 'Nginx', icon: Network },
@@ -900,6 +904,20 @@ terraform -version
         {/* ========================================================================= */}
         {server && active === 'Deploy' && (
           <DeployView server={server} doAction={doAction} />
+        )}
+
+        {/* ========================================================================= */}
+        {/* ABA: MONITORAMENTO & LOGS DE ERROS DO USUÁRIO EM TEMPO REAL */}
+        {/* ========================================================================= */}
+        {active === 'Monitoramento & Logs' && (
+          <LogsTelemetryView doAction={doAction} />
+        )}
+
+        {/* ========================================================================= */}
+        {/* ABA: WORKSPACE DE MIGRAÇÃO MULTI-CLOUD (ORACLE ➔ HOSTINGER / VPS) */}
+        {/* ========================================================================= */}
+        {active === 'Migração Multi-Cloud' && (
+          <MigrationWorkspaceView doAction={doAction} />
         )}
 
         {/* ========================================================================= */}
