@@ -28,13 +28,13 @@ import {
 export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) => void }) {
   // Servidores Cadastrados no Hub com Status OK
   const [registeredTargets, setRegisteredTargets] = useState<any[]>([])
-  const [selectedTargetId, setSelectedTargetId] = useState<string>('hostinger-kvm-01')
+  const [selectedTargetId, setSelectedTargetId] = useState<string>('')
   const [loadingTargets, setLoadingTargets] = useState(false)
   const [savingTarget, setSavingTarget] = useState(false)
 
-  // Configurações da VPS de Destino (Hostinger)
+  // Configurações da VPS de Destino
   const [targetProvider, setTargetProvider] = useState('Hostinger')
-  const [targetHost, setTargetHost] = useState('195.35.40.120')
+  const [targetHost, setTargetHost] = useState('')
   const [targetPort, setTargetPort] = useState('22')
   const [targetUser, setTargetUser] = useState('root')
   const [targetAuthType, setTargetAuthType] = useState<'password' | 'key'>('password')

@@ -1,19 +1,5 @@
 [
   {
-    "id": "hostinger-kvm-01",
-    "name": "Hostinger Cloud VPS (KVM-1)",
-    "provider": "Hostinger",
-    "host": "195.35.40.120",
-    "port": 22,
-    "user": "root",
-    "authType": "key",
-    "status": "OK",
-    "health": "Conectado (Status OK)",
-    "specs": "4 GB RAM | 50 GB NVMe | 1 vCPU",
-    "plan": "KVM 1 (R$ 19,99/mês)",
-    "region": "São Paulo (BR) / Dallas"
-  },
-  {
     "id": "oracle-micro-02",
     "name": "cloudops-micro-02 (Oracle Secundária)",
     "provider": "Oracle Cloud",
@@ -26,19 +12,5 @@
     "specs": "1 GB RAM | 49 GB SSD | Always Free",
     "plan": "VM.Standard.E2.1.Micro",
     "region": "sa-saopaulo-1 (GRU)"
-  },
-  {
-    "id": "aws-api",
-    "name": "AWS EC2 API Cluster",
-    "provider": "AWS",
-    "host": "10.42.7.18",
-    "port": 22,
-    "user": "ec2-user",
-    "authType": "key",
-    "status": "OK",
-    "health": "Conectado (Status OK)",
-    "specs": "8 GB RAM | 100 GB EBS | t3.large",
-    "plan": "EC2 t3.large",
-    "region": "us-east-1"
   }
 ]

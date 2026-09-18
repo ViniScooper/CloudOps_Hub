@@ -38,8 +38,7 @@ const nav = [
 
 const servers = [
   { id: 'oracle-prod', name: 'instance-bytedata', provider: 'Oracle Cloud (Always Free)', region: 'sa-saopaulo-1 (GRU)', ip: '137.131.185.243', status: 'Healthy', type: 'AMD EPYC (2 vCPUs)', cpu: '18', ram: '42', ramUsed: '401', ramTotal: '956', cacheUsed: '233', cachePct: '24', disk: '34', diskUsed: '15', diskTotal: '45', color: 'oracle' },
-  { id: 'oracle-micro-02', name: 'cloudops-micro-02', provider: 'Oracle Cloud (Always Free)', region: 'sa-saopaulo-1 (GRU)', ip: '137.131.187.54', status: 'Healthy', type: 'VM.Standard.E2.1.Micro', cpu: '2', ram: '21', ramUsed: '207', ramTotal: '956', cacheUsed: '278', cachePct: '29', disk: '5', diskUsed: '2.4', diskTotal: '49', color: 'oracle' },
-  { id: 'aws-api', name: 'AWS API Cluster', provider: 'Amazon Web Services', region: 'us-east-1', ip: '10.42.7.18', status: 'Healthy', type: 't3.large', cpu: '27', ram: '51', disk: '44', color: 'aws' },
+  { id: 'oracle-micro-02', name: 'cloudops-micro-02', provider: 'Oracle Cloud (Always Free)', region: 'sa-saopaulo-1 (GRU)', ip: '137.131.187.54', status: 'Healthy', type: 'VM.Standard.E2.1.Micro', cpu: '2', ram: '21', ramUsed: '207', ramTotal: '956', cacheUsed: '278', cachePct: '29', disk: '5', diskUsed: '2.4', diskTotal: '49', color: 'oracle' }
 ]
 
 const containersData = [
