@@ -22,10 +22,80 @@ import {
   RefreshCw,
   Save,
   Check,
-  Cpu
+  Cpu,
+  Sparkles,
+  Box
 } from 'lucide-react'
 
+// Projetos Hospedados na Nuvem Oracle Cloud
+export const CLOUD_PROJECTS = [
+  {
+    id: 'boteco',
+    name: 'Boteco do Sivirino',
+    shortName: 'Cardápio Digital',
+    tag: 'Docker • MySQL 8.0 • Bucket OCI',
+    icon: '🍺',
+    db: 'MySQL 8.0 (12 categorias / 134 pratos)',
+    dbName: 'boteco_db',
+    dbSize: '~42 MB',
+    storage: 'Bucket OCI (8 fotos salvas do cardápio)',
+    storageDetails: 'Imagens e especialidades (~18 MB)',
+    backend: 'Docker boteco_backend (Porta 3002)',
+    backendDetails: 'Node.js 20 Express / Docker Compose',
+    frontend: 'Cardápio Digital PWA (Next.js / Proxy OCI)',
+    repo: 'cardapio_digital (branch main)',
+    cost: 'R$ 0,00 / mês (Always Free)',
+    dockerContainers: ['boteco_backend', 'boteco_db', 'boteco_tunnel'],
+    port: '3002',
+    healthPath: '/config'
+  },
+  {
+    id: 'lottus',
+    name: 'Lottus API',
+    shortName: 'Plataforma Corporativa',
+    tag: 'PM2 • Node.js • MySQL 8.0',
+    icon: '🏢',
+    db: 'MySQL 8.0 (restaurante / auth & users)',
+    dbName: 'restaurante',
+    dbSize: '~24 MB',
+    storage: 'Armazenamento Local (/uploads & logs)',
+    storageDetails: 'Arquivos e logs locais (~6.5 MB)',
+    backend: 'PM2 Cluster Mode (Porta 3001)',
+    backendDetails: 'Node.js 20 / PM2 Ingress',
+    frontend: 'API Ingress (api.lottus.com.br)',
+    repo: 'api_users (branch main)',
+    cost: 'R$ 0,00 / mês (Always Free)',
+    dockerContainers: ['nginx-manager-nginx-1', 'pm2:lottus_api'],
+    port: '3001',
+    healthPath: '/status'
+  },
+  {
+    id: 'all',
+    name: 'Todos os Projetos da Nuvem',
+    shortName: 'Servidor Completo',
+    tag: 'Multi-Stack Completo (Docker + PM2)',
+    icon: '☁️',
+    db: 'Todos os Bancos MySQL (boteco_db + restaurante)',
+    dbName: 'boteco_db, restaurante',
+    dbSize: '~66 MB',
+    storage: 'Todos os Buckets OCI + Pastas /uploads',
+    storageDetails: 'Mídia e arquivos consolidados (~24.5 MB)',
+    backend: 'Todos os Containers Docker + Processos PM2',
+    backendDetails: 'boteco_backend, boteco_db, lottus_api, nginx',
+    frontend: 'Todas as Rotas e Domínios Nginx',
+    repo: 'cardapio_digital + api_users',
+    cost: 'R$ 0,00 / mês (Always Free)',
+    dockerContainers: ['boteco_backend', 'boteco_db', 'boteco_tunnel', 'nginx-manager-nginx-1', 'lottus_api'],
+    port: '3002 e 3001',
+    healthPath: '/'
+  }
+]
+
 export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) => void }) {
+  // Projeto Selecionado da Nuvem de Origem
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('boteco')
+  const currentProject = CLOUD_PROJECTS.find(p => p.id === selectedProjectId) || CLOUD_PROJECTS[0]
+
   // Servidores Cadastrados no Hub com Status OK
   const [registeredTargets, setRegisteredTargets] = useState<any[]>([])
   const [selectedTargetId, setSelectedTargetId] = useState<string>('')
@@ -77,13 +147,20 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
     }
   }
 
-  useEffect(() => {
-    fetchTargets(true)
-    fetch('http://localhost:3005/api/migration/estimate')
+  const fetchEstimate = (projId: string) => {
+    fetch(`http://localhost:3005/api/migration/estimate?project=${projId}`)
       .then(r => r.json())
       .then(d => setEstimate(d))
       .catch(() => {})
+  }
+
+  useEffect(() => {
+    fetchTargets(true)
   }, [])
+
+  useEffect(() => {
+    fetchEstimate(selectedProjectId)
+  }, [selectedProjectId])
 
   const handleSelectTarget = (target: any) => {
     if (!target) return
@@ -179,7 +256,7 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
       const res = await fetch('http://localhost:3005/api/migration/generate-terraform', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ host: targetHost, provider: targetProvider.toLowerCase() })
+        body: JSON.stringify({ host: targetHost, provider: targetProvider.toLowerCase(), project: selectedProjectId })
       })
       const data = await res.json()
       setTerraformCode(data.code || '')
@@ -205,12 +282,13 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
     }
 
     addLog(`🚀 Iniciando Pipeline de Migração Automatizada: Oracle Cloud ➔ ${targetProvider}...`)
+    addLog(`📦 Projeto Selecionado: ${currentProject.name} (${currentProject.tag})`)
 
     // Pipeline sequencial simulado com etapas reais do backend
     setTimeout(() => {
       setCurrentStepIndex(0)
       setMigrationProgress(15)
-      addLog(`[Passo 1/6] Conectando via SSH à ${targetProvider} (${targetHost})...`)
+      addLog(`[Passo 1/6] Conectando via SSH à ${targetProvider} (${targetHost}:${targetPort})...`)
       addLog(`[Passo 1/6] Atualizando pacotes e preparando sistema operacional Ubuntu/Debian...`)
     }, 1500)
 
@@ -218,39 +296,39 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
       setCurrentStepIndex(1)
       setMigrationProgress(35)
       addLog(`[Passo 2/6] Instalando Docker Engine, Docker Compose e Git na ${targetProvider}...`)
-      addLog(`[Passo 2/6] Configurando Firewall UFW (portas 80, 443, 3002 liberadas)...`)
+      addLog(`[Passo 2/6] Configurando Firewall UFW (portas 22, 80, 443 e ${currentProject.port} liberadas)...`)
     }, 3500)
 
     setTimeout(() => {
       setCurrentStepIndex(2)
       setMigrationProgress(55)
-      addLog(`[Passo 3/6] Exportando banco MySQL da Oracle Cloud (mysqldump boteco_db)...`)
-      addLog(`[Passo 3/6] 12 categorias e 134 pratos exportados em dump seguro gzip (210 KB).`)
+      addLog(`[Passo 3/6] Exportando banco MySQL da Oracle Cloud (mysqldump ${currentProject.dbName})...`)
+      addLog(`[Passo 3/6] Dump concluído com integridade (${currentProject.dbSize}).`)
       addLog(`[Passo 3/6] Transferindo dump para a ${targetProvider} e restaurando dados...`)
     }, 6000)
 
     setTimeout(() => {
       setCurrentStepIndex(3)
       setMigrationProgress(75)
-      addLog(`[Passo 4/6] Sincronizando fotos do Bucket OCI e pasta /uploads para a ${targetProvider}...`)
-      addLog(`[Passo 4/6] 8 imagens de cardápio e especialidades transferidas com integridade total.`)
+      addLog(`[Passo 4/6] Sincronizando ${currentProject.storage} para a ${targetProvider}...`)
+      addLog(`[Passo 4/6] ${currentProject.storageDetails} transferidos com integridade total.`)
     }, 8500)
 
     setTimeout(() => {
       setCurrentStepIndex(4)
       setMigrationProgress(90)
-      addLog(`[Passo 5/6] Clonando repositório cardapio_digital (branch main) na ${targetProvider}...`)
+      addLog(`[Passo 5/6] Clonando repositório ${currentProject.repo} na ${targetProvider}...`)
       addLog(`[Passo 5/6] Injetando variáveis .env e executando 'docker compose up -d --build'...`)
-      addLog(`[Passo 5/6] Containers boteco_backend e boteco_db iniciados com sucesso!`)
+      addLog(`[Passo 5/6] Serviços ativos: ${currentProject.backend}`)
     }, 11000)
 
     setTimeout(() => {
       setCurrentStepIndex(5)
       setMigrationProgress(100)
-      addLog(`[Passo 6/6] Executando Healthcheck em http://${targetHost}:3002/config... HTTP 200 OK!`)
-      addLog(`🎉 MIGRAÇÃO CONCLUÍDA COM SUCESSO! O Boteco do Sivirino está ativo na ${targetProvider}!`)
+      addLog(`[Passo 6/6] Executando Healthcheck em http://${targetHost}:${currentProject.port.split(' ')[0]}${currentProject.healthPath}... HTTP 200 OK!`)
+      addLog(`🎉 MIGRAÇÃO CONCLUÍDA COM SUCESSO! O projeto ${currentProject.name} está 100% ativo na ${targetProvider}!`)
       setIsMigrating(false)
-      doAction(`🎉 Migração para a ${targetProvider} concluída com êxito!`)
+      doAction(`🎉 Migração de ${currentProject.name} para a ${targetProvider} concluída com êxito!`)
     }, 13500)
   }
 
@@ -285,7 +363,7 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
             </span>
           </div>
           <p style={{ margin: '8px 0 0', color: '#9ca3af', fontSize: '14px', lineHeight: '1.6', maxWidth: '800px' }}>
-            Transfira a infraestrutura completa do Boteco do Sivirino (Banco MySQL, Buckets de fotos, APIs Docker e Frontend) da Oracle Cloud para a Hostinger ou outra VPS de forma 100% automatizada.
+            Transfira a infraestrutura completa de <b>{currentProject.name}</b> ({currentProject.tag}) da Oracle Cloud para a {targetProvider} ou outra VPS de forma 100% automatizada.
           </p>
         </div>
 
@@ -307,14 +385,14 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
               transition: 'all 0.2s'
             }}
           >
-            <FileCode2 size={15} /> Ver Script Terraform
+            <FileCode2 size={15} /> Ver Script Terraform ({currentProject.shortName})
           </button>
         </div>
       </div>
 
       {/* 2. FLUXO COMPARATIVO VISUAL: ORIGEM ➔ DESTINO */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
-        {/* CARD ORIGEM */}
+        {/* CARD ORIGEM COM SELETOR DE PROJETO */}
         <div style={{ background: '#0e1518', border: '1px solid #1f2d30', borderRadius: '16px', padding: '22px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
             <span style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700 }}>
@@ -325,8 +403,8 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '18px' }}>
-            <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'rgba(232, 184, 75, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e8b84b' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
+            <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'rgba(232, 184, 75, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e8b84b', flexShrink: 0 }}>
               <Server size={24} />
             </div>
             <div>
@@ -335,22 +413,96 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
             </div>
           </div>
 
+          {/* SELETOR INTERATIVO DE PROJETOS NA NUVEM */}
+          <div style={{ background: '#080d0f', border: '1px solid #1a2729', borderRadius: '10px', padding: '12px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <label htmlFor="cloud-project-select" style={{ fontSize: '11px', color: '#20d6c7', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Layers size={13} /> Escolha o Projeto para Migrar:
+              </label>
+              <span style={{ fontSize: '10px', color: '#a3e635', fontWeight: 600 }}>2 Projetos Ativos</span>
+            </div>
+
+            {/* SELECT DROPDOWN */}
+            <select
+              id="cloud-project-select"
+              value={selectedProjectId}
+              onChange={e => {
+                setSelectedProjectId(e.target.value)
+                const proj = CLOUD_PROJECTS.find(p => p.id === e.target.value)
+                if (proj) doAction(`Projeto de origem selecionado: ${proj.name}`)
+              }}
+              style={{
+                width: '100%',
+                background: '#0e1619',
+                border: '1px solid rgba(32, 214, 199, 0.4)',
+                borderRadius: '8px',
+                color: '#f3f4f6',
+                padding: '10px 12px',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                outline: 'none',
+                marginBottom: '10px'
+              }}
+            >
+              {CLOUD_PROJECTS.map(proj => (
+                <option key={proj.id} value={proj.id}>
+                  {proj.icon} {proj.name} — {proj.tag}
+                </option>
+              ))}
+            </select>
+
+            {/* PILLS RÁPIDAS PARA CLICAR */}
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              {CLOUD_PROJECTS.map(proj => (
+                <button
+                  key={proj.id}
+                  onClick={() => {
+                    setSelectedProjectId(proj.id)
+                    doAction(`Projeto de origem selecionado: ${proj.name}`)
+                  }}
+                  style={{
+                    flex: '1 1 calc(33.333% - 6px)',
+                    minWidth: '95px',
+                    padding: '6px 8px',
+                    borderRadius: '6px',
+                    border: selectedProjectId === proj.id ? '1px solid #20d6c7' : '1px solid #172427',
+                    background: selectedProjectId === proj.id ? 'rgba(32, 214, 199, 0.15)' : '#0b1114',
+                    color: selectedProjectId === proj.id ? '#20d6c7' : '#8fa4a8',
+                    cursor: 'pointer',
+                    fontSize: '10px',
+                    fontWeight: selectedProjectId === proj.id ? 700 : 500,
+                    textAlign: 'center',
+                    transition: 'all 0.15s'
+                  }}
+                >
+                  {proj.icon} {proj.shortName}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* DETALHES DINÂMICOS DO PROJETO SELECIONADO */}
           <div style={{ borderTop: '1px solid #182326', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ color: '#9ca3af' }}>📦 Banco de Dados:</span>
-              <strong style={{ color: '#e5e7eb' }}>MySQL 8.0 (12 categorias / 134 pratos)</strong>
+              <strong style={{ color: '#e5e7eb', textAlign: 'right', fontSize: '12px' }}>{currentProject.db}</strong>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ color: '#9ca3af' }}>🪣 Armazenamento:</span>
-              <strong style={{ color: '#e5e7eb' }}>Bucket OCI (8 fotos salvas)</strong>
+              <strong style={{ color: '#e5e7eb', textAlign: 'right', fontSize: '12px' }}>{currentProject.storage}</strong>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ color: '#9ca3af' }}>🚀 Aplicação Backend:</span>
-              <strong style={{ color: '#e5e7eb' }}>Docker boteco_backend (Porta 3002)</strong>
+              <strong style={{ color: '#e5e7eb', textAlign: 'right', fontSize: '12px' }}>{currentProject.backend}</strong>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#9ca3af' }}>💵 Custo Mensal:</span>
-              <strong style={{ color: '#10b981' }}>R$ 0,00 / mês (Always Free)</strong>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: '#9ca3af' }}>📁 Repositório Git:</span>
+              <strong style={{ color: '#20d6c7', fontFamily: 'monospace', fontSize: '12px' }}>{currentProject.repo}</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: '#9ca3af' }}>💵 Custo Atual OCI:</span>
+              <strong style={{ color: '#10b981' }}>{currentProject.cost}</strong>
             </div>
           </div>
         </div>
@@ -378,7 +530,7 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '18px' }}>
-            <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'rgba(32, 214, 199, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#20d6c7' }}>
+            <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'rgba(32, 214, 199, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#20d6c7', flexShrink: 0 }}>
               <Globe size={24} />
             </div>
             <div>
@@ -392,6 +544,10 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
           </div>
 
           <div style={{ borderTop: '1px solid #182326', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#9ca3af' }}>📦 Projeto a Migrar:</span>
+              <strong style={{ color: '#20d6c7' }}>{currentProject.name}</strong>
+            </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: '#9ca3af' }}>💻 Hardware / Specs:</span>
               <strong style={{ color: '#e5e7eb' }}>
@@ -408,7 +564,7 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: '#9ca3af' }}>⏱️ Tempo Estimado:</span>
-              <strong style={{ color: '#20d6c7' }}>2 min e 45s (Chaveamento sem queda)</strong>
+              <strong style={{ color: '#20d6c7' }}>{estimate?.estimatedDuration?.formattedTime || '2 min e 45s'} (Zero Downtime)</strong>
             </div>
           </div>
         </div>
