@@ -102,8 +102,8 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
   const [loadingTargets, setLoadingTargets] = useState(false)
   const [savingTarget, setSavingTarget] = useState(false)
 
-  // Configurações da VPS de Destino
-  const [targetProvider, setTargetProvider] = useState('Hostinger')
+  // Configurações da VPS de Destino (Inicia vazio aguardando seleção ou cadastro do usuário)
+  const [targetProvider, setTargetProvider] = useState('')
   const [targetHost, setTargetHost] = useState('')
   const [targetPort, setTargetPort] = useState('22')
   const [targetUser, setTargetUser] = useState('root')
@@ -128,17 +128,13 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
   const [showTerraformModal, setShowTerraformModal] = useState(false)
   const [terraformCode, setTerraformCode] = useState('')
 
-  const fetchTargets = async (autoSelect = false) => {
+  const fetchTargets = async () => {
     try {
       setLoadingTargets(true)
       const res = await fetch('http://localhost:3005/api/migration/targets')
       const data = await res.json()
       if (data.targets && Array.isArray(data.targets)) {
         setRegisteredTargets(data.targets)
-        const okList = data.targets.filter((t: any) => t.status === 'OK' || !t.status)
-        if (okList.length > 0 && (autoSelect || !selectedTargetId)) {
-          handleSelectTarget(okList[0])
-        }
       }
     } catch (e: any) {
       console.error('Erro ao consultar servidores cadastrados:', e.message)
@@ -155,7 +151,7 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
   }
 
   useEffect(() => {
-    fetchTargets(true)
+    fetchTargets()
   }, [])
 
   useEffect(() => {
@@ -507,67 +503,136 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
           </div>
         </div>
 
-        {/* CARD RESUMO DO DESTINO SELECIONADO */}
-        <div style={{ background: '#0e1518', border: '1px solid rgba(32, 214, 199, 0.3)', borderRadius: '16px', padding: '22px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <span style={{ fontSize: '11px', color: '#20d6c7', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700 }}>
-              Destino Selecionado
-            </span>
-            <span style={{ 
-              background: 'rgba(16, 185, 129, 0.15)', 
-              color: '#10b981', 
-              border: '1px solid rgba(16, 185, 129, 0.3)',
-              padding: '3px 10px', 
-              borderRadius: '6px', 
-              fontSize: '11px', 
-              fontWeight: 700,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px'
-            }}>
-              <CheckCircle2 size={12} /> Status OK
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '18px' }}>
-            <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'rgba(32, 214, 199, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#20d6c7', flexShrink: 0 }}>
-              <Globe size={24} />
-            </div>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '16px', color: '#f3f4f6', fontWeight: 700 }}>
-                {targetProvider} Cloud VPS
-              </h3>
-              <span style={{ fontSize: '12px', color: '#9ca3af', fontFamily: 'monospace' }}>
-                IP: {targetHost || 'Aguardando seleção abaixo'}
+        {/* CARD RESUMO DO DESTINO SELECIONADO (DINÂMICO / VAZIO SE NADA SELECIONADO) */}
+        {targetHost && targetHost.trim() ? (
+          <div style={{ background: '#0e1518', border: '1px solid rgba(32, 214, 199, 0.35)', borderRadius: '16px', padding: '22px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <span style={{ fontSize: '11px', color: '#20d6c7', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700 }}>
+                Destino Selecionado
+              </span>
+              <span style={{ 
+                background: 'rgba(16, 185, 129, 0.15)', 
+                color: '#10b981', 
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                padding: '3px 10px', 
+                borderRadius: '6px', 
+                fontSize: '11px', 
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}>
+                <CheckCircle2 size={12} /> Status OK
               </span>
             </div>
-          </div>
 
-          <div style={{ borderTop: '1px solid #182326', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#9ca3af' }}>📦 Projeto a Migrar:</span>
-              <strong style={{ color: '#20d6c7' }}>{currentProject.name}</strong>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '18px' }}>
+              <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'rgba(32, 214, 199, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#20d6c7', flexShrink: 0 }}>
+                <Globe size={24} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '16px', color: '#f3f4f6', fontWeight: 700 }}>
+                  {targetProvider ? (targetProvider.toLowerCase().includes('cloud') || targetProvider.toLowerCase().includes('vps') ? targetProvider : `${targetProvider} VPS`) : 'Servidor VPS Conectado'}
+                </h3>
+                <span style={{ fontSize: '12px', color: '#9ca3af', fontFamily: 'monospace' }}>
+                  IP: {targetHost}:{targetPort || 22}
+                </span>
+              </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#9ca3af' }}>💻 Hardware / Specs:</span>
-              <strong style={{ color: '#e5e7eb' }}>
-                {registeredTargets.find(t => t.id === selectedTargetId)?.specs || 'KVM 1 (4 GB RAM / 50 GB NVMe)'}
-              </strong>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#9ca3af' }}>🌐 Região:</span>
-              <strong style={{ color: '#e5e7eb' }}>São Paulo (BR) / Baixa Latência</strong>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#9ca3af' }}>🛡️ Docker & Firewall:</span>
-              <strong style={{ color: '#20d6c7' }}>Auto-Provisionado pelo Hub</strong>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#9ca3af' }}>⏱️ Tempo Estimado:</span>
-              <strong style={{ color: '#20d6c7' }}>{estimate?.estimatedDuration?.formattedTime || '2 min e 45s'} (Zero Downtime)</strong>
+
+            <div style={{ borderTop: '1px solid #182326', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#9ca3af' }}>📦 Projeto a Migrar:</span>
+                <strong style={{ color: '#20d6c7' }}>{currentProject.name}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#9ca3af' }}>💻 Hardware / Specs:</span>
+                <strong style={{ color: '#e5e7eb' }}>
+                  {registeredTargets.find(t => t.id === selectedTargetId)?.specs || (sshTestResult?.specs?.ram ? `${sshTestResult.specs.ram} | ${sshTestResult.specs.disk || 'NVMe'}` : 'VPS Conectada')}
+                </strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#9ca3af' }}>🌐 Região:</span>
+                <strong style={{ color: '#e5e7eb' }}>
+                  {registeredTargets.find(t => t.id === selectedTargetId)?.region || 'Configurada'}
+                </strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#9ca3af' }}>🛡️ Docker & Firewall:</span>
+                <strong style={{ color: '#20d6c7' }}>Auto-Provisionado pelo Hub</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#9ca3af' }}>⏱️ Tempo Estimado:</span>
+                <strong style={{ color: '#20d6c7' }}>{estimate?.estimatedDuration?.formattedTime || '2 min e 45s'} (Zero Downtime)</strong>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div style={{ background: '#0e1518', border: '1px dashed #243538', borderRadius: '16px', padding: '22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <span style={{ fontSize: '11px', color: '#6f8387', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700 }}>
+                  Destino Selecionado
+                </span>
+                <span style={{ 
+                  background: 'rgba(255, 255, 255, 0.04)', 
+                  color: '#8fa4a8', 
+                  border: '1px solid #1f2e32',
+                  padding: '3px 10px', 
+                  borderRadius: '6px', 
+                  fontSize: '11px', 
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px'
+                }}>
+                  <Clock size={12} /> Aguardando Seleção
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '18px' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#556d71', flexShrink: 0 }}>
+                  <Globe size={24} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '16px', color: '#8fa4a8', fontWeight: 600 }}>
+                    Nenhum Servidor Selecionado
+                  </h3>
+                  <span style={{ fontSize: '12px', color: '#556d71' }}>
+                    Escolha um servidor cadastrado abaixo ou informe uma nova VPS
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid #182326', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#6f8387' }}>📦 Projeto a Migrar:</span>
+                  <strong style={{ color: '#20d6c7' }}>{currentProject.name}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#6f8387' }}>💻 Hardware / Specs:</span>
+                  <span style={{ color: '#556d71' }}>— (Aguardando VPS)</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#6f8387' }}>🌐 Região:</span>
+                  <span style={{ color: '#556d71' }}>—</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#6f8387' }}>🛡️ Docker & Firewall:</span>
+                  <span style={{ color: '#556d71' }}>—</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#6f8387' }}>⏱️ Tempo Estimado:</span>
+                  <span style={{ color: '#556d71' }}>—</span>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: '16px', padding: '10px 12px', borderRadius: '8px', background: 'rgba(32, 214, 199, 0.04)', border: '1px solid rgba(32, 214, 199, 0.12)', fontSize: '11px', color: '#20d6c7', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ArrowRight size={14} /> Selecione um servidor na lista abaixo ou preencha as credenciais.
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 3. PAINEL ESPAÇOSO: CONSULTA E CONFIGURAÇÃO DO SERVIDOR DE DESTINO */}
@@ -705,16 +770,28 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
               <label style={{ fontSize: '12px', color: '#9ca3af', display: 'block', marginBottom: '6px', fontWeight: 600 }}>
                 Provedor de Nuvem:
               </label>
-              <select
+              <input
+                id="target-provider-input"
+                type="text"
+                list="cloud-providers-suggestions"
+                placeholder="Ex: Hostinger, Hetzner, AWS, Contabo..."
                 value={targetProvider}
                 onChange={(e) => setTargetProvider(e.target.value)}
                 style={{ width: '100%', background: '#0e1518', border: '1px solid #243538', color: '#fff', padding: '10px 14px', borderRadius: '8px', fontSize: '13px', outline: 'none' }}
-              >
-                <option value="Hostinger">Hostinger Cloud VPS</option>
-                <option value="Oracle Cloud">Oracle Cloud Infrastructure</option>
-                <option value="Hetzner">Hetzner Cloud</option>
-                <option value="DigitalOcean">DigitalOcean Droplet</option>
-              </select>
+              />
+              <datalist id="cloud-providers-suggestions">
+                <option value="Hostinger" />
+                <option value="Hetzner" />
+                <option value="DigitalOcean" />
+                <option value="AWS EC2" />
+                <option value="Contabo" />
+                <option value="Oracle Cloud" />
+                <option value="Linode / Akamai" />
+                <option value="Vultr" />
+                <option value="OVHcloud" />
+                <option value="Locaweb" />
+                <option value="VPS Própria (Bare-Metal)" />
+              </datalist>
             </div>
 
             <div>
