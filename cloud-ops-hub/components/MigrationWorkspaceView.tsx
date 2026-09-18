@@ -264,65 +264,81 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
   ]
 
   return (
-    <div className="section-space" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* CABEÇALHO */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+    <div className="section-space" style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+      {/* 1. CABEÇALHO COM VISUAL MODERNO E AREJADO */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px', paddingBottom: '8px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: '#f3f4f6' }}>Workspace de Migração Multi-Cloud</h2>
-            <span style={{ background: 'rgba(32, 214, 199, 0.12)', color: '#20d6c7', padding: '2px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 600 }}>
-              1-Clique Zero Downtime
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: '#f3f4f6', letterSpacing: '-0.3px' }}>
+              Workspace de Migração Multi-Cloud
+            </h2>
+            <span style={{ 
+              background: 'rgba(32, 214, 199, 0.12)', 
+              color: '#20d6c7', 
+              border: '1px solid rgba(32, 214, 199, 0.3)',
+              padding: '4px 12px', 
+              borderRadius: '20px', 
+              fontSize: '11px', 
+              fontWeight: 700 
+            }}>
+              Zero Downtime • 1-Clique
             </span>
           </div>
-          <p style={{ margin: '6px 0 0', color: '#9ca3af', fontSize: '13px' }}>
-            Migre todo o Boteco do Sivirino (Banco MySQL, Buckets de fotos, APIs e Frontend) da Oracle Cloud para a Hostinger ou outra VPS sem precisar configurar nada manualmente.
+          <p style={{ margin: '8px 0 0', color: '#9ca3af', fontSize: '14px', lineHeight: '1.6', maxWidth: '800px' }}>
+            Transfira a infraestrutura completa do Boteco do Sivirino (Banco MySQL, Buckets de fotos, APIs Docker e Frontend) da Oracle Cloud para a Hostinger ou outra VPS de forma 100% automatizada.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '10px' }}>
           <button
             onClick={handleGenerateTerraform}
             style={{
-              background: '#131c1f',
+              background: '#0c1316',
               border: '1px solid #1f2d30',
               color: '#20d6c7',
-              padding: '8px 14px',
+              padding: '10px 18px',
               borderRadius: '8px',
               fontSize: '12px',
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px'
+              gap: '8px',
+              transition: 'all 0.2s'
             }}
           >
-            <FileCode2 size={14} /> Ver Script Terraform
+            <FileCode2 size={15} /> Ver Script Terraform
           </button>
         </div>
       </div>
 
-      {/* ORIGEM ➔ DESTINO (CARDS VISUAIS) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
-        {/* CARD ORIGEM (ORACLE CLOUD ATIVA) */}
-        <div style={{ background: '#0e1518', border: '1px solid #182326', borderRadius: '14px', padding: '18px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Provedor de Origem (Ativo Hoje)</span>
-            <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+      {/* 2. FLUXO COMPARATIVO VISUAL: ORIGEM ➔ DESTINO */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
+        {/* CARD ORIGEM */}
+        <div style={{ background: '#0e1518', border: '1px solid #1f2d30', borderRadius: '16px', padding: '22px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <span style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700 }}>
+              Servidor de Origem (Ativo Hoje)
+            </span>
+            <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '3px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700 }}>
               ● Produção no Ar
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '12px' }}>
-            <Server size={22} style={{ color: '#e8b84b' }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '18px' }}>
+            <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'rgba(232, 184, 75, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e8b84b' }}>
+              <Server size={24} />
+            </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: '15px', color: '#f3f4f6', fontWeight: 700 }}>Oracle Cloud (Always Free)</h3>
+              <h3 style={{ margin: 0, fontSize: '16px', color: '#f3f4f6', fontWeight: 700 }}>Oracle Cloud Infrastructure</h3>
               <span style={{ fontSize: '12px', color: '#9ca3af', fontFamily: 'monospace' }}>IP: 137.131.185.243 (sa-saopaulo-1)</span>
             </div>
           </div>
 
-          <div style={{ marginTop: '14px', borderTop: '1px solid #182326', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
+          <div style={{ borderTop: '1px solid #182326', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: '#9ca3af' }}>📦 Banco de Dados:</span>
-              <strong style={{ color: '#e5e7eb' }}>MySQL 8.0 (12 cats / 134 pratos)</strong>
+              <strong style={{ color: '#e5e7eb' }}>MySQL 8.0 (12 categorias / 134 pratos)</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: '#9ca3af' }}>🪣 Armazenamento:</span>
@@ -330,38 +346,99 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: '#9ca3af' }}>🚀 Aplicação Backend:</span>
-              <strong style={{ color: '#e5e7eb' }}>Docker boteco_backend (3002)</strong>
+              <strong style={{ color: '#e5e7eb' }}>Docker boteco_backend (Porta 3002)</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#9ca3af' }}>💵 Custo Atual:</span>
-              <strong style={{ color: '#10b981' }}>R$ 0,00 / mês (Gratuito)</strong>
+              <span style={{ color: '#9ca3af' }}>💵 Custo Mensal:</span>
+              <strong style={{ color: '#10b981' }}>R$ 0,00 / mês (Always Free)</strong>
             </div>
           </div>
         </div>
 
-        {/* CARD DESTINO (CONSULTA DE SERVIDORES CADASTRADOS COM STATUS OK) */}
-        <div style={{ background: '#0e1518', border: '1px solid rgba(32, 214, 199, 0.3)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {/* CABEÇALHO DO DESTINO */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '11px', color: '#20d6c7', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>
-                Provedor de Destino Escolhido
-              </span>
-              <span style={{ 
-                background: 'rgba(16, 185, 129, 0.15)', 
-                color: '#10b981', 
-                border: '1px solid rgba(16, 185, 129, 0.3)', 
-                padding: '2px 8px', 
-                borderRadius: '12px', 
-                fontSize: '11px', 
-                fontWeight: 700,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}>
-                <CheckCircle2 size={11} /> {registeredTargets.filter(t => t.status === 'OK').length} Servidores com Status OK
+        {/* CARD RESUMO DO DESTINO SELECIONADO */}
+        <div style={{ background: '#0e1518', border: '1px solid rgba(32, 214, 199, 0.3)', borderRadius: '16px', padding: '22px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <span style={{ fontSize: '11px', color: '#20d6c7', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700 }}>
+              Destino Selecionado
+            </span>
+            <span style={{ 
+              background: 'rgba(16, 185, 129, 0.15)', 
+              color: '#10b981', 
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              padding: '3px 10px', 
+              borderRadius: '6px', 
+              fontSize: '11px', 
+              fontWeight: 700,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px'
+            }}>
+              <CheckCircle2 size={12} /> Status OK
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '18px' }}>
+            <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'rgba(32, 214, 199, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#20d6c7' }}>
+              <Globe size={24} />
+            </div>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '16px', color: '#f3f4f6', fontWeight: 700 }}>
+                {targetProvider} Cloud VPS
+              </h3>
+              <span style={{ fontSize: '12px', color: '#9ca3af', fontFamily: 'monospace' }}>
+                IP: {targetHost || 'Aguardando seleção abaixo'}
               </span>
             </div>
+          </div>
+
+          <div style={{ borderTop: '1px solid #182326', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#9ca3af' }}>💻 Hardware / Specs:</span>
+              <strong style={{ color: '#e5e7eb' }}>
+                {registeredTargets.find(t => t.id === selectedTargetId)?.specs || 'KVM 1 (4 GB RAM / 50 GB NVMe)'}
+              </strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#9ca3af' }}>🌐 Região:</span>
+              <strong style={{ color: '#e5e7eb' }}>São Paulo (BR) / Baixa Latência</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#9ca3af' }}>🛡️ Docker & Firewall:</span>
+              <strong style={{ color: '#20d6c7' }}>Auto-Provisionado pelo Hub</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#9ca3af' }}>⏱️ Tempo Estimado:</span>
+              <strong style={{ color: '#20d6c7' }}>2 min e 45s (Chaveamento sem queda)</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. PAINEL ESPAÇOSO: CONSULTA E CONFIGURAÇÃO DO SERVIDOR DE DESTINO */}
+      <div style={{ background: '#0e1518', border: '1px solid #1f2d30', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
+        {/* TÍTULO DA SEÇÃO */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '16px', color: '#f3f4f6', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Server size={18} style={{ color: '#20d6c7' }} /> Servidores de Destino Disponíveis (Status OK)
+            </h3>
+            <p style={{ margin: '4px 0 0', color: '#9ca3af', fontSize: '13px' }}>
+              Selecione uma máquina já cadastrada no Hub ou informe o IP de uma nova VPS contratada na Hostinger.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ 
+              background: 'rgba(16, 185, 129, 0.12)', 
+              color: '#10b981', 
+              border: '1px solid rgba(16, 185, 129, 0.25)', 
+              padding: '4px 12px', 
+              borderRadius: '20px', 
+              fontSize: '11px', 
+              fontWeight: 700 
+            }}>
+              {registeredTargets.filter(t => t.status === 'OK' || !t.status).length} Servidor(es) Pronto(s)
+            </span>
 
             <button
               onClick={() => {
@@ -369,311 +446,378 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
                 doAction('Consultando servidores cadastrados no Hub...')
               }}
               style={{
-                background: '#080c0e',
+                background: '#0c1316',
                 border: '1px solid #1f2d30',
                 color: '#9ca3af',
-                padding: '4px 10px',
-                borderRadius: '6px',
-                fontSize: '11px',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                fontSize: '12px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px'
+                gap: '6px'
               }}
-              title="Recarregar lista de servidores cadastrados"
+              title="Recarregar servidores cadastrados"
             >
-              <RefreshCw size={11} className={loadingTargets ? 'animate-spin' : ''} /> Consultar
+              <RefreshCw size={13} className={loadingTargets ? 'animate-spin' : ''} /> Consultar
             </button>
           </div>
+        </div>
 
-          {/* LISTA DE SERVIDORES CADASTRADOS COM STATUS OK */}
-          <div>
-            <label style={{ fontSize: '11px', color: '#9ca3af', display: 'block', marginBottom: '8px', fontWeight: 600 }}>
-              SERVIDORES CADASTRADOS DISPONÍVEIS (SELECIONE PARA MIGRAR):
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '8px' }}>
-              {registeredTargets.filter(t => t.status === 'OK' || !t.status).map((target) => {
-                const isSelected = selectedTargetId === target.id
-                return (
-                  <div
-                    key={target.id}
-                    onClick={() => handleSelectTarget(target)}
-                    style={{
-                      background: isSelected ? 'rgba(32, 214, 199, 0.1)' : '#080c0e',
-                      border: isSelected ? '1px solid #20d6c7' : '1px solid #1a272a',
-                      borderRadius: '8px',
-                      padding: '10px 12px',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s',
-                      boxShadow: isSelected ? '0 0 10px rgba(32, 214, 199, 0.15)' : 'none'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <strong style={{ fontSize: '12px', color: isSelected ? '#20d6c7' : '#f3f4f6', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {target.name}
-                      </strong>
-                      <span style={{ 
-                        fontSize: '9px', 
-                        background: 'rgba(16, 185, 129, 0.2)', 
-                        color: '#10b981', 
-                        padding: '1px 5px', 
-                        borderRadius: '4px', 
-                        fontWeight: 700 
-                      }}>
-                        ● OK
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '11px', color: '#9ca3af', fontFamily: 'monospace' }}>
-                      {target.host}:{target.port || 22}
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '2px' }}>
-                      {target.specs || target.plan || target.provider}
-                    </div>
-                  </div>
-                )
-              })}
-
-              {/* OPÇÃO DE DIGITAR UM NOVO SERVIDOR */}
+        {/* GRID DE CARDS DOS SERVIDORES CADASTRADOS */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+          {registeredTargets.filter(t => t.status === 'OK' || !t.status).map((target) => {
+            const isSelected = selectedTargetId === target.id
+            return (
               <div
-                onClick={() => {
-                  setSelectedTargetId('custom')
-                  setTargetHost('')
-                  setSshTestResult(null)
-                  doAction('Modo manual: informe o IP e credenciais da nova VPS.')
-                }}
+                key={target.id}
+                onClick={() => handleSelectTarget(target)}
                 style={{
-                  background: selectedTargetId === 'custom' ? 'rgba(32, 214, 199, 0.1)' : '#080c0e',
-                  border: selectedTargetId === 'custom' ? '1px solid #20d6c7' : '1px dashed #243538',
-                  borderRadius: '8px',
-                  padding: '10px 12px',
+                  background: isSelected ? 'rgba(32, 214, 199, 0.08)' : '#080c0e',
+                  border: isSelected ? '2px solid #20d6c7' : '1px solid #1a272a',
+                  borderRadius: '12px',
+                  padding: '16px 18px',
                   cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  textAlign: 'center'
+                  transition: 'all 0.2s',
+                  boxShadow: isSelected ? '0 0 16px rgba(32, 214, 199, 0.15)' : 'none'
                 }}
               >
-                <span style={{ fontSize: '11px', fontWeight: 700, color: selectedTargetId === 'custom' ? '#20d6c7' : '#9ca3af' }}>
-                  + Nova VPS / Hostinger
-                </span>
-                <span style={{ fontSize: '10px', color: '#6b7280', marginTop: '2px' }}>Cadastrar outro IP</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <strong style={{ fontSize: '13px', color: isSelected ? '#20d6c7' : '#f3f4f6' }}>
+                    {target.name}
+                  </strong>
+                  <span style={{ 
+                    fontSize: '10px', 
+                    background: 'rgba(16, 185, 129, 0.2)', 
+                    color: '#10b981', 
+                    padding: '2px 8px', 
+                    borderRadius: '4px', 
+                    fontWeight: 700 
+                  }}>
+                    ● Status OK
+                  </span>
+                </div>
+                <div style={{ fontSize: '12px', color: '#9ca3af', fontFamily: 'monospace', marginBottom: '4px' }}>
+                  Host: {target.host}:{target.port || 22}
+                </div>
+                <div style={{ fontSize: '11px', color: '#6b7280' }}>
+                  {target.specs || target.plan || target.provider}
+                </div>
               </div>
-            </div>
-          </div>
+            )
+          })}
 
-          {/* DETALHES DO DESTINO SELECIONADO */}
-          <div style={{ background: '#080c0e', border: '1px solid #182326', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Globe size={22} style={{ color: '#20d6c7' }} />
-              <div>
-                <h4 style={{ margin: 0, fontSize: '14px', color: '#f3f4f6', fontWeight: 700 }}>
-                  {targetProvider} Cloud VPS {targetHost ? `(${targetHost})` : ''}
-                </h4>
-                <span style={{ fontSize: '11px', color: '#9ca3af' }}>
-                  {registeredTargets.find(t => t.id === selectedTargetId)?.specs || 'KVM 1 (4 GB RAM / 50 GB NVMe - R$ 19,99/mês)'}
-                </span>
-              </div>
-            </div>
-
-            <span style={{ 
-              background: 'rgba(16, 185, 129, 0.15)', 
-              color: '#10b981', 
-              padding: '3px 10px', 
-              borderRadius: '6px', 
-              fontSize: '11px', 
-              fontWeight: 700,
-              display: 'inline-flex',
+          {/* CARD PARA CADASTRAR NOVA VPS */}
+          <div
+            onClick={() => {
+              setSelectedTargetId('custom')
+              setTargetHost('')
+              setSshTestResult(null)
+              doAction('Modo manual: informe o IP e credenciais da nova VPS.')
+            }}
+            style={{
+              background: selectedTargetId === 'custom' ? 'rgba(32, 214, 199, 0.08)' : '#080c0e',
+              border: selectedTargetId === 'custom' ? '2px solid #20d6c7' : '1px dashed #2a3b40',
+              borderRadius: '12px',
+              padding: '16px 18px',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
               alignItems: 'center',
-              gap: '6px'
-            }}>
-              <Check size={13} /> Status OK (Pronto para Migração)
+              textAlign: 'center',
+              minHeight: '86px'
+            }}
+          >
+            <span style={{ fontSize: '13px', fontWeight: 700, color: selectedTargetId === 'custom' ? '#20d6c7' : '#e5e7eb' }}>
+              ➕ Cadastrar Nova VPS / Hostinger
+            </span>
+            <span style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+              Informar novo IP e credenciais SSH
             </span>
           </div>
+        </div>
 
-          {/* FORMULÁRIO DE CONEXÃO DO DESTINO */}
-          <div style={{ borderTop: '1px solid #182326', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '8px' }}>
-              <div>
-                <label style={{ fontSize: '11px', color: '#9ca3af', display: 'block', marginBottom: '2px' }}>IP da Nova VPS:</label>
-                <input
-                  type="text"
-                  placeholder="Ex: 195.35.40.120"
-                  value={targetHost}
-                  onChange={(e) => {
-                    setTargetHost(e.target.value)
-                    if (selectedTargetId !== 'custom') setSelectedTargetId('custom')
-                  }}
-                  style={{ width: '100%', background: '#080c0e', border: '1px solid #1f2d30', color: '#fff', padding: '6px 10px', borderRadius: '6px', fontSize: '12px', fontFamily: 'monospace' }}
-                />
-              </div>
-              <div>
-                <label style={{ fontSize: '11px', color: '#9ca3af', display: 'block', marginBottom: '2px' }}>Porta:</label>
-                <input
-                  type="text"
-                  value={targetPort}
-                  onChange={(e) => setTargetPort(e.target.value)}
-                  style={{ width: '100%', background: '#080c0e', border: '1px solid #1f2d30', color: '#fff', padding: '6px 10px', borderRadius: '6px', fontSize: '12px' }}
-                />
-              </div>
-              <div>
-                <label style={{ fontSize: '11px', color: '#9ca3af', display: 'block', marginBottom: '2px' }}>Usuário:</label>
-                <input
-                  type="text"
-                  value={targetUser}
-                  onChange={(e) => setTargetUser(e.target.value)}
-                  style={{ width: '100%', background: '#080c0e', border: '1px solid #1f2d30', color: '#fff', padding: '6px 10px', borderRadius: '6px', fontSize: '12px' }}
-                />
-              </div>
+        {/* FORMULÁRIO AREJADO DE CONEXÃO SSH */}
+        <div style={{ background: '#080c0e', border: '1px solid #1a272a', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 700, color: '#e5e7eb', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Terminal size={15} style={{ color: '#20d6c7' }} /> Credenciais de Conexão da VPS de Destino
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+            <div>
+              <label style={{ fontSize: '12px', color: '#9ca3af', display: 'block', marginBottom: '6px', fontWeight: 600 }}>
+                Provedor de Nuvem:
+              </label>
+              <select
+                value={targetProvider}
+                onChange={(e) => setTargetProvider(e.target.value)}
+                style={{ width: '100%', background: '#0e1518', border: '1px solid #243538', color: '#fff', padding: '10px 14px', borderRadius: '8px', fontSize: '13px', outline: 'none' }}
+              >
+                <option value="Hostinger">Hostinger Cloud VPS</option>
+                <option value="Oracle Cloud">Oracle Cloud Infrastructure</option>
+                <option value="Hetzner">Hetzner Cloud</option>
+                <option value="DigitalOcean">DigitalOcean Droplet</option>
+              </select>
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', fontSize: '12px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: '#d1d5db' }}>
-                <input
-                  type="radio"
-                  name="authType"
-                  checked={targetAuthType === 'password'}
-                  onChange={() => setTargetAuthType('password')}
-                />
-                Senha Root / VPS
+            <div>
+              <label style={{ fontSize: '12px', color: '#9ca3af', display: 'block', marginBottom: '6px', fontWeight: 600 }}>
+                IP da Nova VPS:
               </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: '#d1d5db' }}>
-                <input
-                  type="radio"
-                  name="authType"
-                  checked={targetAuthType === 'key'}
-                  onChange={() => setTargetAuthType('key')}
-                />
-                Chave SSH Privada
-              </label>
-            </div>
-
-            {targetAuthType === 'password' ? (
               <input
-                type="password"
-                placeholder="Digite a senha de root da VPS na Hostinger..."
-                value={targetPassword}
-                onChange={(e) => setTargetPassword(e.target.value)}
-                style={{ width: '100%', background: '#080c0e', border: '1px solid #1f2d30', color: '#fff', padding: '6px 10px', borderRadius: '6px', fontSize: '12px' }}
+                type="text"
+                placeholder="Ex: 195.35.40.120"
+                value={targetHost}
+                onChange={(e) => {
+                  setTargetHost(e.target.value)
+                  if (selectedTargetId !== 'custom') setSelectedTargetId('custom')
+                }}
+                style={{ width: '100%', background: '#0e1518', border: '1px solid #243538', color: '#fff', padding: '10px 14px', borderRadius: '8px', fontSize: '13px', fontFamily: 'monospace' }}
               />
-            ) : (
-              <textarea
-                rows={2}
-                placeholder="Cole a chave privada SSH (-----BEGIN OPENSSH PRIVATE KEY-----)..."
-                value={targetKey}
-                onChange={(e) => setTargetKey(e.target.value)}
-                style={{ width: '100%', background: '#080c0e', border: '1px solid #1f2d30', color: '#fff', padding: '6px 10px', borderRadius: '6px', fontSize: '11px', fontFamily: 'monospace' }}
-              />
-            )}
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  onClick={handleTestSsh}
-                  disabled={testingSsh}
-                  style={{
-                    background: 'rgba(32, 214, 199, 0.1)',
-                    border: '1px solid #20d6c7',
-                    color: '#20d6c7',
-                    padding: '6px 12px',
-                    borderRadius: '6px',
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  <Zap size={12} /> {testingSsh ? 'Testando Conexão...' : `Testar Conexão com a ${targetProvider}`}
-                </button>
-
-                <button
-                  onClick={handleSaveTarget}
-                  disabled={savingTarget}
-                  style={{
-                    background: '#131c1f',
-                    border: '1px solid #1f2d30',
-                    color: '#e5e7eb',
-                    padding: '6px 12px',
-                    borderRadius: '6px',
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                  title="Salvar este servidor na lista de cadastrados com status OK"
-                >
-                  <Save size={12} /> {savingTarget ? 'Salvando...' : 'Salvar no Hub (Status OK)'}
-                </button>
-              </div>
-
-              {sshTestResult && (
-                <span style={{ fontSize: '11px', fontWeight: 600, color: sshTestResult.ok ? '#10b981' : '#f87171' }}>
-                  {sshTestResult.ok ? '✓ Conexão OK (RAM & Disco detectados)' : '✗ Falha de autenticação'}
-                </span>
-              )}
             </div>
+
+            <div>
+              <label style={{ fontSize: '12px', color: '#9ca3af', display: 'block', marginBottom: '6px', fontWeight: 600 }}>
+                Porta SSH:
+              </label>
+              <input
+                type="text"
+                value={targetPort}
+                onChange={(e) => setTargetPort(e.target.value)}
+                style={{ width: '100%', background: '#0e1518', border: '1px solid #243538', color: '#fff', padding: '10px 14px', borderRadius: '8px', fontSize: '13px' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', color: '#9ca3af', display: 'block', marginBottom: '6px', fontWeight: 600 }}>
+                Usuário SSH:
+              </label>
+              <input
+                type="text"
+                value={targetUser}
+                onChange={(e) => setTargetUser(e.target.value)}
+                style={{ width: '100%', background: '#0e1518', border: '1px solid #243538', color: '#fff', padding: '10px 14px', borderRadius: '8px', fontSize: '13px' }}
+              />
+            </div>
+          </div>
+
+          {/* ESCOLHA DO TIPO DE AUTENTICAÇÃO */}
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'center', fontSize: '13px', margin: '4px 0' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: targetAuthType === 'key' ? '#20d6c7' : '#9ca3af', fontWeight: 600 }}>
+              <input
+                type="radio"
+                name="authType"
+                checked={targetAuthType === 'key'}
+                onChange={() => setTargetAuthType('key')}
+              />
+              Chave SSH Privada (.key / .pem)
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: targetAuthType === 'password' ? '#20d6c7' : '#9ca3af', fontWeight: 600 }}>
+              <input
+                type="radio"
+                name="authType"
+                checked={targetAuthType === 'password'}
+                onChange={() => setTargetAuthType('password')}
+              />
+              Senha Root da VPS
+            </label>
+          </div>
+
+          {targetAuthType === 'password' ? (
+            <input
+              type="password"
+              placeholder="Digite a senha de root da VPS na Hostinger..."
+              value={targetPassword}
+              onChange={(e) => setTargetPassword(e.target.value)}
+              style={{ width: '100%', background: '#0e1518', border: '1px solid #243538', color: '#fff', padding: '10px 14px', borderRadius: '8px', fontSize: '13px' }}
+            />
+          ) : (
+            <textarea
+              rows={3}
+              placeholder="Cole a chave privada SSH (-----BEGIN OPENSSH PRIVATE KEY-----)..."
+              value={targetKey}
+              onChange={(e) => setTargetKey(e.target.value)}
+              style={{ width: '100%', background: '#0e1518', border: '1px solid #243538', color: '#fff', padding: '10px 14px', borderRadius: '8px', fontSize: '11px', fontFamily: 'monospace' }}
+            />
+          )}
+
+          {/* BOTÕES DE AÇÃO DO DESTINO */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', paddingTop: '6px' }}>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                onClick={handleTestSsh}
+                disabled={testingSsh}
+                style={{
+                  background: 'rgba(32, 214, 199, 0.12)',
+                  border: '1px solid #20d6c7',
+                  color: '#20d6c7',
+                  padding: '9px 18px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <Zap size={14} /> {testingSsh ? 'Testando Conexão...' : `Testar Conexão com a ${targetProvider}`}
+              </button>
+
+              <button
+                onClick={handleSaveTarget}
+                disabled={savingTarget}
+                style={{
+                  background: '#131c1f',
+                  border: '1px solid #1f2d30',
+                  color: '#e5e7eb',
+                  padding: '9px 16px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+                title="Salvar este servidor na lista de cadastrados com status OK"
+              >
+                <Save size={14} /> {savingTarget ? 'Salvando...' : 'Salvar no Hub (Status OK)'}
+              </button>
+            </div>
+
+            {sshTestResult && (
+              <span style={{ 
+                fontSize: '12px', 
+                fontWeight: 700, 
+                color: sshTestResult.ok ? '#10b981' : '#f87171',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                {sshTestResult.ok ? '✓ Conexão OK (RAM & Disco detectados)' : '✗ Falha de autenticação'}
+              </span>
+            )}
           </div>
         </div>
       </div>
 
-      {/* SELEÇÃO DOS COMPONENTES E ESTIMATIVA DE TEMPO */}
-      <div style={{ background: '#0e1518', border: '1px solid #182326', borderRadius: '14px', padding: '20px' }}>
-        <h3 style={{ margin: '0 0 14px', fontSize: '15px', color: '#f3f4f6', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Layers size={18} style={{ color: '#20d6c7' }} /> Componentes Incluídos no Pacote de Migração
-        </h3>
+      {/* 4. SELEÇÃO DOS COMPONENTES E ESTIMATIVA DE TEMPO */}
+      <div style={{ background: '#0e1518', border: '1px solid #1f2d30', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: '16px', color: '#f3f4f6', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Layers size={18} style={{ color: '#20d6c7' }} /> Componentes do Boteco Incluídos no Pacote
+          </h3>
+          <p style={{ margin: '4px 0 0', color: '#9ca3af', fontSize: '13px' }}>
+            Selecione quais recursos da aplicação serão empacotados e sincronizados para o novo servidor.
+          </p>
+        </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: '#080c0e', border: '1px solid #182326', padding: '12px', borderRadius: '8px', cursor: 'pointer' }}>
-            <input type="checkbox" checked={migrateDb} onChange={(e) => setMigrateDb(e.target.checked)} style={{ marginTop: '3px' }} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
+          <label style={{ 
+            display: 'flex', 
+            alignItems: 'flex-start', 
+            gap: '14px', 
+            background: migrateDb ? 'rgba(32, 214, 199, 0.05)' : '#080c0e', 
+            border: migrateDb ? '1px solid rgba(32, 214, 199, 0.4)' : '1px solid #1a272a', 
+            padding: '18px', 
+            borderRadius: '12px', 
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}>
+            <input type="checkbox" checked={migrateDb} onChange={(e) => setMigrateDb(e.target.checked)} style={{ marginTop: '4px', width: '16px', height: '16px', accentColor: '#20d6c7' }} />
             <div>
-              <strong style={{ display: 'block', fontSize: '13px', color: '#e5e7eb' }}>Banco de Dados MySQL</strong>
-              <small style={{ color: '#9ca3af', fontSize: '11px' }}>12 categorias, 134 pratos, taxas e configurações do boteco</small>
+              <strong style={{ display: 'block', fontSize: '14px', color: '#f3f4f6', marginBottom: '2px' }}>Banco de Dados MySQL</strong>
+              <span style={{ color: '#9ca3af', fontSize: '12px', lineHeight: '1.5', display: 'block' }}>12 categorias, 134 pratos, taxas de entrega e configurações atômicas.</span>
             </div>
           </label>
 
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: '#080c0e', border: '1px solid #182326', padding: '12px', borderRadius: '8px', cursor: 'pointer' }}>
-            <input type="checkbox" checked={migrateStorage} onChange={(e) => setMigrateStorage(e.target.checked)} style={{ marginTop: '3px' }} />
+          <label style={{ 
+            display: 'flex', 
+            alignItems: 'flex-start', 
+            gap: '14px', 
+            background: migrateStorage ? 'rgba(32, 214, 199, 0.05)' : '#080c0e', 
+            border: migrateStorage ? '1px solid rgba(32, 214, 199, 0.4)' : '1px solid #1a272a', 
+            padding: '18px', 
+            borderRadius: '12px', 
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}>
+            <input type="checkbox" checked={migrateStorage} onChange={(e) => setMigrateStorage(e.target.checked)} style={{ marginTop: '4px', width: '16px', height: '16px', accentColor: '#20d6c7' }} />
             <div>
-              <strong style={{ display: 'block', fontSize: '13px', color: '#e5e7eb' }}>Fotos e Buckets</strong>
-              <small style={{ color: '#9ca3af', fontSize: '11px' }}>Sincronização dos 8 objetos do bucket OCI e pasta /uploads</small>
+              <strong style={{ display: 'block', fontSize: '14px', color: '#f3f4f6', marginBottom: '2px' }}>Fotos e Buckets de Imagens</strong>
+              <span style={{ color: '#9ca3af', fontSize: '12px', lineHeight: '1.5', display: 'block' }}>Sincronização integral de 8 imagens do bucket OCI e da pasta /uploads.</span>
             </div>
           </label>
 
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: '#080c0e', border: '1px solid #182326', padding: '12px', borderRadius: '8px', cursor: 'pointer' }}>
-            <input type="checkbox" checked={migrateBackend} onChange={(e) => setMigrateBackend(e.target.checked)} style={{ marginTop: '3px' }} />
+          <label style={{ 
+            display: 'flex', 
+            alignItems: 'flex-start', 
+            gap: '14px', 
+            background: migrateBackend ? 'rgba(32, 214, 199, 0.05)' : '#080c0e', 
+            border: migrateBackend ? '1px solid rgba(32, 214, 199, 0.4)' : '1px solid #1a272a', 
+            padding: '18px', 
+            borderRadius: '12px', 
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}>
+            <input type="checkbox" checked={migrateBackend} onChange={(e) => setMigrateBackend(e.target.checked)} style={{ marginTop: '4px', width: '16px', height: '16px', accentColor: '#20d6c7' }} />
             <div>
-              <strong style={{ display: 'block', fontSize: '13px', color: '#e5e7eb' }}>Containers & Backend</strong>
-              <small style={{ color: '#9ca3af', fontSize: '11px' }}>Repositório cardapio_digital, variáveis .env e Docker Compose</small>
+              <strong style={{ display: 'block', fontSize: '14px', color: '#f3f4f6', marginBottom: '2px' }}>Containers Docker & Backend</strong>
+              <span style={{ color: '#9ca3af', fontSize: '12px', lineHeight: '1.5', display: 'block' }}>Repositório cardapio_digital, injeção de .env e Docker Compose up.</span>
             </div>
           </label>
 
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: '#080c0e', border: '1px solid #182326', padding: '12px', borderRadius: '8px', cursor: 'pointer' }}>
-            <input type="checkbox" checked={migrateFrontend} onChange={(e) => setMigrateFrontend(e.target.checked)} style={{ marginTop: '3px' }} />
+          <label style={{ 
+            display: 'flex', 
+            alignItems: 'flex-start', 
+            gap: '14px', 
+            background: migrateFrontend ? 'rgba(32, 214, 199, 0.05)' : '#080c0e', 
+            border: migrateFrontend ? '1px solid rgba(32, 214, 199, 0.4)' : '1px solid #1a272a', 
+            padding: '18px', 
+            borderRadius: '12px', 
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}>
+            <input type="checkbox" checked={migrateFrontend} onChange={(e) => setMigrateFrontend(e.target.checked)} style={{ marginTop: '4px', width: '16px', height: '16px', accentColor: '#20d6c7' }} />
             <div>
-              <strong style={{ display: 'block', fontSize: '13px', color: '#e5e7eb' }}>Frontend / Domínio</strong>
-              <small style={{ color: '#9ca3af', fontSize: '11px' }}>Nginx com SSL automático ou re-apontamento da URL no Vercel</small>
+              <strong style={{ display: 'block', fontSize: '14px', color: '#f3f4f6', marginBottom: '2px' }}>Frontend & Proxy Reverso</strong>
+              <span style={{ color: '#9ca3af', fontSize: '12px', lineHeight: '1.5', display: 'block' }}>Nginx com SSL automático ou re-apontamento transparente de DNS.</span>
             </div>
           </label>
         </div>
 
-        {/* ESTIMATIVA CALCULADA */}
-        <div style={{ marginTop: '16px', background: 'rgba(32, 214, 199, 0.05)', border: '1px solid rgba(32, 214, 199, 0.2)', borderRadius: '10px', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Clock size={24} style={{ color: '#20d6c7' }} />
+        {/* ESTIMATIVA CALCULADA E BOTÃO PRINCIPAL DE AÇÃO */}
+        <div style={{ 
+          marginTop: '8px', 
+          background: 'rgba(32, 214, 199, 0.04)', 
+          border: '1px solid rgba(32, 214, 199, 0.25)', 
+          borderRadius: '14px', 
+          padding: '20px 24px', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          flexWrap: 'wrap', 
+          gap: '20px' 
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(32, 214, 199, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#20d6c7' }}>
+              <Clock size={24} />
+            </div>
             <div>
-              <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase' }}>Tempo Estimado de Migração</div>
-              <div style={{ fontSize: '18px', fontWeight: 700, color: '#f3f4f6' }}>
+              <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
+                Tempo Estimado da Transferência
+              </div>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: '#f3f4f6' }}>
                 {estimate?.estimatedDuration?.formattedTime || '2 minutos e 45 segundos'}
               </div>
             </div>
           </div>
 
-          <div style={{ fontSize: '12px', color: '#9ca3af' }}>
-            Volume Total: <strong style={{ color: '#e5e7eb' }}>~142 MB</strong> | Downtime: <strong style={{ color: '#10b981' }}>Zero Queda (Chaveamento Atômico)</strong>
+          <div style={{ fontSize: '13px', color: '#9ca3af', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <span>Volume Total: <strong style={{ color: '#f3f4f6' }}>~142 MB</strong></span>
+            <span>Downtime: <strong style={{ color: '#10b981' }}>Zero Queda (Chaveamento Atômico)</strong></span>
           </div>
 
           <button
@@ -683,36 +827,37 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
               background: isMigrating ? '#1f2d30' : '#20d6c7',
               border: 0,
               color: '#080c0e',
-              padding: '10px 22px',
-              borderRadius: '8px',
-              fontSize: '13px',
-              fontWeight: 700,
+              padding: '14px 28px',
+              borderRadius: '10px',
+              fontSize: '14px',
+              fontWeight: 800,
               cursor: isMigrating ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              boxShadow: isMigrating ? 'none' : '0 4px 14px rgba(32, 214, 199, 0.3)'
+              gap: '10px',
+              boxShadow: isMigrating ? 'none' : '0 4px 18px rgba(32, 214, 199, 0.35)',
+              transition: 'all 0.2s'
             }}
           >
-            <Play size={16} /> {isMigrating ? 'Migrando...' : `Iniciar Migração para ${targetProvider}`}
+            <Play size={17} /> {isMigrating ? 'Migrando Sistemas...' : `Iniciar Migração para ${targetProvider}`}
           </button>
         </div>
       </div>
 
       {/* PIPELINE DE EXECUÇÃO & LOGS EM TEMPO REAL */}
       {(isMigrating || migrationLogs.length > 0) && (
-        <div style={{ background: '#0e1518', border: '1px solid #182326', borderRadius: '14px', padding: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <h3 style={{ margin: 0, fontSize: '15px', color: '#f3f4f6', fontWeight: 700 }}>
+        <div style={{ background: '#0e1518', border: '1px solid #1f2d30', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', color: '#f3f4f6', fontWeight: 700 }}>
               Progresso do Pipeline de Migração ({migrationProgress}%)
             </h3>
-            <span style={{ fontSize: '12px', color: migrationProgress === 100 ? '#10b981' : '#20d6c7', fontWeight: 600 }}>
+            <span style={{ fontSize: '13px', color: migrationProgress === 100 ? '#10b981' : '#20d6c7', fontWeight: 700 }}>
               {migrationProgress === 100 ? '✓ Concluído com Sucesso' : 'Em Execução...'}
             </span>
           </div>
 
           {/* BARRA DE PROGRESSO */}
-          <div style={{ width: '100%', height: '8px', background: '#080c0e', borderRadius: '4px', overflow: 'hidden', marginBottom: '20px' }}>
+          <div style={{ width: '100%', height: '10px', background: '#080c0e', borderRadius: '6px', overflow: 'hidden' }}>
             <div style={{ 
               width: `${migrationProgress}%`, 
               height: '100%', 
@@ -722,7 +867,7 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
           </div>
 
           {/* PASSOS VISUAIS */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', marginBottom: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '12px' }}>
             {steps.map((step, idx) => {
               const isCompleted = currentStepIndex > idx || migrationProgress === 100
               const isCurrent = currentStepIndex === idx && migrationProgress < 100
@@ -733,15 +878,15 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
                   style={{
                     background: isCurrent ? 'rgba(32, 214, 199, 0.1)' : (isCompleted ? 'rgba(16, 185, 129, 0.08)' : '#080c0e'),
                     border: `1px solid ${isCurrent ? '#20d6c7' : (isCompleted ? 'rgba(16, 185, 129, 0.3)' : '#182326')}`,
-                    borderRadius: '8px',
-                    padding: '10px',
-                    fontSize: '11px'
+                    borderRadius: '10px',
+                    padding: '14px',
+                    fontSize: '12px'
                   }}
                 >
-                  <div style={{ fontWeight: 700, color: isCurrent ? '#20d6c7' : (isCompleted ? '#10b981' : '#6b7280'), marginBottom: '2px' }}>
+                  <div style={{ fontWeight: 700, color: isCurrent ? '#20d6c7' : (isCompleted ? '#10b981' : '#6b7280'), marginBottom: '4px' }}>
                     {isCompleted ? '✓ ' : ''}{step.label}
                   </div>
-                  <div style={{ color: '#9ca3af', fontSize: '10px' }}>{step.desc}</div>
+                  <div style={{ color: '#9ca3af', fontSize: '11px', lineHeight: '1.4' }}>{step.desc}</div>
                 </div>
               )
             })}
@@ -750,16 +895,16 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
           {/* TERMINAL DE LOGS DA MIGRAÇÃO */}
           <div style={{ 
             background: '#06090a', 
-            border: '1px solid #182326', 
-            borderRadius: '8px', 
-            padding: '14px', 
+            border: '1px solid #1a272a', 
+            borderRadius: '10px', 
+            padding: '18px', 
             fontFamily: 'monospace', 
-            fontSize: '11px', 
-            maxHeight: '220px', 
+            fontSize: '12px', 
+            maxHeight: '260px', 
             overflowY: 'auto' 
           }}>
             {migrationLogs.map((l, i) => (
-              <div key={i} style={{ color: l.includes('CONCLUÍDA') || l.includes('HTTP 200') ? '#10b981' : '#d1d5db', marginBottom: '4px' }}>
+              <div key={i} style={{ color: l.includes('CONCLUÍDA') || l.includes('HTTP 200') ? '#10b981' : '#d1d5db', marginBottom: '6px' }}>
                 {l}
               </div>
             ))}
