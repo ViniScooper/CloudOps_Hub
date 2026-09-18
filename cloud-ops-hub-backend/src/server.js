@@ -635,6 +635,26 @@ fastify.post('/api/odisseu/test-key', async (request, reply) => {
   }
 });
 
+// Endpoint de Consulta do Status da Base de Conhecimento RAG
+fastify.get('/api/odisseu/knowledge', async (request, reply) => {
+  try {
+    const stats = odisseuAgent.ragKnowledgeBase.getKnowledgeStats();
+    return { success: true, ...stats };
+  } catch (err) {
+    return reply.status(500).send({ success: false, error: err.message });
+  }
+});
+
+// Endpoint para Forçar Re-Indexação da Base de Conhecimento RAG
+fastify.post('/api/odisseu/knowledge/reindex', async (request, reply) => {
+  try {
+    const stats = odisseuAgent.ragKnowledgeBase.reindex();
+    return { success: true, message: 'Base de conhecimento re-indexada com sucesso!', ...stats };
+  } catch (err) {
+    return reply.status(500).send({ success: false, error: err.message });
+  }
+});
+
 // =========================================================================
 // 5. MONITORAMENTO & TELEMETRIA EM TEMPO REAL DE ERROS DO USUÁRIO
 // =========================================================================

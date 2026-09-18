@@ -16,6 +16,8 @@ Esta pasta contém todos os manuais técnicos, arquiteturais e guias passo a pas
 | **[04. Gerenciamento Docker e Logs](file:///C:/Users/vini/Documents/MY_VM_ORACLE/documentacoes/04_GERENCIAMENTO_DOCKER_E_LOGS.md)** | Diagnóstico de containers, visualizador de logs, editor de `.env` e rotação para blindagem de disco. |
 | **[05. Robô de Provisionamento Oracle](file:///C:/Users/vini/Documents/MY_VM_ORACLE/documentacoes/05_ROBO_PROVISIONAMENTO_ORACLE.md)** | Como opera o bot de auto-provisionamento de instâncias OCI Always Free com alerta no WhatsApp. |
 | **[06. Guia Rápido do Dia a Dia](file:///C:/Users/vini/Documents/MY_VM_ORACLE/documentacoes/06_GUIA_RAPIDO_DO_DIA_A_DIA.md)** | Cheatsheet prático: comandos rápidos, passo a passo para novas funcionalidades e como subir o sistema local. |
+| **[07. Agente Odisseu RAG & LangChain](file:///C:/Users/vini/Documents/MY_VM_ORACLE/documentacoes/07_AGENTE_ODISSEU_RAG_LANGCHAIN.md)** | Copiloto de nuvem inteligente com RAG dinâmico, Function Calling, telemetria ao vivo e auto-failover. |
+| **[08. Migração Multi-Cloud & Tunnels](file:///C:/Users/vini/Documents/MY_VM_ORACLE/documentacoes/08_MIGRACAO_MULTICLOUD_E_TUNNELS.md)** | Guia completo de migração zero downtime 1-clique (Hostinger, Hetzner, AWS) e túneis Cloudflare Zero Trust. |
 
 ---
 
