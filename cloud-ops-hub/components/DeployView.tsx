@@ -311,6 +311,24 @@ export function DeployView({ server, doAction }: DeployViewProps) {
         </button>
       </div>
 
+      {server?.ip === '137.131.187.54' || server?.id === 'oracle-micro-02' ? (
+        <div className="panel" style={{ padding: '36px 20px', textAlign: 'center', marginBottom: '20px' }}>
+          <div style={{ display: 'inline-flex', padding: '12px', borderRadius: '50%', background: 'rgba(32, 214, 199, 0.08)', marginBottom: '12px', color: '#20d6c7' }}>
+            <Rocket size={28} />
+          </div>
+          <h3 style={{ margin: '0 0 6px', fontSize: '16px', color: '#d9e2e1' }}>Nenhuma Aplicação em Execução</h3>
+          <p style={{ margin: '0 0 18px', fontSize: '12px', color: '#6f8387', maxWidth: '460px', marginInline: 'auto' }}>
+            A instância <b>cloudops-micro-02</b> é nova e 100% virgem. Use o botão abaixo para clonar um repositório do GitHub ou configurar o seu primeiro pipeline nesta VM!
+          </p>
+          <button 
+            className="primary-button"
+            onClick={() => setCloneRepoOpen(true)}
+            style={{ padding: '8px 18px', fontSize: '12px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+          >
+            <FolderPlus size={14} /> Clonar Primeiro Repositório do GitHub
+          </button>
+        </div>
+      ) : (
       <div className="overview-grid" style={{ marginBottom: '20px' }}>
         {/* Card do Cardápio Digital com Rollback */}
         <div className="panel" style={{ padding: '20px' }}>
@@ -476,6 +494,7 @@ export function DeployView({ server, doAction }: DeployViewProps) {
           </div>
         ))}
       </div>
+      )}
 
       {/* Seção 3: Terminal de Saída do Deploy */}
       <section className="panel" style={{ marginBottom: '20px' }}>

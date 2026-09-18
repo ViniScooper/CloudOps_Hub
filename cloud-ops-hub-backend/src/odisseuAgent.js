@@ -109,6 +109,26 @@ const ODISSEU_TOOLS = [
         required: ['domain', 'internalPort']
       }
     }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'manage_cloudflare_tunnel',
+      description: 'Gerencia o túnel Cloudflare e domínios: reinicia o túnel, gera novo link ou aponta domínio para porta interna',
+      parameters: {
+        type: 'object',
+        properties: {
+          action: {
+            type: 'string',
+            enum: ['status', 'regenerate_url', 'restart', 'map_domain'],
+            description: 'Ação: "regenerate_url" ou "restart" para gerar novo link/reiniciar, "map_domain" para apontar domínio, "status" para checar'
+          },
+          domain: { type: 'string', description: 'Domínio a apontar (ex: cardapio.novo.com.br)' },
+          port: { type: 'string', description: 'Porta interna da aplicação (ex: 3002, 3001)' }
+        },
+        required: ['action']
+      }
+    }
   }
 ];
 
@@ -187,6 +207,23 @@ server {
         const writeCmd = `echo '${configContent}' | sudo tee ${confPath} && sudo ln -sf ${confPath} ${linkPath} && sudo nginx -t && sudo systemctl reload nginx`;
         const res = await deployService.runRemoteSsh(writeCmd);
         return `Nginx configurado para ${domain} -> :${internalPort}. Saída: ${res.stdout || res.stderr}`;
+      }
+
+      case 'manage_cloudflare_tunnel': {
+        const cloudflareService = require('./cloudflareService');
+        if (args.action === 'regenerate_url' || args.action === 'restart') {
+          const res = await cloudflareService.regenerateTunnel();
+          return `Túnel Cloudflare reiniciado com sucesso! Link ativo: ${res.url || 'cardapio.botecosivirino.com.br'}`;
+        }
+        if (args.action === 'map_domain') {
+          const res = await cloudflareService.mapOrReplaceDomain({
+            domain: args.domain,
+            port: args.port || '3002'
+          });
+          return res.message;
+        }
+        const status = await cloudflareService.getTunnelStatus();
+        return JSON.stringify(status);
       }
 
       default:

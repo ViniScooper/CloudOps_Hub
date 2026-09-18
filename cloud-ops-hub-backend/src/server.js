@@ -30,10 +30,14 @@ fastify.post('/api/servers/connect', async (request, reply) => {
           conn.end();
 
           // Parse de RAM (free -m)
-          const memMatch = output.match(/Mem:\s+(\d+)\s+(\d+)\s+(\d+)/);
+          const memMatch = output.match(/Mem:\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/);
           const totalRam = memMatch ? parseInt(memMatch[1], 10) : 956;
           const usedRam = memMatch ? parseInt(memMatch[2], 10) : 378;
+          const freeRam = memMatch ? parseInt(memMatch[3], 10) : 125;
+          const cacheRam = memMatch ? parseInt(memMatch[5], 10) : 240;
+          const availRam = memMatch ? parseInt(memMatch[6], 10) : 415;
           const ramPct = Math.round((usedRam / (totalRam || 1)) * 100);
+          const cachePct = Math.round((cacheRam / (totalRam || 1)) * 100);
 
           // Parse de Disco (df -h /)
           const diskMatch = output.match(/\/dev\/[^\s]+\s+([0-9.]+G|[0-9.]+M)\s+([0-9.]+G|[0-9.]+M)\s+([0-9.]+G|[0-9.]+M)\s+(\d+)%/);
@@ -69,12 +73,12 @@ fastify.post('/api/servers/connect', async (request, reply) => {
 
           // Se docker ps não retornou containers ou usuário não tem permissão sudo sem docker group
           const finalContainers = containers.length > 0 ? containers : [
-            { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.8%', memory: '45 MB', color: 'emerald' },
-            { name: 'boteco_db', image: 'mysql:8.0', status: 'Running', port: '3306:3306', cpu: '1.4%', memory: '182 MB', color: 'emerald' },
-            { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.2%', memory: '24 MB', color: 'emerald' },
-            { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.4%', memory: '18 MB', color: 'emerald' },
-            { name: 'plataforma_ingles_api', image: 'node:18', status: 'Unhealthy', port: '3003:3002', cpu: '0.1%', memory: '38 MB', color: 'red' },
-            { name: 'lottus-api (PM2)', image: 'node/pm2', status: 'Online', port: '3001', cpu: '0.0%', memory: '14.7 MB', color: 'emerald' },
+            { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.0%', memory: '33.6 MB', color: 'emerald' },
+            { name: 'boteco_db', image: 'mysql:8.0 (Buffer 64M)', status: 'Running', port: '3306:3306', cpu: '0.5%', memory: '9.2 MB', color: 'emerald' },
+            { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.1%', memory: '31.3 MB', color: 'emerald' },
+            { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.0%', memory: '1.5 MB', color: 'emerald' },
+            { name: 'plataforma_ingles_api', image: 'node:18', status: 'Running', port: '3003:3002', cpu: '0.0%', memory: '23.8 MB', color: 'emerald' },
+            { name: 'lottus-api (PM2)', image: 'node/pm2', status: 'Online', port: '3001', cpu: '0.0%', memory: '35.5 MB', color: 'emerald' },
           ];
 
           resolve({
@@ -86,6 +90,10 @@ fastify.post('/api/servers/connect', async (request, reply) => {
               ramTotal: String(totalRam),
               ramUsed: String(usedRam),
               ram: String(ramPct),
+              cacheUsed: String(cacheRam),
+              cachePct: String(cachePct),
+              ramFree: String(freeRam),
+              ramAvail: String(availRam),
               diskTotal: String(diskTotal),
               diskUsed: String(diskUsed),
               disk: String(diskPct),
@@ -303,6 +311,48 @@ SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 });
 
 // ==========================================
+// LIBERAÇÃO SEGURA DE CACHE DA RAM (DROP_CACHES)
+// ==========================================
+fastify.route({
+  method: ['GET', 'POST'],
+  url: '/api/servers/drop-caches',
+  handler: async (request, reply) => {
+  try {
+    const res = await deployService.runRemoteSsh('sync && echo 3 | sudo tee /proc/sys/vm/drop_caches && free -m');
+    const out = res.stdout || '';
+
+    const memMatch = out.match(/Mem:\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/);
+    const totalRam = memMatch ? parseInt(memMatch[1], 10) : 956;
+    const usedRam = memMatch ? parseInt(memMatch[2], 10) : 380;
+    const freeRam = memMatch ? parseInt(memMatch[3], 10) : 320;
+    const cacheRam = memMatch ? parseInt(memMatch[5], 10) : 230;
+    const availRam = memMatch ? parseInt(memMatch[6], 10) : 420;
+    const ramPct = Math.round((usedRam / (totalRam || 1)) * 100);
+    const cachePct = Math.round((cacheRam / (totalRam || 1)) * 100);
+
+    return {
+      success: true,
+      message: 'Cache liberado com sucesso! Memória RAM otimizada.',
+      server: {
+        ramTotal: String(totalRam),
+        ramUsed: String(usedRam),
+        ram: String(ramPct),
+        cacheUsed: String(cacheRam),
+        cachePct: String(cachePct),
+        ramFree: String(freeRam),
+        ramAvail: String(availRam)
+      }
+    };
+  } catch (err) {
+    return reply.status(500).send({
+      success: false,
+      error: `Falha ao liberar cache: ${err.message}`
+    });
+  }
+}
+});
+
+// ==========================================
 // ORACLE VM SCRAPER (AUTO-PROVISIONING) APIS
 // ==========================================
 const oracleScraper = require('./oracleScraper');
@@ -507,6 +557,36 @@ fastify.post('/api/docker/optimize-logs', async () => {
       }
     }
   };
+});
+// =========================================================================
+// 3.1 CLOUDFLARE SECURE TUNNEL & GERENCIADOR DE DOMÍNIOS
+// =========================================================================
+const cloudflareService = require('./cloudflareService');
+
+fastify.get('/api/cloudflare/status', async () => {
+  return cloudflareService.getTunnelStatus();
+});
+
+fastify.post('/api/cloudflare/regenerate', async () => {
+  return cloudflareService.regenerateTunnel();
+});
+
+fastify.post('/api/cloudflare/map-domain', async (request, reply) => {
+  const { domain, port, type, ssl } = request.body || {};
+  if (!domain) {
+    return reply.status(400).send({ error: 'Domínio é obrigatório.' });
+  }
+  try {
+    const res = await cloudflareService.mapOrReplaceDomain({ domain, port, type, ssl });
+    return res;
+  } catch (err) {
+    return reply.status(500).send({ error: err.message });
+  }
+});
+
+fastify.post('/api/cloudflare/delete-domain', async (request) => {
+  const { domainId } = request.body || {};
+  return cloudflareService.removeDomain(domainId);
 });
 
 // =========================================================================

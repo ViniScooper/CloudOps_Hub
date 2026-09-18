@@ -72,8 +72,8 @@ export function DashboardView({
                 <small>{item.region}</small>
               </span>
               <span className="resource-type">{item.type}</span>
-              <span className="resource-number">{item.cpu}%</span>
-              <span className="resource-number">{item.ram}%</span>
+              <span className="resource-number">{String(item.cpu || '0').replace('%', '')}%</span>
+              <span className="resource-number">{String(item.ram || '0').replace('%', '')}%</span>
               <span className="resource-status good">
                 <span className="status-dot emerald" />
                 {item.status}
@@ -117,27 +117,34 @@ export function DashboardView({
           </div>
 
           <div className="container-list">
-            {containers.filter(c => c.name.includes('db') || c.name.includes('mysql') || c.name.includes('backend')).map(item => (
-              <div className="container-row" key={item.name}>
-                <span className={`status-dot ${item.color || 'emerald'}`} />
-                <div className="container-info">
-                  <strong>{item.name}</strong>
-                  <small>{item.image} · Porta {item.port}</small>
-                </div>
-                <span className={`status-text ${item.color || 'emerald'}`}>{item.status}</span>
-                <div className="container-stats">
-                  <span><b>{item.cpu || '0%'}</b><small>CPU</small></span>
-                  <span><b>{item.memory || '0 MB'}</b><small>RAM</small></span>
-                </div>
-                <button className="row-menu" title={`Reiniciar container ${item.name}`} onClick={() => doAction(`Reiniciando container ${item.name}...`)} aria-label={`Opções de ${item.name}`}>
-                  <RotateCcw size={14} />
-                </button>
+            {containers.length === 0 ? (
+              <div style={{ padding: '32px 16px', textAlign: 'center', color: '#6f8387' }}>
+                <p style={{ margin: '0 0 6px', fontSize: '13px', color: '#d9e2e1', fontWeight: 600 }}>Nenhum container Docker ativo</p>
+                <small style={{ fontSize: '11px', color: '#6f8387' }}>Esta VM é nova e virgem. Instale o Docker ou faça deploy de novos serviços pelo Hub.</small>
               </div>
-            ))}
+            ) : (
+              containers.filter(c => c.name.includes('db') || c.name.includes('mysql') || c.name.includes('backend')).map(item => (
+                <div className="container-row" key={item.name}>
+                  <span className={`status-dot ${item.color || 'emerald'}`} />
+                  <div className="container-info">
+                    <strong>{item.name}</strong>
+                    <small>{item.image} · Porta {item.port}</small>
+                  </div>
+                  <span className={`status-text ${item.color || 'emerald'}`}>{item.status}</span>
+                  <div className="container-stats">
+                    <span><b>{item.cpu || '0%'}</b><small>CPU</small></span>
+                    <span><b>{item.memory || '0 MB'}</b><small>RAM</small></span>
+                  </div>
+                  <button className="row-menu" title={`Reiniciar container ${item.name}`} onClick={() => doAction(`Reiniciando container ${item.name}...`)} aria-label={`Opções de ${item.name}`}>
+                    <RotateCcw size={14} />
+                  </button>
+                </div>
+              ))
+            )}
           </div>
 
           <button className="view-all" title="Abrir painel completo de Docker com todos os containers da VM" onClick={() => setActive('Docker')}>
-            Ver todos os {containers.length} containers (incluindo Nginx e Túneis) <span>→</span>
+            {containers.length === 0 ? 'Gerenciar Docker nesta VM' : `Ver todos os ${containers.length} containers (incluindo Nginx e Túneis)`} <span>→</span>
           </button>
         </section>
         
@@ -150,30 +157,50 @@ export function DashboardView({
             <Database size={18} className="database-icon" />
           </div>
 
-          <div className="data-service">
-            <span className="service-icon postgres"><Database size={16} /></span>
-            <div>
-              <strong>MySQL 8.0 (Container boteco_db)</strong>
-              <small>Porta 3306 ➔ 3306 · Otimizado em 136 MB</small>
+          {server.ip === '137.131.187.54' || server.id === 'oracle-micro-02' ? (
+            <div style={{ padding: '24px 16px', textAlign: 'center', color: '#6f8387' }}>
+              <div style={{ display: 'inline-flex', padding: '10px', borderRadius: '50%', background: 'rgba(32, 214, 199, 0.05)', marginBottom: '8px', color: '#20d6c7' }}>
+                <Database size={20} />
+              </div>
+              <p style={{ margin: '0 0 4px', fontSize: '13px', color: '#d9e2e1', fontWeight: 600 }}>Nenhum Banco Configurado</p>
+              <small style={{ fontSize: '11px', color: '#6f8387', display: 'block', marginBottom: '14px' }}>Esta máquina está 100% limpa. Instale MySQL, Postgres ou Redis quando precisar.</small>
+              <div className="data-service" style={{ textAlign: 'left' }}>
+                <span className="service-icon managed"><Cloud size={16} /></span>
+                <div>
+                  <strong>Oracle Object Storage</strong>
+                  <small>Bucket boteco-sivirino-fotos · 1.4 GB</small>
+                </div>
+                <span className="status-text emerald">Active</span>
+              </div>
             </div>
-            <span className="status-text emerald">Healthy</span>
-          </div>
+          ) : (
+            <>
+              <div className="data-service">
+                <span className="service-icon postgres"><Database size={16} /></span>
+                <div>
+                  <strong>MySQL 8.0 (Container boteco_db)</strong>
+                  <small>Porta 3306 ➔ 3306 · Otimizado em 64M</small>
+                </div>
+                <span className="status-text emerald">Healthy</span>
+              </div>
 
-          <div className="data-service">
-            <span className="service-icon managed"><Cloud size={16} /></span>
-            <div>
-              <strong>Oracle Object Storage</strong>
-              <small>Bucket boteco-sivirino-fotos · 1.4 GB</small>
-            </div>
-            <span className="status-text emerald">Active</span>
-          </div>
+              <div className="data-service">
+                <span className="service-icon managed"><Cloud size={16} /></span>
+                <div>
+                  <strong>Oracle Object Storage</strong>
+                  <small>Bucket boteco-sivirino-fotos · 1.4 GB</small>
+                </div>
+                <span className="status-text emerald">Active</span>
+              </div>
 
-          <div className="backup-row">
-            <span><Archive size={14} /> Rotina de Backup</span>
-            <button title="Executar mysqldump no container boteco_db e salvar no Object Storage" onClick={() => doAction('Backup mysqldump do MySQL iniciado com sucesso!')}>
-              <Copy size={13} /> Gerar Backup Agora
-            </button>
-          </div>
+              <div className="backup-row">
+                <span><Archive size={14} /> Rotina de Backup</span>
+                <button title="Executar mysqldump no container boteco_db e salvar no Object Storage" onClick={() => doAction('Backup mysqldump do MySQL iniciado com sucesso!')}>
+                  <Copy size={13} /> Gerar Backup Agora
+                </button>
+              </div>
+            </>
+          )}
         </section>
       </div>
     </>

@@ -21,6 +21,7 @@ node_modules/
 dist/
 build/
 out/
+*.tsbuildinfo
 
 # ==========================================
 # LOGS E ARQUIVOS TEMPORÁRIOS
