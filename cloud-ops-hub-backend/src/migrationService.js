@@ -44,6 +44,34 @@ function saveTargets(targets) {
   } catch (err) {}
 }
 
+function addOrUpdateTarget(target) {
+  const targets = loadTargets();
+  const index = targets.findIndex(t => t.id === target.id || t.host === target.host);
+  const updated = {
+    id: target.id || `target-${Date.now()}`,
+    name: target.name || `${target.provider || 'Hostinger'} VPS (${target.host})`,
+    provider: target.provider || 'Hostinger',
+    host: target.host,
+    port: Number(target.port) || 22,
+    user: target.user || 'root',
+    authType: target.authType || 'key',
+    status: target.status || 'OK',
+    health: target.health || 'Conectado (Status OK)',
+    specs: target.specs || 'VPS Ativa',
+    plan: target.plan || 'Cloud VPS',
+    region: target.region || 'América do Sul'
+  };
+
+  if (index >= 0) {
+    targets[index] = { ...targets[index], ...updated };
+  } else {
+    targets.unshift(updated);
+  }
+
+  saveTargets(targets);
+  return { success: true, target: updated, targets };
+}
+
 /**
  * Testa a conexão SSH com a nova VPS (Hostinger, AWS, etc.)
  */
@@ -201,6 +229,7 @@ output "status_migracao" {
 module.exports = {
   loadTargets,
   saveTargets,
+  addOrUpdateTarget,
   testTargetSsh,
   getMigrationEstimate,
   generateTerraformScript

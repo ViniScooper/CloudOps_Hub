@@ -695,6 +695,11 @@ fastify.get('/api/migration/targets', async () => {
   return { targets: migrationService.loadTargets() };
 });
 
+fastify.post('/api/migration/targets', async (request) => {
+  const targetData = request.body || {};
+  return migrationService.addOrUpdateTarget(targetData);
+});
+
 fastify.post('/api/migration/test-target', async (request) => {
   const { host, port, user, privateKey, password } = request.body || {};
   return migrationService.testTargetSsh({ host, port, user, privateKey, password });
