@@ -44,7 +44,6 @@ export const CLOUD_PROJECTS = [
     backendDetails: 'Node.js 20 Express / Docker Compose',
     frontend: 'Cardápio Digital PWA (Next.js / Proxy OCI)',
     repo: 'cardapio_digital (branch main)',
-    cost: 'R$ 0,00 / mês (Always Free)',
     dockerContainers: ['boteco_backend', 'boteco_db', 'boteco_tunnel'],
     port: '3002',
     healthPath: '/config'
@@ -64,7 +63,6 @@ export const CLOUD_PROJECTS = [
     backendDetails: 'Node.js 20 / PM2 Ingress',
     frontend: 'API Ingress (api.lottus.com.br)',
     repo: 'api_users (branch main)',
-    cost: 'R$ 0,00 / mês (Always Free)',
     dockerContainers: ['nginx-manager-nginx-1', 'pm2:lottus_api'],
     port: '3001',
     healthPath: '/status'
@@ -84,7 +82,6 @@ export const CLOUD_PROJECTS = [
     backendDetails: 'boteco_backend, boteco_db, lottus_api, nginx',
     frontend: 'Todas as Rotas e Domínios Nginx',
     repo: 'cardapio_digital + api_users',
-    cost: 'R$ 0,00 / mês (Always Free)',
     dockerContainers: ['boteco_backend', 'boteco_db', 'boteco_tunnel', 'nginx-manager-nginx-1', 'lottus_api'],
     port: '3002 e 3001',
     healthPath: '/'
@@ -495,10 +492,6 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ color: '#9ca3af' }}>📁 Repositório Git:</span>
               <strong style={{ color: '#20d6c7', fontFamily: 'monospace', fontSize: '12px' }}>{currentProject.repo}</strong>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: '#9ca3af' }}>💵 Custo Atual OCI:</span>
-              <strong style={{ color: '#10b981' }}>{currentProject.cost}</strong>
             </div>
           </div>
         </div>
