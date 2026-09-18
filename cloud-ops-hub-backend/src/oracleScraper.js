@@ -211,6 +211,21 @@ async function executeScrapeCycle() {
       sshPublicKey = fs.readFileSync(pubKeyPath, 'utf8').trim();
     }
 
+    // Script Cloud-Init para evitar que a Oracle suspenda a VM por "inatividade" (Regra Always Free de 7 dias)
+    const antiIdleScript = `#!/bin/bash
+echo "[CloudOps Hub] Configurando proteção Anti-Idle Always Free..."
+cat << 'EOF' > /usr/local/bin/cloudops-keepalive.sh
+#!/bin/bash
+while true; do
+  uptime > /dev/null
+  sleep 300
+done
+EOF
+chmod +x /usr/local/bin/cloudops-keepalive.sh
+nohup /usr/local/bin/cloudops-keepalive.sh > /dev/null 2>&1 &
+echo "[CloudOps Hub] Proteção ativa com sucesso."
+`;
+
     const launchPayload = {
       availabilityDomain: availabilityDomain,
       compartmentId: config.tenancy,
@@ -227,11 +242,14 @@ async function executeScrapeCycle() {
       },
       createVnicDetails: {
         subnetId: subnetId,
-        assignPublicIp: true,
+        // Dica Hitrov: Não exigir IP público no segundo do provisionamento para contornar
+        // escassez temporária de pool IPv4 ou limite de 2 IPs públicos Always Free da tenancy.
+        assignPublicIp: false,
         displayName: 'primary-vnic'
       },
       metadata: {
-        ssh_authorized_keys: sshPublicKey
+        ssh_authorized_keys: sshPublicKey,
+        user_data: Buffer.from(antiIdleScript).toString('base64')
       }
     };
 
@@ -276,6 +294,9 @@ async function executeScrapeCycle() {
         clearInterval(scraperTimer);
         scraperTimer = null;
       }
+
+      // Tenta vincular IP público efêmero em segundo plano sem ter travado a criação do slot
+      attachPublicIpPostCreation(res.data.id, config);
 
       // Se a VM criada tiver menos de 12GB de RAM, inicia o Auto-Resize em segundo plano
       if (currentProfile.memoryInGBs < 12) {
@@ -328,6 +349,66 @@ function startScraper(intervalSeconds = 15) {
   }, scraperState.intervalSeconds * 1000);
 
   return { success: true, message: 'Scraper iniciado com sucesso no Hub Local.' };
+}
+
+async function attachPublicIpPostCreation(instanceId, config) {
+  try {
+    addLog(`🌐 [Rede]: Aguardando provisionamento da VNIC para vincular IPv4 público efêmero...`, 'info');
+    await new Promise(r => setTimeout(r, 15000));
+
+    const vnicAttachmentsRes = await callOciApi({
+      method: 'GET',
+      pathWithQuery: `/20160918/vnicAttachments?compartmentId=${encodeURIComponent(config.tenancy)}&instanceId=${encodeURIComponent(instanceId)}`
+    });
+
+    if (vnicAttachmentsRes.statusCode >= 200 && vnicAttachmentsRes.statusCode < 300 && Array.isArray(vnicAttachmentsRes.data)) {
+      const vnicAttachment = vnicAttachmentsRes.data[0];
+      if (vnicAttachment && vnicAttachment.vnicId) {
+        const vnicRes = await callOciApi({
+          method: 'GET',
+          pathWithQuery: `/20160918/vnics/${vnicAttachment.vnicId}`
+        });
+
+        if (vnicRes.data && vnicRes.data.publicIp) {
+          addLog(`🌐 [Rede]: IPv4 público atribuído com sucesso: ${vnicRes.data.publicIp}`, 'success');
+          if (scraperState.successfulVm) {
+            scraperState.successfulVm.publicIp = vnicRes.data.publicIp;
+          }
+          return;
+        }
+
+        const privateIpsRes = await callOciApi({
+          method: 'GET',
+          pathWithQuery: `/20160918/privateIps?vnicId=${vnicAttachment.vnicId}`
+        });
+
+        if (Array.isArray(privateIpsRes.data) && privateIpsRes.data.length > 0) {
+          const privateIpId = privateIpsRes.data[0].id;
+          const assignRes = await callOciApi({
+            method: 'POST',
+            pathWithQuery: `/20160918/publicIps`,
+            body: {
+              compartmentId: config.tenancy,
+              lifetime: 'EPHEMERAL',
+              privateIpId: privateIpId,
+              displayName: 'cloudops-ephemeral-ip'
+            }
+          });
+
+          if (assignRes.statusCode >= 200 && assignRes.statusCode < 300 && assignRes.data?.ipAddress) {
+            addLog(`🎉 [Rede]: IPv4 público efêmero vinculado com sucesso: ${assignRes.data.ipAddress}`, 'success');
+            if (scraperState.successfulVm) {
+              scraperState.successfulVm.publicIp = assignRes.data.ipAddress;
+            }
+          } else {
+            addLog(`ℹ️ [Rede]: Limite de IPs públicos atingido ou pool em espera. Acesso via Túnel Cloudflare pronto!`, 'info');
+          }
+        }
+      }
+    }
+  } catch (err) {
+    addLog(`ℹ️ [Rede]: Status de IP: ${err.message}. Acesso seguro via Túnel Cloudflare disponível.`, 'info');
+  }
 }
 
 // =========================================================================

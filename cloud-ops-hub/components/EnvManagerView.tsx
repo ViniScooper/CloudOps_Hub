@@ -32,8 +32,26 @@ export function EnvManagerView({ server, doAction }: EnvManagerViewProps) {
   }
 
   useEffect(() => {
-    fetchEnv()
-  }, [])
+    if (server?.ip !== '137.131.187.54' && server?.id !== 'oracle-micro-02') {
+      fetchEnv()
+    } else {
+      setEnvVars([])
+    }
+  }, [server?.ip])
+
+  if (server?.ip === '137.131.187.54' || server?.id === 'oracle-micro-02') {
+    return (
+      <div className="panel" style={{ padding: '40px 20px', textAlign: 'center', marginTop: '20px' }}>
+        <div style={{ display: 'inline-flex', padding: '12px', borderRadius: '50%', background: 'rgba(32, 214, 199, 0.08)', marginBottom: '12px', color: '#20d6c7' }}>
+          <KeyRound size={28} />
+        </div>
+        <h3 style={{ margin: '0 0 6px', fontSize: '16px', color: '#d9e2e1' }}>Nenhum Arquivo .env Configurado</h3>
+        <p style={{ margin: '0 auto', fontSize: '12px', color: '#6f8387', maxWidth: '480px' }}>
+          Esta máquina virtual está limpa e ainda não possui projetos rodando. Quando você clonar uma aplicação ou iniciar um container, o cofre de variáveis de ambiente (.env) será ativado aqui.
+        </p>
+      </div>
+    )
+  }
 
   const toggleSecret = (key: string) => {
     setShowSecrets(prev => ({ ...prev, [key]: !prev[key] }))

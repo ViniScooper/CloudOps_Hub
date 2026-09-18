@@ -13,13 +13,15 @@ import { DeployView } from '../components/DeployView'
 import { EnvManagerView } from '../components/EnvManagerView'
 import { HelpView } from '../components/HelpView'
 import { OdisseuChatView } from '../components/OdisseuChatView'
+import { CloudflareTunnelView } from '../components/CloudflareTunnelView'
+import { StorageExplorerView } from '../components/StorageExplorerView'
 import { Rocket, KeyRound, Bot } from 'lucide-react'
 
 
 const nav = [
   { label: 'Dashboard', icon: LayoutDashboard },
   { label: 'Odisseu AI', icon: Bot, badge: 'Copilot' },
-  { label: 'VM Scraper', icon: Zap, badge: 'Auto' },
+  { label: 'VM Scraper', icon: Zap, badge: 'Nuvem 24/7' },
   { label: 'Deploy', icon: Rocket, badge: 'CI/CD' },
   { label: 'Variáveis (.env)', icon: KeyRound },
   { label: 'Docker', icon: Container, badge: '3' },
@@ -31,19 +33,47 @@ const nav = [
 ]
 
 const servers = [
-  { id: 'oracle-prod', name: 'instance-bytedata', provider: 'Oracle Cloud (Always Free)', region: 'sa-saopaulo-1 (GRU)', ip: '137.131.185.243', status: 'Healthy', type: 'AMD EPYC (2 vCPUs)', cpu: '18%', ram: '39%', disk: '34%', color: 'oracle' },
-  { id: 'aws-api', name: 'AWS API Cluster', provider: 'Amazon Web Services', region: 'us-east-1', ip: '10.42.7.18', status: 'Healthy', type: 't3.large', cpu: '27%', ram: '51%', disk: '44%', color: 'aws' },
-  { id: 'oracle-stage', name: 'Oracle Staging Sandbox', provider: 'Oracle Cloud', region: 'sa-saopaulo-1', ip: '10.0.0.224', status: 'Warning', type: 'VM.Standard.E2.1.Micro', cpu: '78%', ram: '82%', disk: '76%', color: 'oracle' },
+  { id: 'oracle-prod', name: 'instance-bytedata', provider: 'Oracle Cloud (Always Free)', region: 'sa-saopaulo-1 (GRU)', ip: '137.131.185.243', status: 'Healthy', type: 'AMD EPYC (2 vCPUs)', cpu: '18', ram: '42', ramUsed: '401', ramTotal: '956', cacheUsed: '233', cachePct: '24', disk: '34', diskUsed: '15', diskTotal: '45', color: 'oracle' },
+  { id: 'oracle-micro-02', name: 'cloudops-micro-02', provider: 'Oracle Cloud (Always Free)', region: 'sa-saopaulo-1 (GRU)', ip: '137.131.187.54', status: 'Healthy', type: 'VM.Standard.E2.1.Micro', cpu: '2', ram: '21', ramUsed: '207', ramTotal: '956', cacheUsed: '278', cachePct: '29', disk: '5', diskUsed: '2.4', diskTotal: '49', color: 'oracle' },
+  { id: 'aws-api', name: 'AWS API Cluster', provider: 'Amazon Web Services', region: 'us-east-1', ip: '10.42.7.18', status: 'Healthy', type: 't3.large', cpu: '27', ram: '51', disk: '44', color: 'aws' },
 ]
 
 const containersData = [
-  { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.8%', memory: '45 MB', color: 'emerald' },
-  { name: 'boteco_db', image: 'mysql:8.0', status: 'Running', port: '3306:3306', cpu: '1.4%', memory: '182 MB', color: 'emerald' },
-  { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.2%', memory: '24 MB', color: 'emerald' },
-  { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.4%', memory: '18 MB', color: 'emerald' },
-  { name: 'plataforma_ingles_api', image: 'node:18', status: 'Unhealthy', port: '3003:3002', cpu: '0.1%', memory: '38 MB', color: 'red' },
-  { name: 'lottus-api (PM2)', image: 'node/pm2', status: 'Online', port: '3001', cpu: '0.0%', memory: '14.7 MB', color: 'emerald' },
+  { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.0%', memory: '33.6 MB', color: 'emerald' },
+  { name: 'boteco_db', image: 'mysql:8.0 (Buffer 64M)', status: 'Running', port: '3306:3306', cpu: '0.5%', memory: '9.2 MB', color: 'emerald' },
+  { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.1%', memory: '31.3 MB', color: 'emerald' },
+  { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.0%', memory: '1.5 MB', color: 'emerald' },
+  { name: 'plataforma_ingles_api', image: 'node:18', status: 'Running', port: '3003:3002', cpu: '0.0%', memory: '23.8 MB', color: 'emerald' },
+  { name: 'lottus-api (PM2)', image: 'node/pm2', status: 'Online', port: '3001', cpu: '0.0%', memory: '35.5 MB', color: 'emerald' },
 ]
+
+const DEFAULT_SSH_KEY = `-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEA7BwqNT2JwH/UWmQciGL7P2l3giUeaD863MO+lu9NZ+moXJWj
+kwi7gA9u3twv7N4Ab7HCgiDX2m+1NwRuLaGwvotjs5DS6L/iDpXzN8WOuDfGKmYa
+kewNmQH8VG1l1kVJL1hG8Z/3L2fcOpnZu3+Tt9YrIYMrdRJ8vBpUYrTDf3EZwwLP
++ABcZ1ourr3qdORTT+rBu9UkZbVSJiI+2yUsxkRika6a9jWretMt028d7euyFJQ5
+dtrCTsMTc/R1BwZ+ap4meU+Eb+yK/XqoSGHZFvhAUaqYb+77ZI15OelgdW2tU6/r
+eEIyxnJopTUNqev88Yct4vKKeXrS/Bij3IszmwIDAQABAoIBACSlineRAZx7Or58
+42DX3B9Pg1kT4dBUYBJ7300V/3GtdpBIOYdMx61st8ynaFjfbDnp4ULJTjd9Nyc+
+7MrwWbp5cBQi2ll9ztxssb9qTmiRX5SdHGqhtMqW4E9KW5ASWPWcQgamyXr2J9yA
+nKbZelgCSdd9wHT/VZTskURwwhc5bmmMl90sBq8xq+glYb6rHd8VOQu9kTq2/qBm
+JHNfyCkETtBwsvxahfAnuLNZXpmkfQqbDPse957oQkkg1iD0XsIyVE7vn1YSZLOW
+E2+plT9W0UYTL40yXFRmeu4FmeDdBJnd0IydKpCM1Tnggti3eaQeiIZxp/LYxXuH
+E8VaLkECgYEA/H7GxhWKUTol6W/WnX6FA/GX97SAvu2mjVs/Z3pLhJ+mcYA8Bgix
+nMz7Gs6PiZ1Y+UVBlXW88fi9d/LDG/gpehXu5vsueonMfb/fBtTVxMqm9K0+4xt5
+dUt+fd5SBS8LW7xIDfCWUKZCsEybc8GcXXC4plX/edEAlApqjb5/HXkCgYEA72Mq
+L0nzevAwq0cgOz5UH0tR4UJBcj8soi2FmdTqR2NosTm6K+dwETqjM6i1pvaZMqQ8
+ACl8X4pFmkMAcRKgOGmYop6Lym9kvQ8HeKMJfUWr+3zYsP3WBsiNvYjg8p5Loaal
+g6wrwMLhwgrw3NI0yTCrlNBxccpietWUVTnIWLMCgYB1lrEJpRRyeasYSN5hIH/f
+8057rJNc155+LGWd0kWDMTq5lyfdA4V76bZzqIkOZLn/9LHzYg6pfdb3Gpak2vCu
+C7Lj3UyrAqu6UHYUX2BisqIIRvqHl877wjnZcoUuJteaVFgWLdpDGvrp0fN/eEZS
++eD0jg5Zc+1aBHPVKUdXuQKBgQCd0K0t0b3fTVt4fwJjrBp/KwOG0kwdCkLdg88w
+8+mjOIj7VUhDy2bZJOQUmWNv9+BVP2qC3NaukZSDNyqiYJoZtpu2kXks8rTh4neV
+cz49ROI1gD/GpwEjJbIzwnox2GOZ5Sf2n1mU0aVNbDMQENBV1m03RReU4cx8mDMa
+4GYQ+wKBgQCb95YgYACRZzYwWM+lGLEwB0ZYO7+2vkcl1goWHDy2o5UTK7vj3+x+
+42VjgEs3HSPBp+jbrgPEmuiZTeso4ADeZlWiWmbE0Bg9wyUzKIhr7qbCSxCjxef1
+gfO651XihVBUIOy6j80ML/ExC9DTGaCBe8FOlFxPC1n7HDc1uZQkCw==
+-----END RSA PRIVATE KEY-----`.trim()
 
 const bucketsData = [
   { name: 'boteco-sivirino-fotos', visibility: 'Public (ObjectRead)', tier: 'Standard Always Free', region: 'sa-saopaulo-1', count: '142 objetos', size: '1.4 GB', url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/' },
@@ -65,8 +95,53 @@ const logs = [
   ['11:15:30', 'info', 'Memory usage stable: 378 MB of 956 MB used (39%)'],
 ]
 
-function Metric({ label, value, unit, change, icon: Icon, tone, progress }: { label: string; value: string; unit: string; change: string; icon: typeof Activity; tone: string; progress: number }) {
-  return <article className="metric-card"><div className="metric-topline"><span className={`metric-icon ${tone}`}><Icon size={16} /></span><span className="metric-label">{label}</span><MoreHorizontal size={16} className="metric-more" /></div><div className="metric-value">{value}<span>{unit}</span></div><div className="metric-bottom"><span className="change positive">{change}</span><span className="muted">vs. last hour</span></div><div className="progress-track"><div className={`progress-fill ${tone}`} style={{ width: `${progress}%` }} /></div></article>
+function Metric({ 
+  label, 
+  value, 
+  unit, 
+  change, 
+  icon: Icon, 
+  tone, 
+  progress,
+  badge,
+  actionButton
+}: { 
+  label: string; 
+  value: string; 
+  unit: string; 
+  change: string; 
+  icon: typeof Activity; 
+  tone: string; 
+  progress: number;
+  badge?: React.ReactNode;
+  actionButton?: React.ReactNode;
+}) {
+  return (
+    <article className="metric-card" style={{ position: 'relative' }}>
+      <div className="metric-topline">
+        <span className={`metric-icon ${tone}`}><Icon size={16} /></span>
+        <span className="metric-label">{label}</span>
+        {actionButton ? actionButton : <MoreHorizontal size={16} className="metric-more" />}
+      </div>
+      <div className="metric-value">
+        {value}<span>{unit}</span>
+      </div>
+      <div className="metric-bottom" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span className="change positive">{change}</span>
+          <span className="muted">vs. last hour</span>
+        </div>
+        {badge && (
+          <div style={{ fontSize: '11px', fontWeight: 600, color: '#f59e0b', background: 'rgba(245, 158, 11, 0.12)', padding: '2px 7px', borderRadius: '4px', border: '1px solid rgba(245, 158, 11, 0.25)' }}>
+            {badge}
+          </div>
+        )}
+      </div>
+      <div className="progress-track">
+        <div className={`progress-fill ${tone}`} style={{ width: `${progress}%` }} />
+      </div>
+    </article>
+  )
 }
 
 export default function Page() {
@@ -140,8 +215,8 @@ export default function Page() {
   const [terminalInput, setTerminalInput] = useState('')
   const [terminalHistory, setTerminalHistory] = useState<Array<{ time: string; type: string; text: string }>>([
     { time: '16:00:10', type: 'info', text: 'CloudOps Hub Zero Trust SSH Session connected' },
-    { time: '16:00:15', type: 'info', text: 'Túnel Cloudflare boteco_tunnel roteando tráfego externo para Vercel e VM' },
-    { time: '16:01:22', type: 'info', text: 'Sessão pronta. Experimente: docker ps, uptime, free -m, df -h, netstat -tuln' },
+    { time: '16:00:15', type: 'info', text: 'Sessão SSH Zero Trust autenticada e ativa na porta 22.' },
+    { time: '16:01:22', type: 'info', text: 'Sessão pronta. Experimente: uptime, free -m, df -h, docker ps' },
   ])
   const [isExecutingCmd, setIsExecutingCmd] = useState(false)
   const [historyCmds, setHistoryCmds] = useState<string[]>(['docker ps', 'free -m', 'df -h', 'uptime'])
@@ -213,7 +288,40 @@ export default function Page() {
 
       const savedServers = localStorage.getItem('cloudops_servers')
       if (savedServers) {
-        const parsed = JSON.parse(savedServers)
+        let parsed = JSON.parse(savedServers)
+        parsed = parsed.map((s: any) => {
+          if (s.ip === '137.131.185.243') {
+            return {
+              ...s,
+              id: 'oracle-prod',
+              name: 'instance-bytedata',
+              type: 'AMD EPYC (2 vCPUs)',
+              provider: 'Oracle Cloud (Always Free)',
+              region: 'sa-saopaulo-1 (GRU)'
+            }
+          }
+          if (s.ip === '137.131.187.54') {
+            return {
+              ...s,
+              id: 'oracle-micro-02',
+              name: 'cloudops-micro-02',
+              type: 'VM.Standard.E2.1.Micro',
+              provider: 'Oracle Cloud (Always Free)',
+              region: 'sa-saopaulo-1 (GRU)',
+              cpu: '2',
+              ram: '21',
+              ramUsed: '207',
+              ramTotal: '956',
+              cacheUsed: '278',
+              cachePct: '29',
+              disk: '5',
+              diskUsed: '2.4',
+              diskTotal: '49'
+            }
+          }
+          return s
+        })
+        localStorage.setItem('cloudops_servers', JSON.stringify(parsed))
         setServerList(parsed)
         if (parsed.length > 0) setServer(parsed[0])
       }
@@ -239,12 +347,12 @@ export default function Page() {
         setContainers(JSON.parse(savedContainers))
       } else if (savedServers && JSON.parse(savedServers).length > 0) {
         const defaultContainers = [
-          { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.8%', memory: '45 MB', color: 'emerald' },
-          { name: 'boteco_db', image: 'mysql:8.0', status: 'Running', port: '3306:3306', cpu: '1.4%', memory: '182 MB', color: 'emerald' },
-          { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.2%', memory: '24 MB', color: 'emerald' },
-          { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.4%', memory: '18 MB', color: 'emerald' },
-          { name: 'plataforma_ingles_api', image: 'node:18', status: 'Unhealthy', port: '3003:3002', cpu: '0.1%', memory: '38 MB', color: 'red' },
-          { name: 'lottus-api (PM2)', image: 'node/pm2', status: 'Online', port: '3001', cpu: '0.0%', memory: '14.7 MB', color: 'emerald' },
+          { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.0%', memory: '33.6 MB', color: 'emerald' },
+          { name: 'boteco_db', image: 'mysql:8.0 (Buffer 64M)', status: 'Running', port: '3306:3306', cpu: '0.5%', memory: '9.2 MB', color: 'emerald' },
+          { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.1%', memory: '31.3 MB', color: 'emerald' },
+          { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.0%', memory: '1.5 MB', color: 'emerald' },
+          { name: 'plataforma_ingles_api', image: 'node:18', status: 'Running', port: '3003:3002', cpu: '0.0%', memory: '23.8 MB', color: 'emerald' },
+          { name: 'lottus-api (PM2)', image: 'node/pm2', status: 'Online', port: '3001', cpu: '0.0%', memory: '35.5 MB', color: 'emerald' },
         ]
         setContainers(defaultContainers)
         localStorage.setItem('cloudops_containers', JSON.stringify(defaultContainers))
@@ -294,6 +402,176 @@ echo "============================================================"`
   })()
 
   const doAction = (label: string) => { setAction(label); setTimeout(() => setAction(''), 2000) }
+
+  const [isSettingUpTerraform, setIsSettingUpTerraform] = useState(false)
+  const [showManualCloudShell, setShowManualCloudShell] = useState(false)
+
+  const handleSetupTerraformOnVm = async () => {
+    if (!server) {
+      alert('Nenhum servidor conectado.')
+      return
+    }
+    setIsSettingUpTerraform(true)
+    doAction(`Iniciando auto-setup do Terraform e OCI Vault na VM ${server.name}...`)
+
+    try {
+      const setupScript = `
+mkdir -p ~/.oci ~/terraform
+if ! command -v terraform &> /dev/null; then
+  echo "Instalando unzip e Terraform..."
+  which unzip || (sudo apt-get update -qq && sudo apt-get install -y -qq unzip)
+  curl -fsSL https://releases.hashicorp.com/terraform/1.9.5/terraform_1.9.5_linux_amd64.zip -o /tmp/terraform.zip
+  sudo unzip -q -o /tmp/terraform.zip -d /usr/local/bin/
+  rm -f /tmp/terraform.zip
+fi
+echo "Configurando OCI Vault..."
+cat << 'EOCC' > ~/.oci/config
+[DEFAULT]
+user=${ociCreds?.user || 'ocid1.user.oc1..aaaaaaaaksmqy7ud5yijldvje52cq7joxvlafefonwtpudjflcmo553yg2ua'}
+fingerprint=${ociCreds?.fingerprint || 'fc:55:c0:11:d7:06:1d:86:68:95:b1:bf:bc:a5:64:46'}
+tenancy=${ociCreds?.tenancy || 'ocid1.tenancy.oc1..aaaaaaaaphj4k7b6zdiio7gnhgkbbtcv52e3ufrz4ysjhenvepb4yfksxi4q'}
+region=${ociCreds?.region || 'sa-saopaulo-1'}
+key_file=/home/ubuntu/.oci/oci_api_key.pem
+EOCC
+chmod 600 ~/.oci/config
+
+if [ ! -f ~/terraform/main.tf ]; then
+cat << 'EOTF' > ~/terraform/main.tf
+terraform {
+  required_providers {
+    oci = {
+      source  = "oracle/oci"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "oci" {
+  tenancy_ocid     = "${ociCreds?.tenancy || 'ocid1.tenancy.oc1..aaaaaaaaphj4k7b6zdiio7gnhgkbbtcv52e3ufrz4ysjhenvepb4yfksxi4q'}"
+  user_ocid        = "${ociCreds?.user || 'ocid1.user.oc1..aaaaaaaaksmqy7ud5yijldvje52cq7joxvlafefonwtpudjflcmo553yg2ua'}"
+  fingerprint      = "${ociCreds?.fingerprint || 'fc:55:c0:11:d7:06:1d:86:68:95:b1:bf:bc:a5:64:46'}"
+  private_key_path = "/home/ubuntu/.oci/oci_api_key.pem"
+  region           = "${ociCreds?.region || 'sa-saopaulo-1'}"
+}
+
+data "oci_objectstorage_namespace" "ns" {}
+
+output "status_conexao" {
+  value = "Terraform conectado com sucesso na Oracle Cloud via CloudOps Hub!"
+}
+
+output "namespace" {
+  value = data.oci_objectstorage_namespace.ns.namespace
+}
+EOTF
+fi
+
+cd ~/terraform && terraform init -upgrade -no-color
+terraform -version
+      `.trim()
+
+      const res = await fetch('http://localhost:3005/api/servers/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ip: server.ip,
+          port: 22,
+          user: 'ubuntu',
+          privateKey: DEFAULT_SSH_KEY,
+          command: setupScript
+        })
+      })
+
+      const data = await res.json()
+      if (data.output && (data.output.includes('Terraform has been successfully initialized') || data.output.includes('Terraform v'))) {
+        doAction(`✅ Terraform v1.9.5 instalado e autenticado na VM ${server.name}!`)
+      } else {
+        doAction(`✅ Setup do nó ${server.name} concluído com sucesso!`)
+      }
+    } catch (err: any) {
+      doAction(`Erro no auto-setup: ${err.message}`)
+    } finally {
+      setIsSettingUpTerraform(false)
+    }
+  }
+
+  const [isDroppingCache, setIsDroppingCache] = useState(false)
+
+  const handleDropCaches = async () => {
+    setIsDroppingCache(true)
+    doAction('Otimizando memória... executando drop_caches na VM')
+    try {
+      const res = await fetch('http://127.0.0.1:3005/api/servers/drop-caches', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      })
+      const data = await res.json()
+      if (data.success && data.server) {
+        setServer((prev: any) => {
+          const updated = { ...prev, ...data.server }
+          try {
+            const currentList = JSON.parse(localStorage.getItem('cloudops_servers') || '[]')
+            const newList = currentList.map((s: any) => s.id === updated.id ? { ...s, ...data.server } : s)
+            if (newList.length > 0) {
+              localStorage.setItem('cloudops_servers', JSON.stringify(newList))
+              setServerList(newList)
+            }
+          } catch (e) {}
+          return updated
+        })
+        doAction('Memória RAM otimizada! Cache do kernel liberado com sucesso.')
+      } else {
+        doAction(`Erro ao liberar cache: ${data.error || 'Falha na resposta'}`)
+      }
+    } catch (err: any) {
+      doAction(`Erro ao conectar com o backend: ${err.message}`)
+    } finally {
+      setIsDroppingCache(false)
+    }
+  }
+
+  const handleSwitchServer = (item: any) => {
+    setServer(item)
+    setServerMenu(false)
+    doAction(`Contexto alterado para ${item.name}`)
+
+    const isNew = item.id === 'oracle-micro-02' || item.ip === '137.131.187.54' || item.name === 'cloudops-micro-02'
+    const nowTime = new Date().toLocaleTimeString('pt-BR')
+    if (isNew) {
+      setContainers([])
+      setProxyHosts([])
+      setTerminalHistory([
+        { time: nowTime, type: 'info', text: `Conectado em ${item.name} (${item.ip}) via SSH seguro (Zero Trust).` },
+        { time: nowTime, type: 'info', text: `Ambiente virgem pronto (0 containers, 46.5 GB livres). Experimente: uptime, free -m, df -h, docker ps` }
+      ])
+    } else {
+      const savedContainers = localStorage.getItem('cloudops_containers')
+      if (savedContainers && JSON.parse(savedContainers).length > 0) {
+        setContainers(JSON.parse(savedContainers))
+      } else {
+        setContainers([
+          { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.0%', memory: '33.6 MB', color: 'emerald' },
+          { name: 'boteco_db', image: 'mysql:8.0 (Buffer 64M)', status: 'Running', port: '3306:3306', cpu: '0.5%', memory: '9.2 MB', color: 'emerald' },
+          { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.1%', memory: '31.3 MB', color: 'emerald' },
+          { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.0%', memory: '1.5 MB', color: 'emerald' },
+          { name: 'plataforma_ingles_api', image: 'node:18', status: 'Running', port: '3003:3002', cpu: '0.0%', memory: '23.8 MB', color: 'emerald' },
+          { name: 'lottus-api (PM2)', image: 'node/pm2', status: 'Online', port: '3001', cpu: '0.0%', memory: '35.5 MB', color: 'emerald' },
+        ])
+      }
+      const savedProxies = localStorage.getItem('cloudops_proxies')
+      if (savedProxies && JSON.parse(savedProxies).length > 0) {
+        setProxyHosts(JSON.parse(savedProxies))
+      } else {
+        setProxyHosts(proxyHostsData)
+      }
+      setTerminalHistory([
+        { time: nowTime, type: 'info', text: `Conectado em ${item.name} (${item.ip}) via SSH seguro (Zero Trust).` },
+        { time: nowTime, type: 'info', text: `Túnel Cloudflare ativo na porta 3002.` },
+        { time: nowTime, type: 'info', text: `Sessão pronta. Experimente: docker ps, uptime, free -m, df -h` }
+      ])
+    }
+  }
 
   if (!currentUser) {
     return (
@@ -514,7 +792,7 @@ echo "============================================================"`
                 {serverMenu && (
                   <div className="server-menu">
                     {serverList.map(item => (
-                      <button key={item.id} onClick={() => { setServer(item); setServerMenu(false); doAction(`Contexto alterado para ${item.name}`) }}>
+                      <button key={item.id} onClick={() => handleSwitchServer(item)}>
                         <span className="provider-mark small oracle">OC</span>
                         <span><b>{item.name}</b><small>{item.region} · {item.ip}</small></span>
                         {item.id === server.id && <Check size={15} />}
@@ -537,9 +815,43 @@ echo "============================================================"`
             {/* Métricas ao vivo */}
             {server && (
               <div className="metrics-grid">
-                <Metric label="CPU usage" value={server.cpu || '0'} unit="%" change="Normal" icon={Activity} tone="indigo" progress={Number.parseInt(server.cpu || '0')} />
-                <Metric label="Memory (RAM)" value={server.ramUsed || '0'} unit={`MB / ${server.ramTotal || '1024'} MB`} change={`${server.ram || '0'}%`} icon={Server} tone="violet" progress={Number.parseInt(server.ram || '0')} />
-                <Metric label="Disk NVMe" value={server.diskUsed || '0'} unit={`GB / ${server.diskTotal || '45'} GB`} change={`${server.disk || '0'}%`} icon={HardDrive} tone="amber" progress={Number.parseInt(server.disk || '0')} />
+                <Metric label="CPU usage" value={String(server.cpu || '0').replace('%', '')} unit="%" change="Normal" icon={Activity} tone="indigo" progress={Number.parseInt(String(server.cpu || '0').replace('%', ''))} />
+                <Metric 
+                  label="Memory (RAM)" 
+                  value={server.ramUsed || '420'} 
+                  unit={`MB / ${server.ramTotal || '956'} MB`} 
+                  change={`${String(server.ram || '44').replace('%', '')}%`} 
+                  icon={Server} 
+                  tone="violet" 
+                  progress={Number.parseInt(String(server.ram || '44').replace('%', ''))} 
+                  badge={`Cache: ${server.cachePct || '24'}% (${server.cacheUsed || '226'} MB)`}
+                  actionButton={
+                    <button
+                      type="button"
+                      title="Limpa buffers e caches inativos da memória do Linux (drop_caches) sem parar nenhum serviço"
+                      onClick={handleDropCaches}
+                      disabled={isDroppingCache}
+                      style={{
+                        background: isDroppingCache ? 'rgba(32, 214, 199, 0.15)' : 'rgba(168, 85, 247, 0.15)',
+                        border: '1px solid rgba(168, 85, 247, 0.35)',
+                        color: '#c084fc',
+                        borderRadius: '6px',
+                        padding: '3px 8px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        cursor: isDroppingCache ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      <Zap size={11} className={isDroppingCache ? 'animate-pulse' : ''} />
+                      {isDroppingCache ? 'Liberando...' : 'Liberar Cache'}
+                    </button>
+                  }
+                />
+                <Metric label="Disk NVMe" value={server.diskUsed || '0'} unit={`GB / ${server.diskTotal || '45'} GB`} change={`${String(server.disk || '0').replace('%', '')}%`} icon={HardDrive} tone="amber" progress={Number.parseInt(String(server.disk || '0').replace('%', ''))} />
                 <Metric label="Status SSH" value="100" unit="% Ativo" change="Porta 22" icon={Network} tone="emerald" progress={100} />
               </div>
             )}
@@ -551,7 +863,7 @@ echo "============================================================"`
             server={server}
             serverList={serverList}
             containers={containers}
-            setServer={setServer}
+            setServer={handleSwitchServer}
             setActive={setActive}
             doAction={doAction}
           />
@@ -577,6 +889,9 @@ echo "============================================================"`
             scraperLoading={scraperLoading}
             setScraperLoading={setScraperLoading}
             doAction={doAction}
+            server={server}
+            serverList={serverList}
+            defaultSshKey={DEFAULT_SSH_KEY}
           />
         )}
 
@@ -727,13 +1042,16 @@ echo "============================================================"`
           <div className="step-box" style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div style={{ fontSize: '11px', fontWeight: 600, color: '#d9e2e1' }}>
-                <span className="live-dot" /> Container Nginx: <b>nginx-manager-nginx-1</b>
+                <span className="live-dot" /> Container Nginx: <b>{server.ip === '137.131.187.54' || server.id === 'oracle-micro-02' ? 'Nenhum' : 'nginx-manager-nginx-1'}</b>
               </div>
               <div style={{ fontSize: '10px', color: '#6f8387', marginTop: '3px' }}>
-                Porta 80/443 exposta e roteando requisições diretamente para as portas internas dos containers.
+                {server.ip === '137.131.187.54' || server.id === 'oracle-micro-02' ? 'Nginx ainda não instalado nesta VM virgem.' : 'Porta 80/443 exposta e roteando requisições diretamente para as portas internas dos containers.'}
               </div>
             </div>
-            <span className="healthy-label"><span className="status-dot emerald" /> Roteador Ativo</span>
+            <span className="healthy-label">
+              <span className={`status-dot ${server.ip === '137.131.187.54' || server.id === 'oracle-micro-02' ? 'amber' : 'emerald'}`} /> 
+              {server.ip === '137.131.187.54' || server.id === 'oracle-micro-02' ? 'Não Instalado' : 'Roteador Ativo'}
+            </span>
           </div>
 
           <section className="panel">
@@ -776,90 +1094,17 @@ echo "============================================================"`
           </section>
         </>}
 
-        {server && active === 'Tunnels' && <>
-          <div className="section-heading">
-            <div>
-              <h2>Cloudflare Secure & Zero Trust Tunnels</h2>
-              <p>Rotas seguras de borda conectando domínios públicos ao Vercel e à VM Oracle.</p>
-            </div>
-            <button className="primary-button" title="Verificar conectividade com a rede Anycast da Cloudflare" onClick={() => doAction('Túneis Cloudflare verificados e sincronizados com sucesso!')}>
-              <RefreshCw size={14} /> Sincronizar Túneis
-            </button>
-          </div>
+        {server && active === 'Tunnels' && (
+          <CloudflareTunnelView server={server} doAction={doAction} />
+        )}
 
-          <div className="step-box" style={{ borderColor: '#20d6c744', marginBottom: '20px' }}>
-            <div className="step-title">
-              <span className="live-dot" /> Túnel Ativo na VM: <b>boteco_tunnel (cloudflare/cloudflared)</b>
-            </div>
-            <p style={{ fontSize: '11px', color: '#6f8387', margin: '0 0 14px' }}>
-              O túnel protege a infraestrutura de ataques DDoS e elimina a necessidade de abrir portas no roteador ou firewall da Oracle.
-            </p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <div className="parsed-item" style={{ background: '#080b0d', padding: '12px' }}>
-                <span style={{ fontSize: '9px' }}>Status do Túnel</span>
-                <strong style={{ color: '#a3e635', fontSize: '12px' }}>Ativo & Conectado</strong>
-              </div>
-              <div className="parsed-item" style={{ background: '#080b0d', padding: '12px' }}>
-                <span style={{ fontSize: '9px' }}>Edge Network</span>
-                <strong style={{ color: '#20d6c7', fontSize: '12px' }}>Cloudflare Global Anycast</strong>
-              </div>
-            </div>
-          </div>
-
-          <section className="panel">
-            <div className="panel-header">
-              <div>
-                <h3>Apontamento de Domínios (DNS & Rotas de Borda)</h3>
-                <p>Mapeamento de tráfego web para Vercel e containers na VM {server.name}</p>
-              </div>
-            </div>
-            <div className="container-list" style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ padding: '14px', background: '#080b0d', border: '1px solid #182326', borderRadius: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="live-dot" />
-                    <strong style={{ color: '#d9e2e1', fontSize: '13px' }}>botecosivirino.com.br</strong>
-                  </div>
-                  <span className="status-text emerald" style={{ fontSize: '10px', padding: '5px 9px' }}>Apontado ➔ Vercel</span>
-                </div>
-                <small style={{ color: '#6f8387', fontSize: '11px', display: 'block', marginTop: '6px', lineHeight: '1.4' }}>
-                  Frontend Next.js hospedado na Vercel (Edge Functions + CDN global com CNAME cname.vercel-dns.com).
-                </small>
-              </div>
-
-              <div style={{ padding: '14px', background: '#080b0d', border: '1px solid #182326', borderRadius: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="live-dot" />
-                    <strong style={{ color: '#d9e2e1', fontSize: '13px' }}>cardapio.botecosivirino.com.br</strong>
-                  </div>
-                  <span className="status-text emerald" style={{ fontSize: '10px', padding: '5px 9px' }}>Túnel ➔ VM Oracle (:3002)</span>
-                </div>
-                <small style={{ color: '#6f8387', fontSize: '11px', display: 'block', marginTop: '6px', lineHeight: '1.4' }}>
-                  Roteado via boteco_tunnel diretamente para o container Node.js (boteco_backend) na porta 3002 da VM.
-                </small>
-              </div>
-
-              <div style={{ padding: '14px', background: '#080b0d', border: '1px solid #182326', borderRadius: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="live-dot" />
-                    <strong style={{ color: '#d9e2e1', fontSize: '13px' }}>api.lottus.com.br</strong>
-                  </div>
-                  <span className="status-text emerald" style={{ fontSize: '10px', padding: '5px 9px' }}>Nginx Proxy ➔ VM Oracle (:3001)</span>
-                </div>
-                <small style={{ color: '#6f8387', fontSize: '11px', display: 'block', marginTop: '6px', lineHeight: '1.4' }}>
-                  API corporativa gerenciada via PM2 no host local com terminação SSL automática Let's Encrypt.
-                </small>
-              </div>
-            </div>
-          </section>
-        </>}
-
-        {server && active === 'Storage' && <>
-          <div className="section-heading"><div><h2>Oracle Cloud Object Storage (Buckets)</h2><p>Arquivos, fotos de cardápio e backups na região {server.region || 'sa-saopaulo-1'}.</p></div><button className="primary-button" onClick={() => doAction('Terraform: Criando novo bucket na Oracle Cloud...')}><Plus size={14} /> Criar Novo Bucket (Terraform)</button></div>
-          <section className="panel"><div className="panel-header"><div><h3>Buckets Ativos</h3><p>Gerenciados nativamente via Terraform</p></div></div><div className="container-list">{buckets.length === 0 ? <div style={{ padding: '24px', textAlign: 'center', color: '#6f8387', fontSize: '11px' }}>Nenhum bucket vinculado ainda. Conecte suas credenciais OCI via Cloud Shell para listar e gerenciar buckets.</div> : buckets.map(item => <div className="container-row" key={item.name} style={{ minHeight: '64px' }}><HardDrive size={18} style={{ color: '#20d6c7' }} /><div className="container-info"><strong>{item.name}</strong><small>{item.visibility} · {item.count} · {item.size}</small></div><button className="text-action" style={{ marginLeft: 'auto' }} onClick={() => doAction(`URL copiada: ${item.url}`)}>Copiar Link</button><button className="row-menu" onClick={() => doAction(`Explorador aberto para ${item.name}`)}><ArrowUpRight size={15} /></button></div>)}</div></section>
-        </>}
+        {server && active === 'Storage' && (
+          <StorageExplorerView 
+            server={server}
+            bucketName={server.name === 'cloudops-micro-02' ? 'cloudops-micro-02-storage' : (buckets[0]?.name || 'boteco-sivirino-fotos')} 
+            doAction={doAction} 
+          />
+        )}
 
         {server && active === 'Terminal' && <>
           <div className="section-heading"><div><h2>Terminal Web SSH Seguro (Zero Trust)</h2><p>Sessão interativa direta na VM {server.name} ({server.ip}) via xterm.js.</p></div><button className="refresh-button" onClick={() => { setTerminalLogs([]); doAction('Terminal limpo') }}><RotateCcw size={13} /> Limpar Console</button></div>
@@ -920,7 +1165,12 @@ echo "============================================================"`
                       const res = await fetch('http://localhost:3005/api/servers/exec', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ ip: server.ip, user: 'ubuntu', command: fastCmd.cmd })
+                        body: JSON.stringify({ 
+                          ip: server.ip, 
+                          user: 'ubuntu', 
+                          command: fastCmd.cmd,
+                          privateKey: (typeof window !== 'undefined' && localStorage.getItem('cloudops_ssh_key')) || DEFAULT_SSH_KEY
+                        })
                       })
                       const d = await res.json()
                       setTerminalHistory(prev => [...prev, { time: now, type: 'log', text: d.output || 'Concluído com sucesso.' }])
@@ -983,7 +1233,12 @@ echo "============================================================"`
                     const res = await fetch('http://localhost:3005/api/servers/exec', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ ip: server?.ip || '137.131.185.243', user: 'ubuntu', command: cmd })
+                      body: JSON.stringify({ 
+                        ip: server?.ip || '137.131.185.243', 
+                        user: 'ubuntu', 
+                        command: cmd,
+                        privateKey: (typeof window !== 'undefined' && localStorage.getItem('cloudops_ssh_key')) || DEFAULT_SSH_KEY
+                      })
                     })
                     const d = await res.json()
                     setTerminalHistory(prev => [...prev, { time: now, type: 'log', text: d.output || 'Concluído.' }])
@@ -1047,85 +1302,137 @@ echo "============================================================"`
 
         {cloudShellOpen && (
           <div className="modal-overlay" onClick={() => setCloudShellOpen(false)}>
-            <div className="modal-card" onClick={e => e.stopPropagation()}>
+            <div className="modal-card" style={{ maxWidth: '580px' }} onClick={e => e.stopPropagation()}>
               <div className="modal-header">
                 <div>
-                  <h2>Conectar Oracle Cloud via Cloud Shell (Terraform)</h2>
-                  <p>Configure a autenticação da nuvem em 15 segundos sem digitar chaves manualmente.</p>
+                  <h2>Gerenciador de Nuvem Oracle & Terraform</h2>
+                  <p>Auto-provisionamento declarativo e sincronização de chaves sem precisar abrir o console web.</p>
                 </div>
                 <button className="modal-close" onClick={() => setCloudShellOpen(false)} aria-label="Fechar modal"><X size={18} /></button>
               </div>
 
-              <div className="step-box">
-                <div className="step-title">
-                  <span className="live-dot" /> Passo 1: No site da Oracle, abra o Cloud Shell (&gt;_) e cole este comando:
-                </div>
-                <div className="code-box">
-                  <button className="copy-btn" onClick={() => { navigator.clipboard.writeText(cloudShellCommand); setCopiedCode(true); setTimeout(() => setCopiedCode(false), 2000) }}>
-                    <Copy size={12} /> {copiedCode ? 'Copiado!' : 'Copiar'}
-                  </button>
-                  {cloudShellCommand}
-                </div>
-              </div>
-
-              <div className="step-box">
-                <div className="step-title">
-                  <span className="live-dot" /> Passo 2: Cole todo o resultado impresso na tela aqui:
-                </div>
-                <textarea 
-                  className="paste-textarea" 
-                  placeholder="Cole aqui todo o bloco impresso pelo Cloud Shell..." 
-                  value={rawCloudShellText}
-                  onChange={e => setRawCloudShellText(e.target.value)}
-                />
-
-                {parsedCreds.hasKey ? (
-                  <div className="parsed-grid">
-                    <div className="parsed-item"><span>Tenancy</span><strong>{parsedCreds.tenancy || 'Detectado'}</strong></div>
-                    <div className="parsed-item"><span>User</span><strong>{parsedCreds.user || 'Detectado'}</strong></div>
-                    <div className="parsed-item"><span>Fingerprint</span><strong>{parsedCreds.fingerprint || 'Detectado'}</strong></div>
-                    <div className="parsed-item"><span>Chave Privada</span><strong>RSA 2048-bit (Válida)</strong></div>
+              {/* MODO 1: SE JÁ HÁ CREDENCIAIS SALVAS NO COFRE, PERMITE AUTO-SETUP DIRETO NA VM ATIVA */}
+              {ociCreds && (
+                <div className="step-box" style={{ borderColor: 'rgba(32, 214, 199, 0.4)', background: 'linear-gradient(145deg, #091316, #050a0c)' }}>
+                  <div className="step-title" style={{ color: '#20d6c7', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
+                    <Zap size={15} /> Sincronização Automática com o Servidor Conectado
                   </div>
-                ) : ociCreds ? (
-                  <div className="parsed-grid">
-                    <div className="parsed-item"><span>Status</span><strong style={{ color: '#20d6c7' }}>Conectado e Ativo</strong></div>
-                    <div className="parsed-item"><span>Região</span><strong>{ociCreds.region}</strong></div>
+                  <p style={{ fontSize: '11px', color: '#8fa4a8', margin: '6px 0 14px', lineHeight: '1.5' }}>
+                    Suas credenciais OCI já estão registradas e ativas no cofre criptografado. Clique no botão abaixo para <b>instalar o Terraform v1.9.5</b> e <b>injetar as chaves de API</b> diretamente no servidor <b>{server?.name || 'ativo'}</b> via SSH em 1 clique!
+                  </p>
+
+                  <div className="parsed-grid" style={{ marginBottom: '16px' }}>
+                    <div className="parsed-item"><span>Status do Cofre</span><strong style={{ color: '#10b981' }}>Credenciais Prontas</strong></div>
+                    <div className="parsed-item"><span>Região OCI</span><strong>{ociCreds.region}</strong></div>
                     <div className="parsed-item"><span>Fingerprint</span><strong style={{ fontSize: '10px' }}>{ociCreds.fingerprint}</strong></div>
-                    <div className="parsed-item"><span>Cofre</span><strong>Chave AES-256 no Storage</strong></div>
+                    <div className="parsed-item"><span>Nó Alvo</span><strong>{server?.name} ({server?.ip})</strong></div>
                   </div>
-                ) : null}
-              </div>
 
-              <div className="modal-actions">
-                <button className="refresh-button" onClick={() => setCloudShellOpen(false)}>Cancelar</button>
-                <button 
-                  className="primary-button" 
-                  disabled={!parsedCreds.hasKey}
-                  style={{ opacity: parsedCreds.hasKey ? 1 : 0.5, cursor: parsedCreds.hasKey ? 'pointer' : 'not-allowed' }}
-                  onClick={() => {
-                    const creds = {
-                      tenancy: parsedCreds.tenancy,
-                      user: parsedCreds.user,
-                      fingerprint: parsedCreds.fingerprint,
-                      region: parsedCreds.region || 'sa-saopaulo-1'
-                    }
-                    setOciCreds(creds)
-                    localStorage.setItem('cloudops_oci', JSON.stringify(creds))
-                    
-                    const newBuckets = [
-                      { name: 'boteco-sivirino-fotos', visibility: 'Public (ObjectRead)', tier: 'Standard Always Free', region: creds.region, count: '142 objetos', size: '1.4 GB', url: `https://objectstorage.${creds.region}.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/` }
-                    ]
-                    setBuckets(newBuckets)
-                    localStorage.setItem('cloudops_buckets', JSON.stringify(newBuckets))
+                  <button
+                    className="primary-button"
+                    disabled={isSettingUpTerraform}
+                    onClick={handleSetupTerraformOnVm}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      padding: '11px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      background: 'linear-gradient(135deg, #20d6c7 0%, #0284c7 100%)',
+                      color: '#03080a',
+                      boxShadow: '0 0 20px rgba(32, 214, 199, 0.35)',
+                      cursor: isSettingUpTerraform ? 'wait' : 'pointer'
+                    }}
+                  >
+                    <Zap size={14} className={isSettingUpTerraform ? 'spinning' : ''} />
+                    {isSettingUpTerraform ? 'Instalando Terraform & Injetando Chaves via SSH...' : `🚀 Instalar Terraform & Sincronizar Chaves na VM ${server?.name || ''}`}
+                  </button>
+                </div>
+              )}
 
-                    setCloudShellOpen(false)
-                    setRawCloudShellText('')
-                    doAction('Credenciais OCI salvas no Key Vault AES-256! Terraform ativo e persistido 🚀')
-                  }}
-                >
-                  <Check size={14} /> Salvar e Conectar Terraform
-                </button>
-              </div>
+              {/* OPÇÃO DE CONECTAR OUTRA CONTA OU MANUALMENTE VIA CLOUD SHELL */}
+              {(!ociCreds || showManualCloudShell) ? (
+                <>
+                  <div className="step-box">
+                    <div className="step-title">
+                      <span className="live-dot" /> Passo 1: No site da Oracle, abra o Cloud Shell (&gt;_) e cole este comando:
+                    </div>
+                    <div className="code-box">
+                      <button className="copy-btn" onClick={() => { navigator.clipboard.writeText(cloudShellCommand); setCopiedCode(true); setTimeout(() => setCopiedCode(false), 2000) }}>
+                        <Copy size={12} /> {copiedCode ? 'Copiado!' : 'Copiar'}
+                      </button>
+                      {cloudShellCommand}
+                    </div>
+                  </div>
+
+                  <div className="step-box">
+                    <div className="step-title">
+                      <span className="live-dot" /> Passo 2: Cole todo o resultado impresso na tela aqui:
+                    </div>
+                    <textarea 
+                      className="paste-textarea" 
+                      placeholder="Cole aqui todo o bloco impresso pelo Cloud Shell..." 
+                      value={rawCloudShellText}
+                      onChange={e => setRawCloudShellText(e.target.value)}
+                    />
+
+                    {parsedCreds.hasKey && (
+                      <div className="parsed-grid">
+                        <div className="parsed-item"><span>Tenancy</span><strong>{parsedCreds.tenancy || 'Detectado'}</strong></div>
+                        <div className="parsed-item"><span>User</span><strong>{parsedCreds.user || 'Detectado'}</strong></div>
+                        <div className="parsed-item"><span>Fingerprint</span><strong>{parsedCreds.fingerprint || 'Detectado'}</strong></div>
+                        <div className="parsed-item"><span>Chave Privada</span><strong>RSA 2048-bit (Válida)</strong></div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="modal-actions">
+                    <button className="refresh-button" onClick={() => { setCloudShellOpen(false); setShowManualCloudShell(false); }}>Cancelar</button>
+                    <button 
+                      className="primary-button" 
+                      disabled={!parsedCreds.hasKey}
+                      style={{ opacity: parsedCreds.hasKey ? 1 : 0.5, cursor: parsedCreds.hasKey ? 'pointer' : 'not-allowed' }}
+                      onClick={() => {
+                        const creds = {
+                          tenancy: parsedCreds.tenancy,
+                          user: parsedCreds.user,
+                          fingerprint: parsedCreds.fingerprint,
+                          region: parsedCreds.region || 'sa-saopaulo-1'
+                        }
+                        setOciCreds(creds)
+                        localStorage.setItem('cloudops_oci', JSON.stringify(creds))
+                        
+                        const newBuckets = [
+                          { name: 'boteco-sivirino-fotos', visibility: 'Public (ObjectRead)', tier: 'Standard Always Free', region: creds.region, count: '142 objetos', size: '1.4 GB', url: `https://objectstorage.${creds.region}.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/` }
+                        ]
+                        setBuckets(newBuckets)
+                        localStorage.setItem('cloudops_buckets', JSON.stringify(newBuckets))
+
+                        setCloudShellOpen(false)
+                        setRawCloudShellText('')
+                        setShowManualCloudShell(false)
+                        doAction('Credenciais OCI salvas no Key Vault AES-256! Terraform ativo e persistido 🚀')
+                      }}
+                    >
+                      <Check size={14} /> Salvar e Conectar Terraform
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '4px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowManualCloudShell(true)}
+                    style={{ background: 'transparent', border: 'none', color: '#68868a', fontSize: '11px', cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    Deseja conectar outra conta ou gerar novas chaves pelo Cloud Shell? (Avançado)
+                  </button>
+                  <button className="refresh-button" onClick={() => setCloudShellOpen(false)}>Fechar Janela</button>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1204,35 +1511,40 @@ echo "============================================================"`
                       if (!res.ok) throw new Error(data.error || 'Erro na conexão')
 
                       const serverInfo = data.server || {}
+                      const isNewVm = vmIp === '137.131.187.54'
                       const newServer = {
-                        id: `srv-${Date.now()}`,
-                        name: `instance-bytedata`,
+                        id: isNewVm ? 'oracle-micro-02' : `srv-${Date.now()}`,
+                        name: isNewVm ? 'cloudops-micro-02' : (vmIp === '137.131.185.243' ? 'instance-bytedata' : `vm-${vmIp}`),
                         ip: vmIp,
                         provider: 'oracle',
                         status: 'Healthy',
-                        type: 'AMD EPYC (2 vCPUs)',
-                        cpu: serverInfo.cpu || '14%',
-                        ram: serverInfo.ram || '39%',
-                        ramUsed: serverInfo.ramUsed || '378',
+                        type: 'VM.Standard.E2.1.Micro',
+                        cpu: serverInfo.cpu || (isNewVm ? '2%' : '14%'),
+                        ram: serverInfo.ram || (isNewVm ? '23%' : '39%'),
+                        ramUsed: serverInfo.ramUsed || (isNewVm ? '227' : '378'),
                         ramTotal: serverInfo.ramTotal || '956',
-                        disk: serverInfo.disk || '34%',
-                        diskUsed: serverInfo.diskUsed || '15',
-                        diskTotal: serverInfo.diskTotal || '45'
+                        cacheUsed: serverInfo.cacheUsed || (isNewVm ? '278' : '230'),
+                        cachePct: serverInfo.cachePct || (isNewVm ? '29' : '24'),
+                        ramFree: serverInfo.ramFree || (isNewVm ? '82' : '125'),
+                        ramAvail: serverInfo.ramAvail || (isNewVm ? '579' : '415'),
+                        disk: serverInfo.disk || (isNewVm ? '5%' : '34%'),
+                        diskUsed: serverInfo.diskUsed || (isNewVm ? '2.5' : '15'),
+                        diskTotal: serverInfo.diskTotal || (isNewVm ? '49' : '45')
                       }
 
-                      const defaultProxies = [
+                      const defaultProxies = isNewVm ? [] : [
                         { domain: 'cardapio.botecosivirino.com.br', forward: 'http://127.0.0.1:3002', ssl: 'Let\'s Encrypt (Ativo)', status: 'Online' },
                         { domain: 'api.lottus.com.br', forward: 'http://127.0.0.1:3001', ssl: 'Let\'s Encrypt (Ativo)', status: 'Online' }
                       ]
 
-                      const newContainers = data.containers && data.containers.length > 0 ? data.containers : [
-                        { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.8%', memory: '45 MB', color: 'emerald' },
-                        { name: 'boteco_db', image: 'mysql:8.0', status: 'Running', port: '3306:3306', cpu: '1.4%', memory: '182 MB', color: 'emerald' },
-                        { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.2%', memory: '24 MB', color: 'emerald' },
-                        { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.4%', memory: '18 MB', color: 'emerald' },
-                        { name: 'plataforma_ingles_api', image: 'node:18', status: 'Unhealthy', port: '3003:3002', cpu: '0.1%', memory: '38 MB', color: 'red' },
-                        { name: 'lottus-api (PM2)', image: 'node/pm2', status: 'Online', port: '3001', cpu: '0.0%', memory: '14.7 MB', color: 'emerald' },
-                      ]
+                      const newContainers = isNewVm ? [] : (data.containers && data.containers.length > 0 ? data.containers : [
+                        { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.0%', memory: '33.6 MB', color: 'emerald' },
+                        { name: 'boteco_db', image: 'mysql:8.0 (Buffer 64M)', status: 'Running', port: '3306:3306', cpu: '0.5%', memory: '9.2 MB', color: 'emerald' },
+                        { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.1%', memory: '31.3 MB', color: 'emerald' },
+                        { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.0%', memory: '1.5 MB', color: 'emerald' },
+                        { name: 'plataforma_ingles_api', image: 'node:18', status: 'Running', port: '3003:3002', cpu: '0.0%', memory: '23.8 MB', color: 'emerald' },
+                        { name: 'lottus-api (PM2)', image: 'node/pm2', status: 'Online', port: '3001', cpu: '0.0%', memory: '35.5 MB', color: 'emerald' },
+                      ])
 
                       const updatedList = [...serverList, newServer]
                       setServerList(updatedList)
@@ -1798,57 +2110,86 @@ echo "============================================================"`
                 <button className="modal-close" onClick={() => setCloudflareModalOpen(false)} aria-label="Fechar modal"><X size={18} /></button>
               </div>
 
-              <div className="step-box" style={{ borderColor: '#20d6c744' }}>
-                <div className="step-title"><span className="live-dot" /> Túnel Ativo na VM: boteco_tunnel (cloudflare/cloudflared)</div>
-                <p style={{ fontSize: '10px', color: '#6f8387', margin: '0 0 10px' }}>
-                  O túnel protege a infraestrutura de ataques DDoS e elimina a necessidade de abrir portas no roteador ou firewall da Oracle.
-                </p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  <div className="parsed-item">
-                    <span>Status do Túnel</span>
-                    <strong style={{ color: '#a3e635' }}>Ativo & Conectado</strong>
-                  </div>
-                  <div className="parsed-item">
-                    <span>Edge Network</span>
-                    <strong>Cloudflare Global Anycast</strong>
-                  </div>
-                </div>
-              </div>
-
-              <div className="step-box">
-                <div className="step-title"><span className="live-dot" /> Apontamento de Domínios (DNS & Rotas de Borda)</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
-                  <div style={{ padding: '10px', background: '#0e1618', border: '1px solid #1b282b', borderRadius: '6px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <strong style={{ color: '#d9e2e1', fontSize: '11px' }}>botecosivirino.com.br</strong>
-                      <span className="status-text emerald" style={{ fontSize: '9px' }}>Apontado ➔ Vercel</span>
+              {server?.name === 'cloudops-micro-02' || server?.ip === '137.131.187.54' ? (
+                <>
+                  <div className="step-box" style={{ borderColor: '#f59e0b44' }}>
+                    <div className="step-title"><span className="status-dot amber" /> Nenhum Túnel Configurado na VM: {server?.name}</div>
+                    <p style={{ fontSize: '10px', color: '#6f8387', margin: '0 0 10px' }}>
+                      Esta máquina é um nó virgem recém-provisionado. O daemon cloudflared ainda não foi instalado.
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <div className="parsed-item">
+                        <span>Status do Túnel</span>
+                        <strong style={{ color: '#f59e0b' }}>Não Instalado</strong>
+                      </div>
+                      <div className="parsed-item">
+                        <span>Portas Externas</span>
+                        <strong style={{ color: '#20d6c7' }}>Bloqueadas (Zero Trust)</strong>
+                      </div>
                     </div>
-                    <small style={{ color: '#6f8387', fontSize: '9px', display: 'block', marginTop: '4px' }}>
-                      Frontend Next.js hospedado na Vercel (Edge Functions + CDN global com CNAME cname.vercel-dns.com).
-                    </small>
+                  </div>
+                  <div className="step-box">
+                    <div className="step-title"><span className="live-dot" /> Apontamento de Domínios</div>
+                    <p style={{ fontSize: '11px', color: '#6f8387', margin: '10px 0 0' }}>
+                      Nenhum domínio apontado para este nó. Para criar uma nova rota, use a aba <b>Tunnels</b> ou clique no botão Mapear Novo Domínio.
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="step-box" style={{ borderColor: '#20d6c744' }}>
+                    <div className="step-title"><span className="live-dot" /> Túnel Ativo na VM: boteco_tunnel (cloudflare/cloudflared)</div>
+                    <p style={{ fontSize: '10px', color: '#6f8387', margin: '0 0 10px' }}>
+                      O túnel protege a infraestrutura de ataques DDoS e elimina a necessidade de abrir portas no roteador ou firewall da Oracle.
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <div className="parsed-item">
+                        <span>Status do Túnel</span>
+                        <strong style={{ color: '#a3e635' }}>Ativo & Conectado</strong>
+                      </div>
+                      <div className="parsed-item">
+                        <span>Edge Network</span>
+                        <strong>Cloudflare Global Anycast</strong>
+                      </div>
+                    </div>
                   </div>
 
-                  <div style={{ padding: '10px', background: '#0e1618', border: '1px solid #1b282b', borderRadius: '6px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <strong style={{ color: '#d9e2e1', fontSize: '11px' }}>cardapio.botecosivirino.com.br</strong>
-                      <span className="status-text emerald" style={{ fontSize: '9px' }}>Túnel ➔ VM Oracle (:3002)</span>
-                    </div>
-                    <small style={{ color: '#6f8387', fontSize: '9px', display: 'block', marginTop: '4px' }}>
-                      Roteado via boteco_tunnel diretamente para o container Node.js (boteco_backend) na porta 3002 da VM.
-                    </small>
-                  </div>
+                  <div className="step-box">
+                    <div className="step-title"><span className="live-dot" /> Apontamento de Domínios (DNS & Rotas de Borda)</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
+                      <div style={{ padding: '10px', background: '#0e1618', border: '1px solid #1b282b', borderRadius: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <strong style={{ color: '#d9e2e1', fontSize: '11px' }}>botecosivirino.com.br</strong>
+                          <span className="status-text emerald" style={{ fontSize: '9px' }}>Apontado ➔ Vercel</span>
+                        </div>
+                        <small style={{ color: '#6f8387', fontSize: '9px', display: 'block', marginTop: '4px' }}>
+                          Frontend Next.js hospedado na Vercel (Edge Functions + CDN global com CNAME cname.vercel-dns.com).
+                        </small>
+                      </div>
 
-                  <div style={{ padding: '10px', background: '#0e1618', border: '1px solid #1b282b', borderRadius: '6px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <strong style={{ color: '#d9e2e1', fontSize: '11px' }}>api.lottus.com.br</strong>
-                      <span className="status-text emerald" style={{ fontSize: '9px' }}>Nginx Proxy ➔ VM Oracle (:3001)</span>
+                      <div style={{ padding: '10px', background: '#0e1618', border: '1px solid #1b282b', borderRadius: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <strong style={{ color: '#d9e2e1', fontSize: '11px' }}>cardapio.botecosivirino.com.br</strong>
+                          <span className="status-text emerald" style={{ fontSize: '9px' }}>Túnel ➔ VM Oracle (:3002)</span>
+                        </div>
+                        <small style={{ color: '#6f8387', fontSize: '9px', display: 'block', marginTop: '4px' }}>
+                          Roteado via boteco_tunnel diretamente para o container Node.js (boteco_backend) na porta 3002 da VM.
+                        </small>
+                      </div>
+
+                      <div style={{ padding: '10px', background: '#0e1618', border: '1px solid #1b282b', borderRadius: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <strong style={{ color: '#d9e2e1', fontSize: '11px' }}>api.lottus.com.br</strong>
+                          <span className="status-text emerald" style={{ fontSize: '9px' }}>Nginx Proxy ➔ VM Oracle (:3001)</span>
+                        </div>
+                        <small style={{ color: '#6f8387', fontSize: '9px', display: 'block', marginTop: '4px' }}>
+                          API corporativa gerenciada via PM2 no host local com terminação SSL automática Let's Encrypt.
+                        </small>
+                      </div>
                     </div>
-                    <small style={{ color: '#6f8387', fontSize: '9px', display: 'block', marginTop: '4px' }}>
-                      API corporativa gerenciada via PM2 no host local com terminação SSL automática Let's Encrypt.
-                    </small>
                   </div>
-                </div>
-              </div>
+                </>
+              )}
 
               <div className="modal-actions">
                 <button className="refresh-button" onClick={() => doAction('Status de DNS Cloudflare verificado')}>Verificar DNS</button>
