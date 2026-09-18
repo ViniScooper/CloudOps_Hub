@@ -5,7 +5,7 @@ import {
   Activity, Bell, Check, ChevronDown, CircleHelp, Cloud, Container, Database,
   HardDrive, LayoutDashboard, Menu, MoreHorizontal, Network, Plus, RefreshCw,
   Search, Server, Settings, TerminalSquare, X, Zap, Globe2, ArrowUpRight,
-  Copy, RotateCcw, Archive, ExternalLink, Layers3, Shield, User, Lock
+  Copy, RotateCcw, Archive, ExternalLink, Layers3, Shield, User, Lock, LogOut
 } from 'lucide-react'
 import { VmScraper } from '../components/VmScraper'
 import { DashboardView } from '../components/DashboardView'
@@ -19,22 +19,38 @@ import { LogsTelemetryView } from '../components/LogsTelemetryView'
 import { MigrationWorkspaceView } from '../components/MigrationWorkspaceView'
 import { Rocket, KeyRound, Bot, ArrowLeftRight } from 'lucide-react'
 
-
-const nav = [
-  { label: 'Dashboard', icon: LayoutDashboard },
-  { label: 'Odisseu AI', icon: Bot, badge: 'Copilot' },
-  { label: 'VM Scraper', icon: Zap, badge: 'Nuvem 24/7' },
-  { label: 'Deploy', icon: Rocket, badge: 'CI/CD' },
-  { label: 'Monitoramento & Logs', icon: Activity, badge: 'Realtime' },
-  { label: 'Migração Multi-Cloud', icon: ArrowLeftRight, badge: '1-Click' },
-  { label: 'Variáveis (.env)', icon: KeyRound },
-  { label: 'Docker', icon: Container, badge: '3' },
-  { label: 'Nginx', icon: Network },
-  { label: 'Tunnels', icon: Shield, badge: 'Zero Trust' },
-  { label: 'Storage', icon: HardDrive },
-  { label: 'Terminal', icon: TerminalSquare },
-  { label: 'Ajuda & Guia', icon: CircleHelp, badge: 'Help' },
+const navSections = [
+  {
+    title: 'Workspace',
+    items: [
+      { label: 'Dashboard', icon: LayoutDashboard },
+      { label: 'Odisseu AI', icon: Bot, badge: 'Copilot' },
+      { label: 'Deploy', icon: Rocket, badge: 'CI/CD' },
+      { label: 'Monitoramento & Logs', icon: Activity, badge: 'Realtime' },
+      { label: 'Migração Multi-Cloud', icon: ArrowLeftRight, badge: '1-Click' },
+    ]
+  },
+  {
+    title: 'Infraestrutura & Serviços',
+    items: [
+      { label: 'VM Scraper', icon: Zap, badge: 'Nuvem 24/7' },
+      { label: 'Docker', icon: Container, badge: '3' },
+      { label: 'Nginx', icon: Network },
+      { label: 'Tunnels', icon: Shield, badge: 'Zero Trust' },
+      { label: 'Storage', icon: HardDrive },
+      { label: 'Terminal', icon: TerminalSquare },
+      { label: 'Variáveis (.env)', icon: KeyRound },
+    ]
+  },
+  {
+    title: 'Suporte',
+    items: [
+      { label: 'Ajuda & Guia', icon: CircleHelp, badge: 'Help' },
+    ]
+  }
 ]
+
+const nav = navSections.flatMap(s => s.items)
 
 const servers = [
   { id: 'oracle-prod', name: 'instance-bytedata', provider: 'Oracle Cloud (Always Free)', region: 'sa-saopaulo-1 (GRU)', ip: '137.131.185.243', status: 'Healthy', type: 'AMD EPYC (2 vCPUs)', cpu: '18', ram: '42', ramUsed: '401', ramTotal: '956', cacheUsed: '233', cachePct: '24', disk: '34', diskUsed: '15', diskTotal: '45', color: 'oracle' },
@@ -669,36 +685,71 @@ terraform -version
     <button className="mobile-menu" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Abrir menu"><Menu size={20} /></button>
     {sidebarOpen && <button className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} aria-label="Fechar menu" />}
     <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-      <div className="brand"><span className="brand-mark"><Cloud size={17} /></span><span>CloudOps <b>Hub</b></span><button className="mobile-close" onClick={() => setSidebarOpen(false)} aria-label="Fechar menu"><X size={18} /></button></div>
-      <div className="workspace"><span className="workspace-avatar">{currentUser.name.charAt(0)}</span><div><strong>{currentUser.name}</strong><small>{currentUser.email}</small></div><ChevronDown size={15} /></div>
+      <div className="brand">
+        <span className="brand-mark"><Cloud size={18} /></span>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={{ fontSize: '15px', fontWeight: 700, color: '#e5f0ed', lineHeight: 1.1 }}>CloudOps <b>Hub</b></span>
+          <span style={{ fontSize: '9px', color: '#557277', letterSpacing: '0.8px', textTransform: 'uppercase', marginTop: '2px' }}>DevOps Cloud Console</span>
+        </div>
+        <button className="mobile-close" onClick={() => setSidebarOpen(false)} aria-label="Fechar menu"><X size={18} /></button>
+      </div>
+
+      <div className="workspace">
+        <span className="workspace-avatar">{currentUser.name.charAt(0)}</span>
+        <div>
+          <strong>{currentUser.name}</strong>
+          <small>{currentUser.email}</small>
+        </div>
+        <span style={{ fontSize: '9px', padding: '2px 6px', background: 'rgba(32, 214, 199, 0.1)', color: '#20d6c7', borderRadius: '4px', border: '1px solid rgba(32, 214, 199, 0.25)', fontWeight: 600 }}>PRO</span>
+      </div>
+
       <nav className="nav-list" aria-label="Navegação principal">
-        <span className="nav-caption">Workspace</span>
-        {nav.map(({ label, icon: Icon, badge }) => (
-          <button 
-            key={label} 
-            title={`Abrir módulo ${label}`}
-            onClick={() => { setActive(label); setSidebarOpen(false) }} 
-            className={`nav-item ${active === label ? 'active' : ''}`}
-          >
-            <Icon size={17} />
-            <span>{label}</span>
-            {badge && <span className="nav-badge">{badge}</span>}
-          </button>
+        {navSections.map((section) => (
+          <div key={section.title} className="nav-section">
+            <span className="nav-caption">{section.title}</span>
+            {section.items.map(({ label, icon: Icon, badge }) => (
+              <button 
+                key={label} 
+                title={`Abrir módulo ${label}`}
+                onClick={() => { setActive(label); setSidebarOpen(false) }} 
+                className={`nav-item ${active === label ? 'active' : ''}`}
+              >
+                <Icon size={16} />
+                <span>{label}</span>
+                {badge && <span className="nav-badge">{badge}</span>}
+              </button>
+            ))}
+          </div>
         ))}
-        <span className="nav-caption second">Manage</span>
+      </nav>
+
+      <div className="sidebar-footer">
+        <span className="nav-caption" style={{ padding: '0 10px 4px' }}>Gerenciamento</span>
         <button className="nav-item" title="Ver recursos de computação e nós do cluster" onClick={() => setActive('Dashboard')}>
-          <Layers3 size={17} />
-          <span>Resources</span>
+          <Layers3 size={16} />
+          <span>Recursos & VMs</span>
         </button>
         <button className="nav-item" title="Abrir configurações de segurança, chaves AES-256 e túneis" onClick={() => setSettingsOpen(true)}>
-          <Settings size={17} />
-          <span>Settings</span>
+          <Settings size={16} />
+          <span>Configurações</span>
         </button>
-        <button className="nav-item" title="Fazer logout e encerrar a sessão segura" onClick={() => { setCurrentUser(null); localStorage.removeItem('cloudops_user') }} style={{ color: '#ff6b6b' }}>
-          <X size={17} />
+        <button 
+          className="nav-item logout-btn" 
+          title="Fazer logout e encerrar a sessão segura" 
+          onClick={() => { setCurrentUser(null); localStorage.removeItem('cloudops_user') }}
+        >
+          <LogOut size={16} />
           <span>Sair da Conta</span>
         </button>
-      </nav>
+
+        <div className="sidebar-status-pill">
+          <div className="live-indicator">
+            <span className="live-dot" />
+            <span>Nuvem Ativa</span>
+          </div>
+          <span>v2.4.0</span>
+        </div>
+      </div>
     </aside>
     <section className="main-content">
       <header className="topbar">
