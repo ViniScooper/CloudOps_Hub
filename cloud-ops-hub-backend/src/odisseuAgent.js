@@ -1,28 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const deployService = require('./deployService');
-
-// RAG Compacto & Relevante: Evita estourar o limite de 8.000 TPM (Tokens Per Minute) da Groq
-function getKnowledgeContext(query = '') {
-  const q = (query || '').toLowerCase();
-  let baseContext = `[INFRAESTRUTURA ORACLE CLOUD]:
-- Servidor: "instance-bytedata" (137.131.185.243), Ubuntu 22.04 LTS
-- Hardware: 956 MB RAM física (Crítico: risco de OOM), Swap 1 GB ativo, Disco NVMe
-- Portas Reservadas (NUNCA usar): 80/443 (Nginx), 3001 (Lottus PM2), 3002 (Boteco Docker), 3003 (Inglês Docker), 3306 (MySQL Docker)
-- Portas Livres para Novas APIs: 3004, 3005, 3006+
-- Regra de Ouro da RAM: SEMPRE rodar novas APIs Node.js com PM2 (~15MB RAM). Evitar Docker pesado para não derrubar o MySQL.`;
-
-  // Adiciona contexto dinâmico sob demanda conforme a pergunta
-  if (q.includes('docker') || q.includes('container') || q.includes('unhealthy') || q.includes('log')) {
-    baseContext += `\n- Docker: containers gerenciados via compose. Diagnóstico via get_service_logs ou "docker logs --tail 40".`;
-  } else if (q.includes('nginx') || q.includes('dominio') || q.includes('subdominio') || q.includes('proxy') || q.includes('ssl')) {
-    baseContext += `\n- Nginx: Proxy reverso com terminação SSL Let's Encrypt apontando para localhost:<porta>.`;
-  } else if (q.includes('deploy') || q.includes('git') || q.includes('branch') || q.includes('rollback')) {
-    baseContext += `\n- CI/CD: Deploy zero-downtime via git pull e rebuild. Rollback restaura o commit estável anterior.`;
-  }
-
-  return baseContext;
-}
+const ragKnowledgeBase = require('./ragKnowledgeBase');
 
 // Ferramentas essenciais otimizadas para baixo consumo de tokens
 const ODISSEU_TOOLS = [
@@ -129,6 +108,20 @@ const ODISSEU_TOOLS = [
         required: ['action']
       }
     }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'search_knowledge_base',
+      description: 'Consulta a base de conhecimento oficial e documentações técnicas do CloudOps Hub (documentos 00 a 08: arquitetura, gitflow, deploy zero-downtime, docker, migração multi-cloud, tunnels)',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: 'Termo de busca ou dúvida técnica (ex: "migracao multi-cloud", "regras da ram", "portas reservadas", "backup mysql", "túnel cloudflare")' }
+        },
+        required: ['query']
+      }
+    }
   }
 ];
 
@@ -226,6 +219,14 @@ server {
         return JSON.stringify(status);
       }
 
+      case 'search_knowledge_base': {
+        const results = ragKnowledgeBase.search(args.query, 2);
+        if (results.length === 0) {
+          return 'Nenhuma seção encontrada na base de conhecimento para essa busca.';
+        }
+        return results.map(r => `[Fonte: ${r.file} - ${r.secTitle}]\n${r.content}`).join('\n\n---\n\n');
+      }
+
       default:
         return `Ferramenta desconhecida: ${name}`;
     }
@@ -269,17 +270,18 @@ function getProviderConfig(provider, userKey, userModel) {
   };
 }
 
-// Prompt enxuto e de alta densidade (~160 tokens)
+// Prompt enxuto enriquecido dinamicamente com RAG LangChain (~350-500 tokens)
 function buildSystemPrompt(query = '') {
   return `Você é ODISSEU, o Copiloto DevOps e Guardião Inteligente da Nuvem no CloudOps Hub.
 Você está conectado diretamente na VM Oracle Cloud de produção gerenciada por Vinicius Lourenço.
 
 SEU PAPEL:
 - Responder dúvidas técnicas, diagnosticar logs, containers e infraestrutura.
-- Quando necessário, ACIONE FERRAMENTAS para checar a VM real ou executar comandos.
-- Fale sempre em português (pt-BR), seja direto, técnico e conciso.
+- Explicar arquitetura, procedimentos de deploy, rollback, migração multi-cloud e túneis Cloudflare.
+- Quando necessário, ACIONE FERRAMENTAS para checar a VM real ou consultar mais documentação.
+- Fale sempre em português (pt-BR), seja direto, técnico, proativo e conciso.
 
-${getKnowledgeContext(query)}
+${ragKnowledgeBase.retrieveContext(query)}
 `;
 }
 
@@ -520,5 +522,6 @@ async function testApiKey({ provider, apiKey, model }) {
 module.exports = {
   askOdisseu,
   testApiKey,
-  ODISSEU_TOOLS
+  ODISSEU_TOOLS,
+  ragKnowledgeBase
 };

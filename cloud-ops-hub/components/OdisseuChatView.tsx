@@ -255,6 +255,11 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
   const [copiedCodeToast, setCopiedCodeToast] = useState(false)
   const [expandedToolIdx, setExpandedToolIdx] = useState<number | null>(null)
 
+  // Base de Conhecimento RAG LangChain
+  const [knowledgeStats, setKnowledgeStats] = useState<any>(null)
+  const [reindexingKnowledge, setReindexingKnowledge] = useState(false)
+  const [reindexSuccess, setReindexSuccess] = useState(false)
+
   const [inputMessage, setInputMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
@@ -285,6 +290,8 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
         timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
       }
     ])
+
+    loadKnowledgeStats()
   }, [server])
 
   // Auto-scroll suave
@@ -319,6 +326,41 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
       return await fetch(`http://127.0.0.1:3005${endpoint}`, options)
     } catch {
       return await fetch(`http://localhost:3005${endpoint}`, options)
+    }
+  }
+
+  // Consulta status da Base de Conhecimento RAG LangChain
+  const loadKnowledgeStats = async () => {
+    try {
+      const res = await fetchBackend('/api/odisseu/knowledge')
+      if (res && res.ok) {
+        const data = await res.json()
+        if (data.success) {
+          setKnowledgeStats(data)
+        }
+      }
+    } catch (e) {
+      console.warn('Não foi possível carregar métricas do RAG:', e)
+    }
+  }
+
+  // Força re-indexação da Base de Conhecimento
+  const handleReindexKnowledge = async () => {
+    try {
+      setReindexingKnowledge(true)
+      const res = await fetchBackend('/api/odisseu/knowledge/reindex', { method: 'POST' })
+      if (res && res.ok) {
+        const data = await res.json()
+        if (data.success) {
+          setKnowledgeStats(data)
+          setReindexSuccess(true)
+          setTimeout(() => setReindexSuccess(false), 3500)
+        }
+      }
+    } catch (e: any) {
+      console.error('Erro ao reindexar RAG:', e.message)
+    } finally {
+      setReindexingKnowledge(false)
     }
   }
 
@@ -544,13 +586,37 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
             </div>
             <p style={{ fontSize: '11px', color: '#68868a', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#20d6c7', display: 'inline-block' }} />
-              VM: <b style={{ color: '#9db4b7' }}>{server?.ip || '137.131.185.243'}</b> • 956 MB RAM • RAG Ativo
+              VM: <b style={{ color: '#9db4b7' }}>{server?.ip || '137.131.185.243'}</b> • 956 MB RAM • RAG LangChain Ativo
             </p>
           </div>
         </div>
 
         {/* Indicadores, Cota e Controles */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* Badge Interativo da Base de Conhecimento RAG LangChain */}
+          <button
+            onClick={() => setConfigOpen(true)}
+            title="Clique para inspecionar e gerenciar a Base de Conhecimento RAG LangChain"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              background: 'rgba(32, 214, 199, 0.08)',
+              border: '1px solid rgba(32, 214, 199, 0.25)',
+              borderRadius: '20px',
+              fontSize: '11px',
+              color: '#20d6c7',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(32, 214, 199, 0.16)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(32, 214, 199, 0.08)')}
+          >
+            <Database size={12} />
+            <span>RAG: <b>{knowledgeStats?.totalDocuments || 9} docs</b> ({knowledgeStats?.totalChunks || 72} chunks)</span>
+          </button>
+
           {/* Cota Groq em Tempo Real */}
           {provider === 'groq' && (
             <div style={{
@@ -1299,6 +1365,104 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
                 <AlertCircle size={14} /> {keyError}
               </div>
             )}
+
+            {/* SEÇÃO DA BASE DE CONHECIMENTO RAG LANGCHAIN */}
+            <div style={{
+              background: '#070d0f',
+              border: '1px solid #1a2a2e',
+              borderRadius: '12px',
+              padding: '14px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Database size={15} style={{ color: '#20d6c7' }} />
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#f0fdfa' }}>
+                    Base de Conhecimento RAG LangChain
+                  </span>
+                  <span style={{
+                    fontSize: '10px',
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    background: 'rgba(32, 214, 199, 0.15)',
+                    color: '#20d6c7',
+                    fontWeight: 600
+                  }}>
+                    {knowledgeStats?.totalDocuments || 9} docs • {knowledgeStats?.totalChunks || 72} chunks
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleReindexKnowledge}
+                  disabled={reindexingKnowledge}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    background: reindexSuccess ? 'rgba(16, 185, 129, 0.2)' : 'rgba(32, 214, 199, 0.1)',
+                    border: reindexSuccess ? '1px solid #10b981' : '1px solid rgba(32, 214, 199, 0.3)',
+                    color: reindexSuccess ? '#10b981' : '#20d6c7',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    cursor: reindexingKnowledge ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {reindexingKnowledge ? (
+                    <>
+                      <RefreshCw size={11} className="spinning" /> Atualizando...
+                    </>
+                  ) : reindexSuccess ? (
+                    <>
+                      <CheckCircle2 size={11} /> Base Atualizada!
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw size={11} /> Recarregar Base RAG
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div style={{ fontSize: '11px', color: '#68868a', lineHeight: '1.4' }}>
+                O Odisseu consulta dinamicamente esta base técnica antes de responder, evitando alucinações sobre portas, RAM (956MB), deploys, migrações e túneis.
+              </div>
+
+              {/* Lista dos documentos carregados */}
+              <div style={{
+                maxHeight: '90px',
+                overflowY: 'auto',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '5px',
+                padding: '6px',
+                background: '#040708',
+                borderRadius: '6px',
+                border: '1px solid #101d20'
+              }}>
+                {knowledgeStats?.documents?.map((doc: any, i: number) => (
+                  <span
+                    key={i}
+                    style={{
+                      fontSize: '10px',
+                      fontFamily: 'monospace',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      background: '#0e181b',
+                      color: '#88a6aa',
+                      border: '1px solid #1a2a2e'
+                    }}
+                  >
+                    📄 {doc.file}
+                  </span>
+                ))}
+              </div>
+            </div>
 
             {/* Botões do Rodapé do Modal */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
