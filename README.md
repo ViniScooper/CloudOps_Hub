@@ -1,119 +1,143 @@
-# 🚀 CloudOps Hub — Unified Cloud & Server Management Platform
+# 🚀 CloudOps Hub — Self-Hosted Multi-Cloud DevOps Control Plane
 
 <p align="center">
+  <img src="https://img.shields.io/badge/License-MIT-teal.svg?style=for-the-badge" alt="License: MIT" />
   <img src="https://img.shields.io/badge/Next.js-16.3-black?style=for-the-badge&logo=next.js" alt="Next.js" />
   <img src="https://img.shields.io/badge/React-19.0-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
-  <img src="https://img.shields.io/badge/Fastify-5.12-white?style=for-the-badge&logo=fastify&logoColor=black" alt="Fastify" />
-  <img src="https://img.shields.io/badge/Oracle_Cloud-OCI-F80000?style=for-the-badge&logo=oracle&logoColor=white" alt="OCI" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-4.3-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind" />
+  <img src="https://img.shields.io/badge/Node.js-20_LTS-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
   <img src="https://img.shields.io/badge/Docker-Zero_Downtime-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
-  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License" />
+  <img src="https://img.shields.io/badge/Multi--Cloud-Oracle_%7C_AWS_%7C_Hostinger-orange?style=for-the-badge" alt="Multi-Cloud" />
+  <img src="https://img.shields.io/badge/Open_Source-PRs_Welcome-20d6c7?style=for-the-badge" alt="Open Source" />
 </p>
 
-> **CloudOps Hub** é uma plataforma moderna, leve e responsiva (PWA) de gerenciamento unificado de servidores Linux e infraestrutura em nuvem (**Oracle Cloud Infrastructure - OCI**, AWS, VPS). Desenvolvida para substituir ferramentas pesadas e fragmentadas (como Portainer, Grafana e MobaXterm) com consumo mínimo de recursos na máquina virtual.
+<p align="center">
+  <b>A lightweight, high-performance, open-source web console for multi-cloud infrastructure orchestration, real-time Docker management, automated CI/CD deployments, and telemetry error tracking without vendor lock-in.</b>
+</p>
 
 ---
 
-## ✨ Principais Funcionalidades
+## ⚡ Overview
 
-* 🚀 **Deploy Contínuo 1-Click com Zero Downtime:** Atualize o código de produção direto do Git via SSH real, recompilando imagens Docker sem interromper requisições ativas.
-* ⏪ **Rollback de Emergência em 1-Clique:** Reversão instantânea para a versão estável anterior em segundos caso ocorra algum imprevisto em produção.
-* 🔀 **Automação de Pull Request & GitFlow:** Mesclagem automática entre branches (`develop` ➔ `main` ou `hotfix` ➔ `main`) sem sair do painel e sem abrir o site do GitHub.
-* 📜 **Histórico & Auditoria de Deploys:** Rastreabilidade completa com data/hora, autor, hash do commit e tempo de execução.
-* 🐳 **Gerenciador Visual de Docker & Logs:** Inicie, pare, reinicie containers e inspecione logs com diagnóstico inteligente de falhas.
-* 🛡️ **Blindagem de Disco (50 MB Log Rotation):** Prevenção ativa contra estouro de disco da VM limitando o acúmulo de logs do daemon Docker.
-* 🤖 **Robô de Auto-Provisionamento OCI:** Script em background que contorna o erro *"Out of host capacity"* na Oracle Cloud, testando perfis ARM e disparando alerta no WhatsApp assim que liberar vaga gratuita.
-* 📱 **Notificações em Tempo Real no WhatsApp:** Alertas automáticos a cada deploy, rollback, merge ou provisionamento de nova máquina.
-* 🌐 **Nginx Proxy & Túneis Cloudflare Zero Trust:** Mapeamento visual de domínios com certificados SSL Let's Encrypt.
+**CloudOps Hub** replaces bulky, fragmented enterprise tools with a unified, responsive developer console built for indie hackers, DevOps engineers, and agile teams. Manage cloud VMs (Oracle Cloud Infrastructure, Hostinger, AWS, or bare-metal VPS), monitor containers, inspect production logs, run 1-click zero-downtime deploys, and detect runtime errors with minimal CPU and memory footprint on the host.
+
+Available in English and Portuguese (PT-BR).
 
 ---
 
-## 🏛️ Arquitetura do Sistema
+## ✨ Key Features
+
+* 🌐 **Multi-Cloud & VPS Control:** Seamlessly switch between cloud instances, monitor RAM/CPU/Disk usage, and plan server migrations across providers in 1-click.
+* 🚀 **1-Click Zero-Downtime Deployments:** Trigger atomic Git production builds directly over secure SSH without dropping live user connections.
+* ⏪ **Instant Rollback:** Revert instantly to the previous stable release hash with a single click if production anomalies occur.
+* 🔍 **Real-Time Telemetry & Error Tracking:** Monitor system health, track HTTP 4xx/5xx failures, and inspect stack traces without polling overhead.
+* 🐳 **Interactive Docker Orchestrator:** Inspect live container metrics, restart crashed microservices, view filtered stdout/stderr logs, and enforce 50MB log rotation to prevent VM disk saturation.
+* 🤖 **Odisseu AI Copilot:** Integrated DevOps AI assistant to troubleshoot errors, analyze telemetry, and guide infrastructure upgrades.
+* 🛡️ **Zero Trust & Reverse Proxy:** Configure Cloudflare Tunnels and inspect Nginx reverse proxy mappings with automatic SSL handling.
+* 📱 **Instant Alerts:** Real-time push notifications for deployments, container crashes, and background scheduler events.
+
+---
+
+## 🏛️ Architecture
 
 ```mermaid
 flowchart TD
-    User["👨‍💻 Desenvolvedor / DevOps (PC ou Celular PWA)"] -->|HTTPS / WSS| HubFrontend["🖥️ CloudOps Hub Frontend (Next.js 16 + React 19)"]
-    HubFrontend -->|API REST :3005| HubBackend["⚙️ CloudOps Hub Backend (Fastify 5 + Node.js)"]
+    User["👨‍💻 DevOps / Developer (Desktop or Mobile PWA)"] -->|HTTPS / WSS| HubUI["🖥️ CloudOps Hub Frontend (Next.js 16 + React 19)"]
+    HubUI -->|REST API :3005| HubAPI["⚙️ CloudOps Hub Core Backend (Node.js)"]
     
-    subgraph Automacoes["Automações do Hub"]
-        HubBackend -->|1. GitFlow & Merge| GitHubAPI["🐙 GitHub Repository"]
-        HubBackend -->|2. Push Notification| CallMeBot["📲 WhatsApp Alert Engine"]
-        HubBackend -->|3. Provisionamento ARM| OCIApi["☁️ Oracle Cloud API (IaaS)"]
+    subgraph Services["Core Automation & Telemetry"]
+        HubAPI -->|Telemetry Collector| LogEngine["📊 Error & Log Analyzer"]
+        HubAPI -->|Git Automation| GitEngine["🐙 GitHub GitFlow Engine"]
+        HubAPI -->|Security Tunnels| CloudflareEngine["🛡️ Cloudflare Zero Trust"]
     end
 
-    subgraph Nuvem_Oracle["🖥️ VM Oracle Cloud (Ubuntu 22.04)"]
-        HubBackend -->|Conexão SSH Real :22| VmHost["Host VM (137.131.185.243)"]
-        VmHost --> DockerEng["Docker Compose Engine (Zero Downtime)"]
-        VmHost --> PM2Eng["PM2 Cluster Mode (Lottus API :3001)"]
-        VmHost --> MySQLDb["MySQL 8.0 ('restaurante')"]
-        VmHost --> NginxProxy["Nginx Reverse Proxy & SSL"]
+    subgraph Infrastructure["Target Cloud Fleet (SSH :22)"]
+        HubAPI -->|SSH Pipeline| OCI["☁️ Oracle Cloud (Always Free VM)"]
+        HubAPI -->|SSH Pipeline| VPS["🏢 Hostinger / VPS / Bare-Metal"]
+        HubAPI -->|SSH Pipeline| AWS["🟧 AWS EC2 Instance"]
+        
+        OCI --> DockerFleet["🐳 Docker Microservices (Zero Downtime)"]
+        OCI --> NginxProxy["🌐 Nginx Ingress & SSL"]
     end
 ```
 
 ---
 
-## 📁 Estrutura do Repositório
+## 📁 Repository Structure
 
 ```text
-├── cloud-ops-hub/             # Frontend Web (Next.js 16, React 19, Tailwind CSS 4, PWA)
-│   ├── app/                   # App Router e páginas principais
-│   ├── components/            # Componentes visuais (DeployView, Logs, Terminal, Metrics)
-│   └── public/                # Ícones e assets estáticos
+├── cloud-ops-hub/             # Frontend Client (Next.js 16, React 19, Tailwind CSS 4, Cyber-Teal UI)
+│   ├── app/                   # Next.js App Router and core views
+│   ├── components/            # Modular dashboard views (Deploy, Docker, Telemetry, Storage, Tunnels)
+│   └── public/                # Static assets, manifests, and icons
 │
-├── cloud-ops-hub-backend/     # Backend de Automação (Fastify, SSH2, OCI API)
-│   ├── src/
-│   │   ├── server.js          # Servidor HTTP e endpoints REST
-│   │   ├── deployService.js   # Pipeline de deploy real SSH, rollback e auditoria
-│   │   ├── githubService.js   # Automação de Pull Requests e merge GitFlow
-│   │   └── oracleScraper.js   # Robô de auto-provisionamento OCI com WhatsApp
-│   └── database/              # Histórico persistente de deploys em JSON
+├── cloud-ops-hub-backend/     # Automation & Telemetry Engine
+│   ├── src/                   # Server, deploy pipelines, SSH adapters, and log parsers
+│   └── database/              # Telemetry logs, deploy audit trails, and server registries
 │
-└── documentacoes/             # Manuais técnicos detalhados passo a passo
-    ├── 00_INDICE_GERAL.md
-    ├── 01_ARQUITETURA_E_INFRAESTRUTURA.md
-    ├── 02_GITFLOW_BRANCHES_E_PULL_REQUEST.md
-    ├── 03_DEPLOY_CONTINUO_ZERO_DOWNTIME.md
-    ├── 04_GERENCIAMENTO_DOCKER_E_LOGS.md
-    ├── 05_ROBO_PROVISIONAMENTO_ORACLE.md
-    └── 06_GUIA_RAPIDO_DO_DIA_A_DIA.md
+└── documentacoes/             # Step-by-step architecture, guide, and operational manuals
 ```
 
 ---
 
-## ⚡ Como Executar Localmente
+## 🚀 Quick Start (Local Setup)
 
-### 1. Pré-requisitos
-* Node.js v18+ instalado
-* Git instalado
-* Gerenciador de pacotes `pnpm` ou `npm`
+### 1. Prerequisites
+* **Node.js**: v18.0.0 or higher
+* **npm** or **pnpm** installed
+* **Git** installed
 
-### 2. Configurar o Backend
+### 2. Clone Repository
+```bash
+git clone https://github.com/ViniScooper/CloudOps_Hub.git
+cd CloudOps_Hub
+```
+
+### 3. Start Backend Service
 ```bash
 cd cloud-ops-hub-backend
-cp .env.example .env
 npm install
 node src/server.js
-# Backend ativo na porta 3005 (http://localhost:3005)
+# API running on http://localhost:3005
 ```
 
-### 3. Configurar o Frontend
+### 4. Start Frontend Console
 ```bash
 cd ../cloud-ops-hub
-pnpm install
-pnpm dev
-# Painel disponível em: http://localhost:3000
+npm install
+npm run dev
+# Dashboard running on http://localhost:3000
 ```
 
 ---
 
-## 🔒 Segurança
+## 🔒 Security & Privacy
 
-Por motivos de proteção da infraestrutura, nenhuma credencial sensível, chave privada SSH (`.key`/`.pem`) ou senha de banco de dados é versionada neste repositório público. Todas as variáveis sensíveis são injetadas exclusivamente em tempo de execução através do arquivo `.env`.
+* **Zero-Knowledge Credentials:** Private SSH keys (`.key` / `.pem`), API tokens, and production secrets are never committed to git. All sensitive parameters are injected strictly via local environment variables (`.env`).
+* **Self-Hosted:** Your data stays entirely on your own servers. Telemetry and deployment logs are stored locally in your instance.
 
 ---
 
-## 📄 Licença
+## 🇧🇷 Sobre o Projeto (Resumo em Português)
 
-Distribuído sob a licença **MIT**. Veja `LICENSE` para mais detalhes.
+O **CloudOps Hub** é uma plataforma open-source brasileira de gerenciamento unificado de infraestrutura em nuvem e containers Docker. Criado para oferecer aos desenvolvedores e pequenas equipes a mesma agilidade de ferramentas corporativas (Portainer, Coolify, Datadog), porém com baixíssimo consumo de memória e foco em custo zero (compatível com máquinas Always Free da Oracle Cloud, Hostinger e AWS).
 
-Desenvolvido com foco em alta performance e simplicidade operacional por **Vinicius Lourenço**.
+---
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!
+Feel free to check the [issues page](https://github.com/ViniScooper/CloudOps_Hub/issues).
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'feat: Add AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+Distributed under the **MIT License**. See [`LICENSE`](./LICENSE) for more information.
+
+Developed with ❤️ by [Vinicius Lourenço](https://github.com/ViniScooper).

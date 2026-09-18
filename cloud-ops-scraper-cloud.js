@@ -2,6 +2,7 @@
  * CLOUDOPS HUB — AUTONOMOUS ORACLE CLOUD ARM SCRAPER (CLOUD EDITION)
  * Executado 24/7 na VM cloudops-micro-02 (sa-saopaulo-1)
  * Consumo ultra-baixo de RAM (~18MB), zero dependências externas.
+ * Inclui Telemetria Inteligente de Heartbeat a cada 3h via WhatsApp (Anti-Spam & Keep-Alive).
  */
 
 const fs = require('fs');
@@ -20,6 +21,9 @@ const WHATSAPP_PHONE = '558195126839';
 const WHATSAPP_APIKEY = '7939819';
 const INTERVAL_SECONDS = 25;
 
+// Heartbeat a cada 3 horas (8 mensagens por dia — 100% seguro contra limites da CallMeBot)
+const HEARTBEAT_INTERVAL_MS = 3 * 60 * 60 * 1000;
+
 const PROFILES = [
   { ocpus: 1, memoryInGBs: 2, label: '1 OCPU / 2 GB RAM (Alta Chance)' },
   { ocpus: 1, memoryInGBs: 4, label: '1 OCPU / 4 GB RAM' },
@@ -36,11 +40,37 @@ let state = {
   attempts: 0,
   successfulVm: null,
   lastAttemptAt: null,
+  lastHeartbeatAt: null,
+  attemptsAtLastHeartbeat: 0,
   currentProfile: PROFILES[0],
   profileIndex: 0,
   intervalSeconds: INTERVAL_SECONDS,
   recentLogs: []
 };
+
+// Carrega estado prévio salvo em disco para não perder contador acumulado
+function loadInitialState() {
+  try {
+    if (fs.existsSync(STATE_FILE)) {
+      const saved = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+      state = {
+        ...state,
+        ...saved,
+        isRunning: true,
+        status: 'Ativo na Nuvem (cloudops-micro-02)',
+        workerHost: 'cloudops-micro-02 (137.131.187.54)',
+        intervalSeconds: INTERVAL_SECONDS
+      };
+      if (typeof state.profileIndex !== 'number' || state.profileIndex >= PROFILES.length) {
+        state.profileIndex = 0;
+      }
+      state.currentProfile = PROFILES[state.profileIndex];
+      console.log(`[INIT] Estado restaurado com sucesso! Tentativas acumuladas: ${state.attempts}`);
+    }
+  } catch (e) {
+    console.error('[INIT] Erro ao restaurar state.json, usando padrão:', e.message);
+  }
+}
 
 function log(message, type = 'info') {
   const time = new Date().toLocaleTimeString('pt-BR');
@@ -50,6 +80,13 @@ function log(message, type = 'info') {
   console.log(formatted);
   
   try {
+    // Rotação de log simples se passar de 10MB
+    if (fs.existsSync(LOG_FILE)) {
+      const stats = fs.statSync(LOG_FILE);
+      if (stats.size > 10 * 1024 * 1024) {
+        fs.renameSync(LOG_FILE, LOG_FILE + '.old');
+      }
+    }
     fs.appendFileSync(LOG_FILE, formatted + '\n');
   } catch (e) {}
 
@@ -76,6 +113,60 @@ function sendWhatsAppNotification(text) {
       res.on('end', () => resolve({ ok: true, data }));
     }).on('error', (err) => resolve({ ok: false, error: err.message }));
   });
+}
+
+/**
+ * Envia relatório de telemetria periódico para manter a API de WhatsApp conectada e ativa
+ */
+async function checkAndSendHeartbeat(isStartup = false) {
+  const now = Date.now();
+  const lastHeartbeat = state.lastHeartbeatAt ? new Date(state.lastHeartbeatAt).getTime() : 0;
+  const timeSinceLastHb = now - lastHeartbeat;
+
+  if (isStartup || timeSinceLastHb >= HEARTBEAT_INTERVAL_MS) {
+    const previousAttempts = state.attemptsAtLastHeartbeat || 0;
+    const periodAttempts = Math.max(0, state.attempts - previousAttempts);
+
+    // Identificação do turno com base na hora local de Brasília (UTC-3)
+    const localHour = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })).getHours();
+    let saudacao = '☀️ *Atualização Operacional*';
+    if (localHour >= 0 && localHour < 6) saudacao = '🌙 *Relatório da Madrugada*';
+    else if (localHour >= 6 && localHour < 12) saudacao = '🌅 *Relatório da Manhã*';
+    else if (localHour >= 12 && localHour < 18) saudacao = '🌤️ *Relatório da Tarde*';
+    else saudacao = '🌆 *Relatório da Noite*';
+
+    const header = isStartup
+      ? `🚀 *CLOUDOPS HUB — TELEMETRIA & KEEP-ALIVE ATIVADOS!*\n${saudacao}`
+      : `🤖 *CLOUDOPS HUB — TELEMETRIA DO SCRAPER OCI*\n${saudacao}`;
+
+    const currentProf = state.currentProfile || PROFILES[0];
+
+    const msg = `${header}\n\n` +
+      `🟢 *Status:* Ativo & Operando 24/7 na nuvem\n` +
+      `🖥️ *Servidor:* cloudops-micro-02 (137.131.187.54)\n` +
+      `📊 *Tentativas Acumuladas:* ${state.attempts.toLocaleString('pt-BR')}\n` +
+      `${!isStartup ? `📈 *Tentativas no ciclo recente (3h):* ~${periodAttempts}\n` : ''}` +
+      `🎯 *Perfil em Teste:* ${currentProf.label}\n` +
+      `📍 *Região Alvo:* sa-saopaulo-1 (São Paulo - AD-1)\n` +
+      `⏱️ *Intervalo do Loop:* ${INTERVAL_SECONDS}s\n\n` +
+      `💡 *Keep-Alive WhatsApp:* Sessão 100% ativa. O alerta prioritário com as chaves SSH será enviado imediatamente assim que a VM for criada!`;
+
+    log(`📲 Enviando Heartbeat de Telemetria WhatsApp (${isStartup ? 'Inicialização' : 'Ciclo 3h'})...`);
+    
+    try {
+      const res = await sendWhatsAppNotification(msg);
+      if (res.ok) {
+        log('✅ Heartbeat WhatsApp entregue com êxito!');
+        state.lastHeartbeatAt = new Date().toISOString();
+        state.attemptsAtLastHeartbeat = state.attempts;
+        saveState();
+      } else {
+        log(`⚠️ Resposta do CallMeBot: ${res.error || res.data || 'Falha'}`, 'warn');
+      }
+    } catch (err) {
+      log(`⚠️ Erro ao enviar Heartbeat: ${err.message}`, 'warn');
+    }
+  }
 }
 
 function loadOciConfig() {
@@ -204,6 +295,13 @@ async function cycle() {
 
   log(`🔄 Tentativa #${state.attempts} | Perfil: ${currentProfile.label}`);
 
+  // Verifica se está na hora do Heartbeat periódico (a cada 3h)
+  try {
+    await checkAndSendHeartbeat(false);
+  } catch (hbErr) {
+    console.error('Erro na rotina de heartbeat:', hbErr.message);
+  }
+
   try {
     const config = loadOciConfig();
     const availabilityDomain = 'Cpoi:SA-SAOPAULO-1-AD-1';
@@ -290,7 +388,7 @@ echo "[CloudOps Hub] Protecao ativa."
       log(`Chave Privada salva com segurança em: ${PRIV_KEY_PATH}`, 'success');
       log('================================================================', 'success');
 
-      // Notificação instantânea via WhatsApp
+      // Notificação prioritária instantânea via WhatsApp
       const wppMsg = `🎉 *CLOUDOPS HUB (NUVEM):* Sua VM ARM Ampere A1 foi CRIADA COM SUCESSO!\n\n` +
         `🖥️ *Detalhes da Instância:*\n` +
         `🔹 *Nome:* ${res.data.displayName}\n` +
@@ -330,6 +428,11 @@ echo "[CloudOps Hub] Protecao ativa."
 }
 
 // Inicia o Scraper
-log(`🚀 Scraper de Nuvem ativado no nó cloudops-micro-02 (Intervalo: ${INTERVAL_SECONDS}s)`);
-saveState();
-cycle();
+(async () => {
+  loadInitialState();
+  log(`🚀 Scraper de Nuvem ativado no nó cloudops-micro-02 (Intervalo: ${INTERVAL_SECONDS}s, Heartbeat: 3h)`);
+  saveState();
+  // Dispara o primeiro heartbeat de inicialização para confirmar ativação no WhatsApp
+  await checkAndSendHeartbeat(true);
+  cycle();
+})();
