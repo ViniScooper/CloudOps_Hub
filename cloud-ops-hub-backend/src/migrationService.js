@@ -137,16 +137,90 @@ function testTargetSsh({ host, port = 22, user = 'root', privateKey, password })
 /**
  * Calcula a estimativa precisa de tempo e volume para a migração completa
  */
-function getMigrationEstimate() {
+/**
+ * Calcula a estimativa precisa de tempo e volume para a migração completa do projeto selecionado
+ */
+function getMigrationEstimate(projectId = 'boteco') {
+  if (projectId === 'lottus') {
+    return {
+      source: {
+        provider: 'Oracle Cloud Infrastructure (OCI)',
+        vmName: 'instance-bytedata (137.131.185.243)',
+        database: 'MySQL 8.0 (restaurante / auth & users)',
+        dbSize: '~180 KB (Dump SQL comprimido)',
+        storageBucket: 'Armazenamento Local (/uploads & tokens: ~6.5 MB)',
+        backendApp: 'Node.js PM2 Cluster (api_users na porta 3001)',
+        frontendApp: 'Nginx Reverse Proxy (api.lottus.com.br)',
+        currentCost: 'R$ 0,00 / mês (Always Free)'
+      },
+      targetRecommendation: {
+        provider: 'Hostinger Cloud VPS',
+        plan: 'KVM 1',
+        specs: '1 vCPU, 4 GB RAM, 50 GB NVMe',
+        price: 'R$ 19,99 / mês',
+        benefits: 'PM2 auto-start, tráfego ilimitado e IP dedicado com baixa latência'
+      },
+      estimatedDuration: {
+        totalSeconds: 140,
+        formattedTime: '2 min e 20 segundos',
+        steps: [
+          { name: '1. Validação SSH & Dependências Node/PM2 na Hostinger', estimatedSeconds: 35 },
+          { name: '2. Dump atômico do MySQL na Oracle (mysqldump restaurante)', estimatedSeconds: 6 },
+          { name: '3. Transferência segura de dados via SSH (SCP/Rsync)', estimatedSeconds: 10 },
+          { name: '4. Restauração do Banco de Dados no Hostinger', estimatedSeconds: 8 },
+          { name: '5. Sincronização de arquivos locais e tokens', estimatedSeconds: 12 },
+          { name: '6. Clone do repositório api_users & PM2 start', estimatedSeconds: 45 },
+          { name: '7. Healthcheck & Teste de Conexão na porta 3001', estimatedSeconds: 10 }
+        ]
+      }
+    };
+  }
+
+  if (projectId === 'all') {
+    return {
+      source: {
+        provider: 'Oracle Cloud Infrastructure (OCI)',
+        vmName: 'instance-bytedata (137.131.185.243)',
+        database: 'Todos os Bancos MySQL (boteco_db + restaurante - ~66 MB)',
+        dbSize: '~430 KB (Dumps SQL consolidados)',
+        storageBucket: 'Todos os Buckets OCI + Pastas /uploads (~24.5 MB)',
+        backendApp: 'Docker boteco_backend + Node.js PM2 lottus_api + Nginx',
+        frontendApp: 'Todos os Frontends, Domínios e Certificados SSL',
+        currentCost: 'R$ 0,00 / mês (Always Free)'
+      },
+      targetRecommendation: {
+        provider: 'Hostinger Cloud VPS',
+        plan: 'KVM 2',
+        specs: '2 vCPUs, 8 GB RAM, 100 GB NVMe',
+        price: 'R$ 34,99 / mês',
+        benefits: 'Espaço e memória ideais para rodar Docker Compose + PM2 + MySQL simultâneos'
+      },
+      estimatedDuration: {
+        totalSeconds: 220,
+        formattedTime: '3 min e 40 segundos',
+        steps: [
+          { name: '1. Validação SSH & Provisionamento Docker/PM2 na Hostinger', estimatedSeconds: 50 },
+          { name: '2. Dump consolidado de todos os bancos MySQL (mysqldump --all)', estimatedSeconds: 15 },
+          { name: '3. Transferência segura de dumps e arquivos via SSH', estimatedSeconds: 20 },
+          { name: '4. Restauração de todos os bancos de dados no Hostinger', estimatedSeconds: 18 },
+          { name: '5. Sincronização completa de Buckets e diretórios de upload', estimatedSeconds: 30 },
+          { name: '6. Clone dos repositórios & Build Docker Compose e PM2', estimatedSeconds: 70 },
+          { name: '7. Healthcheck de todos os serviços (portas 3002, 3001, 80)', estimatedSeconds: 17 }
+        ]
+      }
+    };
+  }
+
+  // Padrão: Boteco do Sivirino
   return {
     source: {
       provider: 'Oracle Cloud Infrastructure (OCI)',
       vmName: 'instance-bytedata (137.131.185.243)',
-      database: 'MySQL 8.0 (12 categorias, 134 pratos, usuários e configurações)',
+      database: 'MySQL 8.0 (12 categorias, 134 pratos, boteco_db)',
       dbSize: '~250 KB (Dump SQL comprimido)',
-      storageBucket: 'boteco-sivirino-fotos (8 objetos + imagens locais: ~142 MB)',
-      backendApp: 'Node.js Express (cardapio_digital)',
-      frontendApp: 'React Vite (Nginx / Vercel)',
+      storageBucket: 'boteco-sivirino-fotos (8 objetos + imagens locais: ~18 MB)',
+      backendApp: 'Docker boteco_backend (Porta 3002)',
+      frontendApp: 'Cardápio Digital PWA (Next.js / Vercel)',
       currentCost: 'R$ 0,00 / mês (Always Free)'
     },
     targetRecommendation: {
@@ -161,10 +235,10 @@ function getMigrationEstimate() {
       formattedTime: '2 min e 45 segundos',
       steps: [
         { name: '1. Validação SSH & Provisionamento Docker no Hostinger', estimatedSeconds: 45 },
-        { name: '2. Dump atômico do MySQL na Oracle (mysqldump)', estimatedSeconds: 8 },
+        { name: '2. Dump atômico do MySQL na Oracle (mysqldump boteco_db)', estimatedSeconds: 8 },
         { name: '3. Transferência segura de dados via SSH (SCP/Rsync)', estimatedSeconds: 12 },
         { name: '4. Restauração do Banco de Dados no Hostinger', estimatedSeconds: 10 },
-        { name: '5. Sincronização dos Buckets e Fotos', estimatedSeconds: 25 },
+        { name: '5. Sincronização dos Buckets e Fotos do Cardápio', estimatedSeconds: 25 },
         { name: '6. Clone do repositório Git & Docker Compose Build', estimatedSeconds: 55 },
         { name: '7. Healthcheck & Teste de Conexão na porta 3002', estimatedSeconds: 10 }
       ]
@@ -175,14 +249,18 @@ function getMigrationEstimate() {
 /**
  * Gera script de automação Terraform para provisionar na Hostinger ou VPS
  */
-function generateTerraformScript({ host, provider = 'hostinger' }) {
+function generateTerraformScript({ host, provider = 'hostinger', project = 'boteco' }) {
+  const projectName = project === 'lottus' ? 'Lottus API' : project === 'all' ? 'Cluster Multi-Projeto' : 'Boteco do Sivirino';
+  const repoName = project === 'lottus' ? 'api_users' : 'cardapio_digital';
+  const port = project === 'lottus' ? '3001' : '3002';
+
   return `terraform {
   required_version = ">= 1.5.0"
 }
 
 # ==============================================================================
 # CLOUDOPS HUB — AUTOMAÇÃO DE MIGRAÇÃO MULTI-CLOUD (ORACLE ➔ ${provider.toUpperCase()})
-# Configuração de Infraestrutura e Provisionamento do Boteco do Sivirino
+# Configuração de Infraestrutura e Provisionamento: ${projectName}
 # ==============================================================================
 
 variable "target_ip" {
@@ -198,7 +276,7 @@ variable "ssh_user" {
 }
 
 # Provisioner de Inicialização Remota
-resource "null_resource" "provision_boteco_vps" {
+resource "null_resource" "provision_vps" {
   connection {
     type     = "ssh"
     user     = var.ssh_user
@@ -208,20 +286,20 @@ resource "null_resource" "provision_boteco_vps" {
 
   provisioner "remote-exec" {
     inline = [
-      "echo '🚀 [CloudOps Hub] Preparando VPS na ${provider}...' ",
+      "echo '🚀 [CloudOps Hub] Preparando VPS para ${projectName} na ${provider}...' ",
       "apt-get update -y && apt-get install -y curl git ufw fail2ban",
       "curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh",
-      "ufw allow 22/tcp && ufw allow 80/tcp && ufw allow 443/tcp && ufw allow 3002/tcp",
+      "ufw allow 22/tcp && ufw allow 80/tcp && ufw allow 443/tcp && ufw allow ${port}/tcp",
       "ufw --force enable",
-      "mkdir -p /home/boteco/cardapio_digital",
-      "git clone https://github.com/ViniScooper/cardapio_digital.git /home/boteco/cardapio_digital || true",
-      "echo '✅ VPS pronta para receber o dump do banco e subir os containers!' "
+      "mkdir -p /home/cloudops/${repoName}",
+      "git clone https://github.com/ViniScooper/${repoName}.git /home/cloudops/${repoName} || true",
+      "echo '✅ VPS pronta para receber o dump do banco de dados e subir os serviços!' "
     ]
   }
 }
 
 output "status_migracao" {
-  value = "Infraestrutura na ${provider} provisionada com sucesso pelo CloudOps Hub!"
+  value = "Infraestrutura de ${projectName} na ${provider} provisionada com sucesso pelo CloudOps Hub!"
 }
 `;
 }

@@ -687,8 +687,9 @@ fastify.post('/api/telemetry/simulate', async (request) => {
 // =========================================================================
 const migrationService = require('./migrationService');
 
-fastify.get('/api/migration/estimate', async () => {
-  return migrationService.getMigrationEstimate();
+fastify.get('/api/migration/estimate', async (request) => {
+  const { project } = request.query || {};
+  return migrationService.getMigrationEstimate(project);
 });
 
 fastify.get('/api/migration/targets', async () => {
@@ -706,8 +707,8 @@ fastify.post('/api/migration/test-target', async (request) => {
 });
 
 fastify.post('/api/migration/generate-terraform', async (request) => {
-  const { host, provider } = request.body || {};
-  const terraformCode = migrationService.generateTerraformScript({ host, provider });
+  const { host, provider, project } = request.body || {};
+  const terraformCode = migrationService.generateTerraformScript({ host, provider, project });
   return { code: terraformCode };
 });
 
