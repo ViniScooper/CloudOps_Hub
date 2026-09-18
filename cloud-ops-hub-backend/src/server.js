@@ -3,7 +3,10 @@ const fastify = require('fastify')({ logger: true });
 const cors = require('@fastify/cors');
 const { Client } = require('ssh2');
 
-fastify.register(cors, { origin: true });
+fastify.register(cors, {
+  origin: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+});
 
 fastify.get('/api/health', async () => ({ status: 'ok', time: new Date() }));
 
@@ -630,6 +633,77 @@ fastify.post('/api/odisseu/test-key', async (request, reply) => {
       error: err.message
     });
   }
+});
+
+// =========================================================================
+// 5. MONITORAMENTO & TELEMETRIA EM TEMPO REAL DE ERROS DO USUÁRIO
+// =========================================================================
+const telemetryService = require('./telemetryService');
+
+fastify.post('/api/telemetry/log', async (request, reply) => {
+  const logData = request.body || {};
+  const newLog = telemetryService.recordLog({
+    ...logData,
+    ip: request.ip
+  });
+  return { success: true, log: newLog };
+});
+
+fastify.get('/api/telemetry/logs', async (request) => {
+  const { level, source, search, limit } = request.query || {};
+  return telemetryService.getLogs({ level, source, search, limit });
+});
+
+fastify.delete('/api/telemetry/logs', async () => {
+  return telemetryService.clearLogs();
+});
+
+fastify.post('/api/telemetry/clear', async () => {
+  return telemetryService.clearLogs();
+});
+
+fastify.get('/api/telemetry/clear', async () => {
+  return telemetryService.clearLogs();
+});
+
+fastify.post('/api/telemetry/simulate', async (request) => {
+  const { type = 'error' } = request.body || {};
+  const simulated = telemetryService.recordLog({
+    level: type === 'critical' ? 'CRITICAL' : (type === 'warn' ? 'WARN' : 'ERROR'),
+    source: 'Cardápio Digital (App)',
+    message: type === 'critical' ? 'Falha de conexão com Gateway de Pagamento' : 'Erro 500: Falha ao carregar lista de complementos do prato #867',
+    path: '/api/pratos/867/complementos',
+    method: 'GET',
+    statusCode: type === 'critical' ? 503 : 500,
+    details: 'Error: Connection pool timeout (MySQL ETIMEDOUT ao consultar tabela prato_complementos)',
+    ip: '189.34.12.75',
+    userAgent: 'Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36'
+  });
+  return { success: true, log: simulated };
+});
+
+// =========================================================================
+// 6. WORKSPACE DE MIGRAÇÃO MULTI-CLOUD (ORACLE ➔ HOSTINGER / VPS)
+// =========================================================================
+const migrationService = require('./migrationService');
+
+fastify.get('/api/migration/estimate', async () => {
+  return migrationService.getMigrationEstimate();
+});
+
+fastify.get('/api/migration/targets', async () => {
+  return { targets: migrationService.loadTargets() };
+});
+
+fastify.post('/api/migration/test-target', async (request) => {
+  const { host, port, user, privateKey, password } = request.body || {};
+  return migrationService.testTargetSsh({ host, port, user, privateKey, password });
+});
+
+fastify.post('/api/migration/generate-terraform', async (request) => {
+  const { host, provider } = request.body || {};
+  const terraformCode = migrationService.generateTerraformScript({ host, provider });
+  return { code: terraformCode };
 });
 
 const start = async () => {

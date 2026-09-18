@@ -4,7 +4,8 @@ import React, { useState } from 'react'
 import { 
   CircleHelp, BookOpen, Rocket, Shield, Container, Terminal, HardDrive, 
   Zap, CheckCircle2, ArrowRight, RotateCcw, GitPullRequest, ExternalLink, 
-  HelpCircle, MessageSquare, AlertCircle, ChevronDown, ChevronUp, Lock, Globe, FolderPlus
+  HelpCircle, MessageSquare, AlertCircle, ChevronDown, ChevronUp, Lock, Globe, FolderPlus,
+  Activity, ArrowLeftRight, Database
 } from 'lucide-react'
 
 interface HelpViewProps {
@@ -67,6 +68,22 @@ export function HelpView({ onNavigate }: HelpViewProps) {
       desc: 'Execute comandos diretamente no Linux da VM pelo navegador (no computador ou celular), dispensando o uso de PuTTY ou MobaXterm.',
       actionLabel: 'Abrir Terminal',
       targetTab: 'Terminal'
+    },
+    {
+      num: '07',
+      title: 'Monitoramento & Logs em Tempo Real',
+      icon: Activity,
+      desc: 'Rastreamento instantâneo de erros enfrentados pelos usuários no Cardápio Digital ou Painel Admin. Erros 4xx/5xx, rotas e payloads detalhados sob demanda sem sobrecarregar a memória do servidor.',
+      actionLabel: 'Ver Logs & Erros',
+      targetTab: 'Monitoramento & Logs'
+    },
+    {
+      num: '08',
+      title: 'Workspace de Migração Multi-Cloud',
+      icon: ArrowLeftRight,
+      desc: 'Mude da Oracle para a Hostinger, AWS ou qualquer VPS em menos de 3 minutos. O Hub calcula volumes, gera scripts Terraform e transfere o banco MySQL, fotos e containers com 1 clique.',
+      actionLabel: 'Ir para Migração',
+      targetTab: 'Migração Multi-Cloud'
     }
   ]
 
@@ -94,6 +111,14 @@ export function HelpView({ onNavigate }: HelpViewProps) {
     {
       q: 'Como recebo os alertas no meu WhatsApp?',
       a: 'O sistema utiliza a API do CallMeBot integrada ao backend. Qualquer ação importante (deploy, rollback, queda de serviço ou nova VM) envia uma mensagem instantânea com detalhes.'
+    },
+    {
+      q: 'Como funciona o monitoramento de erros em tempo real dos clientes no Cardápio?',
+      a: 'O Cardápio Digital e o Painel Admin possuem interceptadores HTTP nativos. Quando um cliente ou administrador encontra qualquer erro 4xx ou 5xx, o detalhe é transmitido de forma assíncrona para a Central de Monitoramento do Hub. Você vê a mensagem amigável, o código HTTP, a rota acessada e o traceback em 1 clique no botão "🔍 Verificar Erros", economizando memória por não manter conexões pesadas abertas.'
+    },
+    {
+      q: 'Se eu decidir migrar da Oracle para a Hostinger ou outra VPS, como o Hub faz isso?',
+      a: 'No "Workspace de Migração Multi-Cloud", basta inserir o IP e credenciais SSH da VPS de destino (ex: Hostinger). O Hub testa a conexão, estima o tempo de transferência (~2m 45s para ~142MB), gera scripts de automação Terraform e transfere o banco MySQL, buckets de fotos e containers Docker de forma automatizada com rollback de segurança.'
     }
   ]
 
@@ -289,7 +314,9 @@ export function HelpView({ onNavigate }: HelpViewProps) {
             1. Monitore a saúde da VM pelo <b>Dashboard</b> (mantenha a RAM abaixo de 85% e o swap controlado).<br/>
             2. Na aba <b>Docker</b>, clique em <b>"Otimizar Logs Docker"</b> para garantir a rotação de 50 MB e proteger o disco.<br/>
             3. Verifique se o container <code>boteco_tunnel</code> está ativo para garantir tráfego seguro pela Cloudflare.<br/>
-            4. Inspecione logs de containers problemáticos usando o ícone de Lupa com diagnóstico automático.
+            4. Inspecione logs de containers problemáticos usando o ícone de Lupa com diagnóstico automático.<br/>
+            5. Acompanhe a <b>Central de Monitoramento & Logs</b> usando o botão <b>"🔍 Verificar Erros"</b> para diagnosticar em tempo real erros 4xx/5xx gerados no cardápio/admin.<br/>
+            6. Acesse o <b>Workspace de Migração Multi-Cloud</b> para transferir banco MySQL, fotos e containers para a Hostinger ou outra VPS em 1-clique.
           </div>
         )}
 
