@@ -444,29 +444,76 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
             <span>Consultando API da Vercel...</span>
           </div>
         ) : (!data?.deployments || data.deployments.length === 0) ? (
-          <div style={{ padding: '36px', textAlign: 'center' }}>
-            <VercelIcon size={32} color="#334d52" style={{ marginBottom: '10px' }} />
-            <div style={{ fontSize: '13px', color: '#88a6aa', fontWeight: 600 }}>
-              {tokenStatus !== 'valid' ? 'Token da Vercel não configurado' : 'Nenhum deployment retornado'}
+          <div style={{ padding: '36px 20px', textAlign: 'center' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '12px',
+              background: deployHookUrl ? 'rgba(16, 185, 129, 0.1)' : 'rgba(32, 214, 199, 0.05)',
+              border: deployHookUrl ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid #1a2a2e',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '12px'
+            }}>
+              {deployHookUrl ? <CheckCircle2 size={24} color="#10b981" /> : <VercelIcon size={24} color="#334d52" />}
             </div>
-            <p style={{ fontSize: '11.5px', color: '#557074', maxWidth: '420px', margin: '6px auto 16px' }}>
-              Configure seu Personal Access Token da Vercel para visualizar todos os builds, tempo de compilação e disparar redeploys com 1 clique.
+
+            <div style={{ fontSize: '14px', color: deployHookUrl ? '#a7f3d0' : '#88a6aa', fontWeight: 700 }}>
+              {deployHookUrl ? 'Deploy Hook Ativo • Redeploy em 1-Clique Pronto' : 'Token da Vercel não configurado'}
+            </div>
+
+            <p style={{ fontSize: '12px', color: '#68868a', maxWidth: '480px', margin: '8px auto 16px', lineHeight: 1.5 }}>
+              {deployHookUrl ? (
+                <>
+                  O webhook da Vercel já está conectado. Você pode clicar em <b>"Forçar Redeploy Vercel"</b> no topo a qualquer momento para atualizar seu site.<br />
+                  <span style={{ fontSize: '11px', color: '#557074', marginTop: '4px', display: 'inline-block' }}>
+                    Para listar o histórico detalhado de commits e tempos de compilação linha a linha nesta tabela, você pode adicionar um Token pessoal da Vercel (opcional).
+                  </span>
+                </>
+              ) : (
+                'Configure seu Personal Access Token da Vercel para visualizar todos os builds, tempo de compilação e histórico em tempo real.'
+              )}
             </p>
-            <button
-              onClick={() => setConfigModalOpen(true)}
-              style={{
-                padding: '8px 18px',
-                borderRadius: '8px',
-                background: '#20d6c7',
-                border: 'none',
-                color: '#041014',
-                fontSize: '12px',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-            >
-              Configurar Token da Vercel
-            </button>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => setConfigModalOpen(true)}
+                style={{
+                  padding: '8px 18px',
+                  borderRadius: '8px',
+                  background: deployHookUrl ? '#121e22' : '#20d6c7',
+                  border: deployHookUrl ? '1px solid #1f3338' : 'none',
+                  color: deployHookUrl ? '#20d6c7' : '#041014',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                {deployHookUrl ? 'Adicionar Token para Histórico' : 'Configurar Token da Vercel'}
+              </button>
+
+              <a
+                href="https://vercel.com/viniscoopers-projects/cardapio_digital"
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  padding: '8px 18px',
+                  borderRadius: '8px',
+                  background: 'transparent',
+                  border: '1px solid #1a2d32',
+                  color: '#9db4b7',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                Abrir Painel da Vercel <ExternalLink size={12} />
+              </a>
+            </div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
