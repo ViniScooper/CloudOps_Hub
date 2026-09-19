@@ -471,6 +471,7 @@ export function HelpView({ onNavigate }: HelpViewProps) {
             3. Aponte seu domínio (ex: <code>app.meudominio.com</code>) para <code>http://127.0.0.1:3004</code> e ative o <b>SSL Let's Encrypt</b>.<br/>
             Dessa forma, os usuários acessam na porta padrão 443 (HTTPS) e o Nginx faz o encaminhamento sem nenhum conflito de portas!
           </p>
+        </div>
       </section>
 
       {/* MAPA COMPLETO DOS 11 MÓDULOS DO SISTEMA */}
