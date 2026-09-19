@@ -30,7 +30,8 @@ const TERM_SYNONYMS = {
   'tunnel': ['cloudflare', 'cloudflared', 'zero trust', 'cardapio.botecosivirino.com.br', 'dominio', 'ssl'],
   'nginx': ['proxy', 'reverso', 'sites-available', 'subdominio', 'ssl', 'certbot', 'letsencrypt'],
   'scraper': ['robo', 'oracle', 'sem custos', 'sem capacidade', 'out of host capacity', 'a1.flex', 'ampere', 'e2.1.micro'],
-  'deploy': ['git', 'pull', 'branch', 'main', 'develop', 'rollback', 'ci/cd', 'zero downtime']
+  'deploy': ['git', 'pull', 'branch', 'main', 'develop', 'rollback', 'ci/cd', 'zero downtime'],
+  'vercel': ['frontend', 'edge', 'deploy vercel', 'cardapiodigital', 'redeploy', 'build vercel', 'vite']
 };
 
 class RagKnowledgeBase {
@@ -156,7 +157,10 @@ class RagKnowledgeBase {
   * Domínio público: cardapio.botecosivirino.com.br
   * Tráfego entra via tunel criptografado na porta 3002 sem abrir portas no firewall da Oracle Cloud.
 - Scraper Oracle 24/7:
-  * Robô em segundo plano buscando instâncias Always Free Ampere (A1.Flex) e E2.1.Micro na região sa-saopaulo-1.`
+  * Robô em segundo plano buscando instâncias Always Free Ampere (A1.Flex) e E2.1.Micro na região sa-saopaulo-1.
+- Frontend Vercel Edge CI/CD:
+  * Projeto: cardapio_digital (produção em cardapiodigital-gamma.vercel.app, branch main).
+  * Painel integrado no CloudOps Hub: monitoramento de builds, visualização de status (Ready, Building, Error) e disparo de redeploy com 1 clique.`
     };
   }
 

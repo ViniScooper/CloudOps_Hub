@@ -67,3 +67,14 @@ O túnel Anycast da Cloudflare garante que nenhuma porta da VM (como 3001, 3002 
   * Reiniciar túnel
   * Regenerar URL pública temporária
   * Mapear novos subdomínios para portas internas
+
+---
+
+## 5. Vercel Frontend & Edge Deployments
+
+O CloudOps Hub integra o ciclo de vida completo do Frontend hospedado na rede Edge global da Vercel:
+* **Monitoramento de Builds:** Consulta status de compilação em tempo real (`Ready` 🟢, `Building` 🟡, `Error` 🔴).
+* **Forçar Redeploy em 1-Clique:** Dispara a reconstrução imediata no Edge via Vercel API ou Deploy Hook para atualizar assets sem atrasos de cache.
+* **Inspeção de Commits:** Rastreamento do commit ativo em produção (autor, hash e branch `main`).
+* **Blindagem de Cache:** Orientações e atalhos rápidos (`Ctrl + Shift + R`) para mitigar atrasos de cache em navegadores clientes.
+
