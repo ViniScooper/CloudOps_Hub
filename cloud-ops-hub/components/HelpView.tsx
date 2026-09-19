@@ -5,8 +5,9 @@ import {
   CircleHelp, BookOpen, Rocket, Shield, Container, Terminal, HardDrive, 
   Zap, CheckCircle2, ArrowRight, RotateCcw, GitPullRequest, ExternalLink, 
   HelpCircle, MessageSquare, AlertCircle, ChevronDown, ChevronUp, Lock, Globe, FolderPlus,
-  Activity, ArrowLeftRight, Database
+  Activity, ArrowLeftRight, Database, Bot, Cpu, Sparkles, RefreshCw
 } from 'lucide-react'
+import { VercelIcon } from './VercelDeploymentsView'
 
 interface HelpViewProps {
   onNavigate: (tab: string) => void
@@ -23,9 +24,9 @@ export function HelpView({ onNavigate }: HelpViewProps) {
   const steps = [
     {
       num: '01',
-      title: 'Conectar ao seu Servidor',
-      icon: Shield,
-      desc: 'O CloudOps Hub conecta na sua VM via SSH seguro (porta 22) usando chaves criptografadas em memória. Nenhuma porta precisa ser aberta publicamente.',
+      title: 'Dashboard & Métricas da VM',
+      icon: Cpu,
+      desc: 'Supervisão central da sua máquina virtual: Consumo de CPU, uso de RAM, memória Swap, espaço em disco e tempo de atividade (Uptime) em tempo real via SSH.',
       actionLabel: 'Ver Dashboard',
       targetTab: 'Dashboard'
     },
@@ -33,7 +34,7 @@ export function HelpView({ onNavigate }: HelpViewProps) {
       num: '02',
       title: 'Gerenciar Containers Docker',
       icon: Container,
-      desc: 'Visualize status ao vivo, portas mapeadas e consumo de RAM. Inicie, pare ou reinicie qualquer serviço e visualize logs em tempo real com diagnóstico.',
+      desc: 'Controle visual de containers (boteco_backend, boteco_db, boteco_tunnel). Visualize uso de memória, mapeamento de portas, reinicie serviços e ative a rotação de logs.',
       actionLabel: 'Abrir Docker',
       targetTab: 'Docker'
     },
@@ -41,49 +42,73 @@ export function HelpView({ onNavigate }: HelpViewProps) {
       num: '03',
       title: 'Deploy em 1-Clique & Rollback',
       icon: Rocket,
-      desc: 'Atualize aplicações direto do Git com Zero Downtime. Se surgir qualquer problema em produção, aperte Rollback para voltar à versão estável em 3 segundos.',
+      desc: 'Atualize o backend direto do Git com Zero Downtime. Se qualquer instabilidade surgir em produção, use o Rollback para reverter à versão anterior em 3 segundos.',
       actionLabel: 'Ir para Deploy',
       targetTab: 'Deploy'
     },
     {
       num: '04',
-      title: 'GitFlow & Pull Request Automático',
-      icon: GitPullRequest,
-      desc: 'Trabalhe na branch develop e mescle para a main direto pelo painel. Com o novo recurso "Auto-Configurar Git na VM", o Hub instala o Git e grava as credenciais na sua máquina virtual em 1 clique via SSH!',
-      actionLabel: 'Ver GitFlow & Setup',
-      targetTab: 'Deploy'
+      title: 'Vercel Frontend & Edge CDN',
+      icon: Globe,
+      desc: 'Monitoramento do cardápio digital na borda da Vercel. Acompanhe status de build (Ready/Building), commits sincronizados e dispare redeploys em 1-clique via Deploy Hook.',
+      actionLabel: 'Ver Vercel Edge',
+      targetTab: 'Vercel Frontend'
     },
     {
       num: '05',
-      title: 'Robô de VM Always Free (Oracle)',
-      icon: Zap,
-      desc: 'Contorne o erro "Out of host capacity" da Oracle Cloud. O robô testa vagas em loop assinado pela API OCI e te avisa no WhatsApp assim que conseguir.',
-      actionLabel: 'Ver VM Scraper',
-      targetTab: 'VM Scraper'
-    },
-    {
-      num: '06',
       title: 'Terminal Web SSH Integrado',
       icon: Terminal,
-      desc: 'Execute comandos diretamente no Linux da VM pelo navegador (no computador ou celular), dispensando o uso de PuTTY ou MobaXterm.',
+      desc: 'Console Linux completo e seguro direto no navegador (computador ou smartphone). Execute comandos administrativos dispensando o PuTTY ou MobaXterm.',
       actionLabel: 'Abrir Terminal',
       targetTab: 'Terminal'
     },
     {
+      num: '06',
+      title: 'Nginx Proxy & Cloudflare Tunnels',
+      icon: Shield,
+      desc: 'Gestão de proxies reversos e túneis Zero Trust. Distribua domínios com terminação HTTPS/SSL automática sem precisar abrir portas vulneráveis no firewall da Oracle.',
+      actionLabel: 'Ver Nginx & Tunnels',
+      targetTab: 'Nginx'
+    },
+    {
       num: '07',
-      title: 'Monitoramento & Logs em Tempo Real',
+      title: 'Storage & Backups OCI',
+      icon: HardDrive,
+      desc: 'Controle de buckets na Oracle Cloud (fotos de produtos do cardápio, uploads) e histórico de backups/dumps automáticos do banco MySQL com retenção segura.',
+      actionLabel: 'Ver Storage',
+      targetTab: 'Storage'
+    },
+    {
+      num: '08',
+      title: 'Monitoramento & Telemetria HTTP',
       icon: Activity,
-      desc: 'Rastreamento instantâneo de erros enfrentados pelos usuários no Cardápio Digital ou Painel Admin. Erros 4xx/5xx, rotas e payloads detalhados sob demanda sem sobrecarregar a memória do servidor.',
+      desc: 'Rastreamento de erros 4xx/5xx enfrentados pelos usuários no Cardápio Digital ou Painel Admin com rotas afetadas e payloads detalhados sob demanda.',
       actionLabel: 'Ver Logs & Erros',
       targetTab: 'Monitoramento & Logs'
     },
     {
-      num: '08',
+      num: '09',
       title: 'Workspace de Migração Multi-Cloud',
       icon: ArrowLeftRight,
-      desc: 'Mude da Oracle para a Hostinger, AWS ou qualquer VPS em menos de 3 minutos. O Hub calcula volumes, gera scripts Terraform e transfere o banco MySQL, fotos e containers com 1 clique.',
+      desc: 'Mude da Oracle para Hostinger, AWS ou qualquer VPS em menos de 3 minutos. O Hub gera automações Terraform e transfere MySQL, fotos e containers com 1 clique.',
       actionLabel: 'Ir para Migração',
       targetTab: 'Migração Multi-Cloud'
+    },
+    {
+      num: '10',
+      title: 'Agente Odisseu AI (RAG)',
+      icon: Bot,
+      desc: 'Assistente inteligente treinado especificamente na arquitetura e histórico dos seus servidores. Faz diagnósticos de falhas, sugere comandos e responde dúvidas técnicas.',
+      actionLabel: 'Consultar Odisseu',
+      targetTab: 'Odisseu AI'
+    },
+    {
+      num: '11',
+      title: 'Robô VM Always Free (Oracle)',
+      icon: Zap,
+      desc: 'Automação que contorna o erro "Out of host capacity" da Oracle Cloud, tentando alocar instâncias gratuitas em loop assinado até conseguir, avisando no WhatsApp.',
+      actionLabel: 'Ver VM Scraper',
+      targetTab: 'VM Scraper'
     }
   ]
 
@@ -119,6 +144,18 @@ export function HelpView({ onNavigate }: HelpViewProps) {
     {
       q: 'Se eu decidir migrar da Oracle para a Hostinger ou outra VPS, como o Hub faz isso?',
       a: 'No "Workspace de Migração Multi-Cloud", basta inserir o IP e credenciais SSH da VPS de destino (ex: Hostinger). O Hub testa a conexão, estima o tempo de transferência (~2m 45s para ~142MB), gera scripts de automação Terraform e transfere o banco MySQL, buckets de fotos e containers Docker de forma automatizada com rollback de segurança.'
+    },
+    {
+      q: 'Como funciona a integração com a Vercel e quando usar o Deploy Hook vs Token de Acesso?',
+      a: 'O Deploy Hook permite disparar atualizações e novos builds na Vercel em 1-clique sem restrição de escopo ou risco de vazar credenciais. Já o Token de Acesso Pessoal (gerado em vercel.com/account/tokens) permite que o CloudOps Hub consulte a API da Vercel para carregar o histórico linha a linha de cada build, autor do commit e tempo de compilação na CDN Edge.'
+    },
+    {
+      q: 'Por que após fazer um deploy na Vercel o cardápio ainda mostrava textos ou imagens antigas?',
+      a: 'A Vercel utiliza uma CDN global de borda (Edge) com cache agressivo, e os navegadores armazenam arquivos estáticos (HTML/CSS/JS) no cache local. Para visualizar a versão mais recente imediatamente, utilize o atalho Ctrl + Shift + R no computador ou abra uma aba anônima no celular. Verifique também se a branch padrão configurada na Vercel (main) recebeu o merge das suas alterações.'
+    },
+    {
+      q: 'O que é o Agente Odisseu AI e como ele ajuda na operação do dia a dia?',
+      a: 'O Odisseu é um agente de inteligência artificial com RAG (Retrieval-Augmented Generation) e LangChain que conhece a arquitetura completa da sua infraestrutura: portas, containers Docker, domínios Cloudflare, scripts de automação e histórico de erros. Você pode tirar dúvidas técnicas, pedir comandos SSH precisos ou diagnósticos de incidentes diretamente pelo console.'
     }
   ]
 
@@ -300,11 +337,9 @@ export function HelpView({ onNavigate }: HelpViewProps) {
         {selectedRole === 'dev' && (
           <div style={{ background: '#070a0c', padding: '16px', borderRadius: '6px', border: '1px solid #142023', fontSize: '12px', lineHeight: '1.7', color: '#a2b3b6' }}>
             <strong style={{ color: '#20d6c7', display: 'block', marginBottom: '6px' }}>Fluxo Diário do Desenvolvedor:</strong>
-            1. Programe na branch <code>develop</code> no seu VS Code local.<br/>
-            2. Dê <code>git push origin develop</code>.<br/>
-            3. No CloudOps Hub, vá na aba <b>Deploy</b> e clique em <b>"Fazer Pull Request & Merge"</b> (a <code>main</code> será atualizada).<br/>
-            4. Clique em <b>"Fazer Deploy Agora"</b> para subir a nova versão na VM sem queda.<br/>
-            5. Se surgir qualquer bug em produção, use o botão <b>Rollback</b> para voltar imediatamente.
+            <b>1. Backend & Banco (VM Oracle):</b> Programe na branch <code>develop</code> → Suba para o GitHub (<code>git push origin develop</code>) → No CloudOps Hub, vá na aba <b>Deploy</b> e clique em <b>"Fazer Pull Request & Merge"</b> → Em seguida, clique em <b>"Fazer Deploy Agora"</b> para atualizar os containers sem queda.<br/>
+            <b>2. Frontend Cardápio (Vercel Edge):</b> Desenvolva seus componentes e envie para a branch <code>main</code> → Acesse a aba <b>Vercel Frontend</b> para acompanhar o build em tempo real na CDN Edge → Se necessário, clique em <b>"Forçar Redeploy Vercel"</b> para recriar o build em 1 clique.<br/>
+            <b>3. Rollback de Emergência:</b> Se qualquer bug subir em produção, aperte <b>Rollback</b> (para o backend na VM) ou recompile o deployment anterior na aba Vercel.
           </div>
         )}
 
@@ -436,6 +471,198 @@ export function HelpView({ onNavigate }: HelpViewProps) {
             3. Aponte seu domínio (ex: <code>app.meudominio.com</code>) para <code>http://127.0.0.1:3004</code> e ative o <b>SSL Let's Encrypt</b>.<br/>
             Dessa forma, os usuários acessam na porta padrão 443 (HTTPS) e o Nginx faz o encaminhamento sem nenhum conflito de portas!
           </p>
+      </section>
+
+      {/* MAPA COMPLETO DOS 11 MÓDULOS DO SISTEMA */}
+      <section className="panel" style={{ padding: '22px', marginBottom: '28px', borderColor: '#1b3236' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+          <Sparkles size={18} style={{ color: '#20d6c7' }} />
+          <h3 style={{ margin: 0, fontSize: '16px', color: '#d9e2e1' }}>
+            Mapa Completo do Sistema: Guia de Cada Tópico
+          </h3>
+        </div>
+        <p style={{ color: '#8fa4a8', fontSize: '12px', margin: '0 0 18px 0', lineHeight: 1.5 }}>
+          Entenda detalhadamente a função de cada módulo, o que você pode executar nele e quando utilizá-lo na sua rotina diária:
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
+          
+          {/* 1. Dashboard */}
+          <div style={{ background: '#070a0c', padding: '16px', borderRadius: '8px', border: '1px solid #142023', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#20d6c7', fontWeight: 700, fontSize: '13px', marginBottom: '8px' }}>
+                <Cpu size={16} /> 1. Dashboard & Saúde da VM
+              </div>
+              <p style={{ fontSize: '11.5px', color: '#8fa4a8', lineHeight: 1.6, margin: '0 0 10px 0' }}>
+                <b>O que faz:</b> Coleta métricas de telemetria da VM via SSH seguro: uso de CPU, consumo de RAM, espaço em disco (NVMe), uso de Swap e Uptime.<br/>
+                <b>Quando usar:</b> Sempre que acessar o console para verificar se a máquina está estável e se a RAM está sob controle (abaixo de 85%).
+              </p>
+            </div>
+            <button onClick={() => onNavigate('Dashboard')} style={{ background: '#0f1b1e', border: '1px solid #1a2f34', color: '#20d6c7', borderRadius: '4px', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
+              Abrir Dashboard <ArrowRight size={11} />
+            </button>
+          </div>
+
+          {/* 2. Docker Containers */}
+          <div style={{ background: '#070a0c', padding: '16px', borderRadius: '8px', border: '1px solid #142023', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#20d6c7', fontWeight: 700, fontSize: '13px', marginBottom: '8px' }}>
+                <Container size={16} /> 2. Docker Containers
+              </div>
+              <p style={{ fontSize: '11.5px', color: '#8fa4a8', lineHeight: 1.6, margin: '0 0 10px 0' }}>
+                <b>O que faz:</b> Lista todos os containers ativos (<code>boteco_backend</code>, <code>boteco_db</code>, <code>boteco_tunnel</code>), portas expostas e memória individual. Permite reiniciar serviços e ativar a rotação de logs (limite de 50MB).<br/>
+                <b>Quando usar:</b> Quando um serviço parar de responder, para inspecionar logs ao vivo ou liberar espaço em disco.
+              </p>
+            </div>
+            <button onClick={() => onNavigate('Docker')} style={{ background: '#0f1b1e', border: '1px solid #1a2f34', color: '#20d6c7', borderRadius: '4px', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
+              Gerenciar Docker <ArrowRight size={11} />
+            </button>
+          </div>
+
+          {/* 3. Deploy & Rollback */}
+          <div style={{ background: '#070a0c', padding: '16px', borderRadius: '8px', border: '1px solid #142023', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#20d6c7', fontWeight: 700, fontSize: '13px', marginBottom: '8px' }}>
+                <Rocket size={16} /> 3. Deploy & Rollback GitFlow
+              </div>
+              <p style={{ fontSize: '11.5px', color: '#8fa4a8', lineHeight: 1.6, margin: '0 0 10px 0' }}>
+                <b>O que faz:</b> Permite mesclar a branch <code>develop</code> na <code>main</code> com 1 clique (Pull Request automático) e fazer deploy Zero Downtime no backend. Em caso de bugs, o botão <b>Rollback</b> reverte a versão em 3 segundos.<br/>
+                <b>Quando usar:</b> Sempre que terminar de codificar uma nova funcionalidade no backend e quiser publicar em produção.
+              </p>
+            </div>
+            <button onClick={() => onNavigate('Deploy')} style={{ background: '#0f1b1e', border: '1px solid #1a2f34', color: '#20d6c7', borderRadius: '4px', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
+              Ir para Deploy <ArrowRight size={11} />
+            </button>
+          </div>
+
+          {/* 4. Vercel Frontend */}
+          <div style={{ background: '#070a0c', padding: '16px', borderRadius: '8px', border: '1px solid #142023', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#20d6c7', fontWeight: 700, fontSize: '13px', marginBottom: '8px' }}>
+                <VercelIcon size={16} color="#20d6c7" /> 4. Vercel Frontend & Edge CDN
+              </div>
+              <p style={{ fontSize: '11.5px', color: '#8fa4a8', lineHeight: 1.6, margin: '0 0 10px 0' }}>
+                <b>O que faz:</b> Monitora o site <code>cardapiodigital-gamma.vercel.app</code> na rede Edge global da Vercel. Mostra o último commit compilado, status (Ready/Building) e botão <b>Forçar Redeploy Vercel</b> via Deploy Hook.<br/>
+                <b>Quando usar:</b> Sempre que atualizar o visual do cardápio, para acompanhar o build em tempo real ou forçar a atualização imediata.
+              </p>
+            </div>
+            <button onClick={() => onNavigate('Vercel Frontend')} style={{ background: '#0f1b1e', border: '1px solid #1a2f34', color: '#20d6c7', borderRadius: '4px', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
+              Ver Vercel Edge <ArrowRight size={11} />
+            </button>
+          </div>
+
+          {/* 5. Terminal Web SSH */}
+          <div style={{ background: '#070a0c', padding: '16px', borderRadius: '8px', border: '1px solid #142023', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#20d6c7', fontWeight: 700, fontSize: '13px', marginBottom: '8px' }}>
+                <Terminal size={16} /> 5. Terminal Web SSH
+              </div>
+              <p style={{ fontSize: '11.5px', color: '#8fa4a8', lineHeight: 1.6, margin: '0 0 10px 0' }}>
+                <b>O que faz:</b> Emulador de terminal Linux completo conectado via túnel SSH autenticado em memória, dispensando o uso de PuTTY ou MobaXterm.<br/>
+                <b>Quando usar:</b> Quando precisar rodar comandos no Bash, debugar arquivos do servidor ou verificar configurações diretamente pelo celular ou PC.
+              </p>
+            </div>
+            <button onClick={() => onNavigate('Terminal')} style={{ background: '#0f1b1e', border: '1px solid #1a2f34', color: '#20d6c7', borderRadius: '4px', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
+              Abrir Terminal <ArrowRight size={11} />
+            </button>
+          </div>
+
+          {/* 6. Nginx & Cloudflare */}
+          <div style={{ background: '#070a0c', padding: '16px', borderRadius: '8px', border: '1px solid #142023', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#20d6c7', fontWeight: 700, fontSize: '13px', marginBottom: '8px' }}>
+                <Shield size={16} /> 6. Nginx & Cloudflare Tunnels
+              </div>
+              <p style={{ fontSize: '11.5px', color: '#8fa4a8', lineHeight: 1.6, margin: '0 0 10px 0' }}>
+                <b>O que faz:</b> Gerencia hosts virtuais Nginx e túneis Cloudflare Zero Trust. Conecta o tráfego externo aos microserviços com certificados SSL/HTTPS automáticos sem abrir portas públicas.<br/>
+                <b>Quando usar:</b> Ao adicionar um novo subdomínio ou direcionar rotas para APIs internas sem expor seu IP.
+              </p>
+            </div>
+            <button onClick={() => onNavigate('Nginx')} style={{ background: '#0f1b1e', border: '1px solid #1a2f34', color: '#20d6c7', borderRadius: '4px', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
+              Ver Nginx & Tunnels <ArrowRight size={11} />
+            </button>
+          </div>
+
+          {/* 7. Storage & Buckets */}
+          <div style={{ background: '#070a0c', padding: '16px', borderRadius: '8px', border: '1px solid #142023', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#20d6c7', fontWeight: 700, fontSize: '13px', marginBottom: '8px' }}>
+                <HardDrive size={16} /> 7. Storage & Backups OCI
+              </div>
+              <p style={{ fontSize: '11.5px', color: '#8fa4a8', lineHeight: 1.6, margin: '0 0 10px 0' }}>
+                <b>O que faz:</b> Controla os buckets de objetos na nuvem (<code>boteco-sivirino-fotos</code>) e os dumps diários do banco MySQL.<br/>
+                <b>Quando usar:</b> Para auditar fotos de itens do cardápio, validar backups de segurança e garantir retenção de dados históricos.
+              </p>
+            </div>
+            <button onClick={() => onNavigate('Storage')} style={{ background: '#0f1b1e', border: '1px solid #1a2f34', color: '#20d6c7', borderRadius: '4px', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
+              Ver Storage <ArrowRight size={11} />
+            </button>
+          </div>
+
+          {/* 8. Monitoramento & Logs */}
+          <div style={{ background: '#070a0c', padding: '16px', borderRadius: '8px', border: '1px solid #142023', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#20d6c7', fontWeight: 700, fontSize: '13px', marginBottom: '8px' }}>
+                <Activity size={16} /> 8. Monitoramento & Telemetria
+              </div>
+              <p style={{ fontSize: '11.5px', color: '#8fa4a8', lineHeight: 1.6, margin: '0 0 10px 0' }}>
+                <b>O que faz:</b> Intercepta erros HTTP (4xx e 5xx) enfrentados em tempo real por clientes ou administradores no Cardápio Digital ou Painel Admin, exibindo rota, parâmetros e traceback.<br/>
+                <b>Quando usar:</b> Para descobrir problemas antes mesmo do cliente reclamar ou após lançar uma nova funcionalidade.
+              </p>
+            </div>
+            <button onClick={() => onNavigate('Monitoramento & Logs')} style={{ background: '#0f1b1e', border: '1px solid #1a2f34', color: '#20d6c7', borderRadius: '4px', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
+              Ver Telemetria <ArrowRight size={11} />
+            </button>
+          </div>
+
+          {/* 9. Migração Multi-Cloud */}
+          <div style={{ background: '#070a0c', padding: '16px', borderRadius: '8px', border: '1px solid #142023', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#20d6c7', fontWeight: 700, fontSize: '13px', marginBottom: '8px' }}>
+                <ArrowLeftRight size={16} /> 9. Migração Multi-Cloud
+              </div>
+              <p style={{ fontSize: '11.5px', color: '#8fa4a8', lineHeight: 1.6, margin: '0 0 10px 0' }}>
+                <b>O que faz:</b> Automatiza a mudança de provedor (da Oracle para Hostinger, AWS, DigitalOcean ou VPS própria). Calcula os tamanhos (~142 MB), gera automações Terraform e transfere MySQL e fotos com 1 clique.<br/>
+                <b>Quando usar:</b> Se precisar de mais recursos, contingência ou quiser migrar sem ficar com o cardápio fora do ar.
+              </p>
+            </div>
+            <button onClick={() => onNavigate('Migração Multi-Cloud')} style={{ background: '#0f1b1e', border: '1px solid #1a2f34', color: '#20d6c7', borderRadius: '4px', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
+              Ir para Migração <ArrowRight size={11} />
+            </button>
+          </div>
+
+          {/* 10. Agente Odisseu AI */}
+          <div style={{ background: '#070a0c', padding: '16px', borderRadius: '8px', border: '1px solid #142023', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#20d6c7', fontWeight: 700, fontSize: '13px', marginBottom: '8px' }}>
+                <Bot size={16} /> 10. Agente Odisseu AI (RAG)
+              </div>
+              <p style={{ fontSize: '11.5px', color: '#8fa4a8', lineHeight: 1.6, margin: '0 0 10px 0' }}>
+                <b>O que faz:</b> Assistente especialista alimentado por RAG e LangChain que conhece de cor toda a topologia da sua infraestrutura: portas, containers, scripts, arquitetura e histórico de deploys.<br/>
+                <b>Quando usar:</b> Sempre que tiver uma dúvida técnica, quiser auxílio para debugar ou precisar de comandos específicos para a sua VM.
+              </p>
+            </div>
+            <button onClick={() => onNavigate('Odisseu AI')} style={{ background: '#0f1b1e', border: '1px solid #1a2f34', color: '#20d6c7', borderRadius: '4px', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
+              Falar com Odisseu <ArrowRight size={11} />
+            </button>
+          </div>
+
+          {/* 11. VM Scraper */}
+          <div style={{ background: '#070a0c', padding: '16px', borderRadius: '8px', border: '1px solid #142023', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#20d6c7', fontWeight: 700, fontSize: '13px', marginBottom: '8px' }}>
+                <Zap size={16} /> 11. Robô VM Always Free
+              </div>
+              <p style={{ fontSize: '11.5px', color: '#8fa4a8', lineHeight: 1.6, margin: '0 0 10px 0' }}>
+                <b>O que faz:</b> Robô autônomo que testa vagas de instâncias Always Free (Ampere A1 / Micro) na Oracle Cloud em loop assinado, superando a escassez de recursos e enviando aviso no WhatsApp.<br/>
+                <b>Quando usar:</b> Quando você tentar criar uma máquina na Oracle e ela retornar o erro "Out of host capacity".
+              </p>
+            </div>
+            <button onClick={() => onNavigate('VM Scraper')} style={{ background: '#0f1b1e', border: '1px solid #1a2f34', color: '#20d6c7', borderRadius: '4px', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
+              Ver VM Scraper <ArrowRight size={11} />
+            </button>
+          </div>
+
         </div>
       </section>
 
