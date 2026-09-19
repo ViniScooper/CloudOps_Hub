@@ -17,6 +17,7 @@ import { CloudflareTunnelView } from '../components/CloudflareTunnelView'
 import { StorageExplorerView } from '../components/StorageExplorerView'
 import { LogsTelemetryView } from '../components/LogsTelemetryView'
 import { MigrationWorkspaceView } from '../components/MigrationWorkspaceView'
+import { VercelDeploymentsView, VercelIcon } from '../components/VercelDeploymentsView'
 import { Rocket, KeyRound, Bot, ArrowLeftRight } from 'lucide-react'
 
 const navSections = [
@@ -26,6 +27,7 @@ const navSections = [
       { label: 'Dashboard', icon: LayoutDashboard },
       { label: 'Odisseu AI', icon: Bot, badge: 'Copilot' },
       { label: 'Deploy', icon: Rocket, badge: 'CI/CD' },
+      { label: 'Vercel Frontend', icon: VercelIcon, badge: 'Edge' },
       { label: 'Monitoramento & Logs', icon: Activity, badge: 'Realtime' },
       { label: 'Migração Multi-Cloud', icon: ArrowLeftRight, badge: '1-Click' },
     ]
@@ -961,6 +963,13 @@ terraform -version
         {/* ========================================================================= */}
         {active === 'Monitoramento & Logs' && (
           <LogsTelemetryView doAction={doAction} />
+        )}
+
+        {/* ========================================================================= */}
+        {/* ABA: VERCEL FRONTEND & EDGE CI/CD DEPLOYMENTS */}
+        {/* ========================================================================= */}
+        {active === 'Vercel Frontend' && (
+          <VercelDeploymentsView doAction={doAction} />
         )}
 
         {/* ========================================================================= */}

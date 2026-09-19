@@ -732,6 +732,42 @@ fastify.post('/api/migration/generate-terraform', async (request) => {
   return { code: terraformCode };
 });
 
+// =========================================================================
+// 8. INTEGRAÇÃO COM VERCEL FRONTEND & EDGE DEPLOYMENTS
+// =========================================================================
+const vercelService = require('./vercelService');
+
+fastify.get('/api/vercel/config', async () => {
+  return vercelService.getVercelConfig();
+});
+
+fastify.post('/api/vercel/config', async (request) => {
+  return vercelService.saveVercelConfig(request.body || {});
+});
+
+fastify.post('/api/vercel/test-token', async (request, reply) => {
+  const { token } = request.body || {};
+  const res = await vercelService.testToken(token);
+  return res;
+});
+
+fastify.get('/api/vercel/deployments', async (request, reply) => {
+  const { limit = 10 } = request.query || {};
+  const token = request.headers['x-vercel-token'] || '';
+  return vercelService.getDeployments(Number(limit), token);
+});
+
+fastify.post('/api/vercel/redeploy', async (request, reply) => {
+  const { deploymentId } = request.body || {};
+  const token = request.headers['x-vercel-token'] || '';
+  try {
+    const res = await vercelService.triggerRedeploy(deploymentId, token);
+    return res;
+  } catch (err) {
+    return reply.status(500).send({ success: false, error: err.message });
+  }
+});
+
 const start = async () => {
   try {
     const port = process.env.PORT || 3005;
