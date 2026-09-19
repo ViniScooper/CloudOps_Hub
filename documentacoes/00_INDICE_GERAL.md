@@ -18,6 +18,7 @@ Esta pasta contém todos os manuais técnicos, arquiteturais e guias passo a pas
 | **[06. Guia Rápido do Dia a Dia](file:///C:/Users/vini/Documents/MY_VM_ORACLE/documentacoes/06_GUIA_RAPIDO_DO_DIA_A_DIA.md)** | Cheatsheet prático: comandos rápidos, passo a passo para novas funcionalidades e como subir o sistema local. |
 | **[07. Agente Odisseu RAG & LangChain](file:///C:/Users/vini/Documents/MY_VM_ORACLE/documentacoes/07_AGENTE_ODISSEU_RAG_LANGCHAIN.md)** | Copiloto de nuvem inteligente com RAG dinâmico, Function Calling, telemetria ao vivo e auto-failover. |
 | **[08. Migração Multi-Cloud & Tunnels](file:///C:/Users/vini/Documents/MY_VM_ORACLE/documentacoes/08_MIGRACAO_MULTICLOUD_E_TUNNELS.md)** | Guia completo de migração zero downtime 1-clique (Hostinger, Hetzner, AWS) e túneis Cloudflare Zero Trust. |
+| **[09. Vercel Frontend & Edge](file:///C:/Users/vini/Documents/MY_VM_ORACLE/documentacoes/09_VERCEL_EDGE_E_FRONTEND.md)** | Monitoramento do Cardápio Digital na borda da Vercel, Deploy Hooks, histórico de commits e redeploy em 1 clique. |
 
 ---
 
