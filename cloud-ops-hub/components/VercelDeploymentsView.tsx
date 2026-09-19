@@ -76,16 +76,24 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
       if (cfg) {
         setProjectName(cfg.projectName || 'cardapio_digital')
         setDeployHookUrl(cfg.deployHookUrl || '')
-        if (cfg.token) {
+        if (cfg.token && !cfg.token.startsWith('gsk_')) {
           setVercelToken(cfg.token)
           setTokenStatus('valid')
+        } else if (cfg.token && cfg.token.startsWith('gsk_')) {
+          setVercelToken('')
         }
       }
 
-      const localToken = localStorage.getItem('vercel_user_token')
-      if (localToken && !vercelToken) {
-        setVercelToken(localToken)
-        setTokenStatus('valid')
+      const localToken = typeof window !== 'undefined' ? localStorage.getItem('vercel_user_token') : null
+      if (localToken) {
+        if (localToken.startsWith('gsk_')) {
+          // Detectou chave Groq salva por engano, remove automaticamente
+          localStorage.removeItem('vercel_user_token')
+          setVercelToken('')
+        } else if (!vercelToken) {
+          setVercelToken(localToken)
+          setTokenStatus('valid')
+        }
       }
     } catch (e) {
       console.warn('Erro ao ler config da Vercel:', e)
@@ -129,11 +137,15 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
     }
   }
 
-  // Testa e salva a chave da Vercel
+  // Testa e salva as configurações da Vercel
   const handleSaveToken = async () => {
-    if (!vercelToken.trim()) {
+    const trimmedToken = vercelToken.trim()
+    const trimmedHook = deployHookUrl.trim()
+    const trimmedProject = projectName.trim() || 'cardapio_digital'
+
+    if (trimmedToken.startsWith('gsk_')) {
+      setError('⚠️ Atenção: A chave informada começa com "gsk_", que é uma chave da Groq (IA) e não da Vercel! Deixe o campo de Token vazio (usando apenas o Deploy Hook) ou crie um Token oficial da Vercel em vercel.com/account/tokens.')
       setTokenStatus('invalid')
-      setError('Por favor, informe um token de acesso da Vercel.')
       return
     }
 
@@ -141,40 +153,53 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
       setTestingToken(true)
       setError('')
 
-      const testRes = await fetch('http://localhost:3005/api/vercel/test-token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: vercelToken.trim() })
-      })
-      const testJson = await testRes.json()
-
-      if (testJson.valid) {
-        setTokenStatus('valid')
-        setTokenUser(testJson.user)
-        localStorage.setItem('vercel_user_token', vercelToken.trim())
-
-        // Salva no backend
-        await fetch('http://localhost:3005/api/vercel/config', {
+      if (trimmedToken) {
+        const testRes = await fetch('http://localhost:3005/api/vercel/test-token', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            token: vercelToken.trim(),
-            projectName: projectName.trim(),
-            deployHookUrl: deployHookUrl.trim()
-          })
+          body: JSON.stringify({ token: trimmedToken })
         })
+        const testJson = await testRes.json()
 
-        setSaveSuccess(true)
-        doAction('✅ Token da Vercel autenticado e salvo com sucesso!')
-        setTimeout(() => {
-          setSaveSuccess(false)
-          setConfigModalOpen(false)
-          fetchDeployments()
-        }, 1200)
+        if (testJson.valid) {
+          setTokenStatus('valid')
+          setTokenUser(testJson.user)
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('vercel_user_token', trimmedToken)
+          }
+        } else {
+          setTokenStatus('invalid')
+          setError(testJson.error || 'Token da Vercel inválido ou sem permissão.')
+          setTestingToken(false)
+          return
+        }
       } else {
-        setTokenStatus('invalid')
-        setError(testJson.error || 'Token inválido ou sem permissões.')
+        // Sem token pessoal (apenas Deploy Hook)
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('vercel_user_token')
+        }
+        setTokenStatus('idle')
+        setTokenUser(null)
       }
+
+      // Salva no backend
+      await fetch('http://localhost:3005/api/vercel/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: trimmedToken,
+          projectName: trimmedProject,
+          deployHookUrl: trimmedHook
+        })
+      })
+
+      setSaveSuccess(true)
+      doAction(trimmedToken ? '✅ Token e configurações da Vercel salvos!' : '✅ Deploy Hook da Vercel configurado com sucesso!')
+      setTimeout(() => {
+        setSaveSuccess(false)
+        setConfigModalOpen(false)
+        fetchDeployments()
+      }, 1000)
     } catch (e: any) {
       setTokenStatus('invalid')
       setError(`Falha ao conectar: ${e.message}`)
@@ -629,22 +654,52 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                 <label style={{ fontSize: '11px', color: '#88a6aa', fontWeight: 600 }}>
-                  Personal Access Token da Vercel:
+                  Personal Access Token da Vercel <span style={{ color: '#557074', fontWeight: 400 }}>(Opcional se usar Deploy Hook)</span>:
                 </label>
-                <a
-                  href="https://vercel.com/account/tokens"
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ fontSize: '11px', color: '#20d6c7', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '3px' }}
-                >
-                  Gerar Token na Vercel <ExternalLink size={10} />
-                </a>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {vercelToken && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setVercelToken('')
+                        if (typeof window !== 'undefined') {
+                          localStorage.removeItem('vercel_user_token')
+                        }
+                        setError('')
+                        setTokenStatus('idle')
+                      }}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#f87171',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        padding: '0'
+                      }}
+                    >
+                      Limpar Token
+                    </button>
+                  )}
+                  <a
+                    href="https://vercel.com/account/tokens"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ fontSize: '11px', color: '#20d6c7', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '3px' }}
+                  >
+                    Gerar Token na Vercel <ExternalLink size={10} />
+                  </a>
+                </div>
               </div>
 
               <div style={{ position: 'relative' }}>
                 <input
                   type={showToken ? 'text' : 'password'}
-                  placeholder="Ex: vercel_tok_..."
+                  name="vercel_token_no_autofill"
+                  id="vercel_token_no_autofill"
+                  autoComplete="new-password"
+                  data-lpignore="true"
+                  data-form-type="other"
+                  placeholder="Ex: vercel_tok_... (ou deixe vazio)"
                   value={vercelToken}
                   onChange={(e) => {
                     setVercelToken(e.target.value)
@@ -655,8 +710,8 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
                     padding: '10px 42px 10px 12px',
                     borderRadius: '8px',
                     background: '#080e10',
-                    border: '1px solid #1b2d32',
-                    color: '#20d6c7',
+                    border: vercelToken.startsWith('gsk_') ? '1px solid #ef4444' : '1px solid #1b2d32',
+                    color: vercelToken.startsWith('gsk_') ? '#f87171' : '#20d6c7',
                     fontSize: '12px',
                     fontFamily: 'monospace',
                     outline: 'none'
@@ -679,6 +734,44 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
                   {showToken ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
+
+              {vercelToken.startsWith('gsk_') && (
+                <div style={{
+                  marginTop: '8px',
+                  padding: '8px 12px',
+                  background: 'rgba(239, 68, 68, 0.12)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '6px',
+                  fontSize: '11px',
+                  color: '#fca5a5',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '8px'
+                }}>
+                  <span>⚠️ Esta chave é da <b>Groq (IA)</b> e não da Vercel! Deixe vazio para usar apenas o Deploy Hook.</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVercelToken('')
+                      if (typeof window !== 'undefined') localStorage.removeItem('vercel_user_token')
+                    }}
+                    style={{
+                      background: '#ef4444',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '3px 8px',
+                      fontSize: '10px',
+                      cursor: 'pointer',
+                      fontWeight: 700,
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Remover Chave
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Nome do Projeto na Vercel */}
