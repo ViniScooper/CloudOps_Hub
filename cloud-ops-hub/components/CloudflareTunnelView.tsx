@@ -418,7 +418,11 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap'
               }}>
-                {isVirginVM ? 'Nenhum túnel ativo no nó • Portas externas fechadas com segurança' : tunnelStatus.currentUrl}
+                {isVirginVM 
+                  ? 'Nenhum túnel ativo no nó • Portas externas fechadas com segurança' 
+                  : (tunnelStatus.currentUrl && !tunnelStatus.currentUrl.includes('trycloudflare.com') 
+                    ? tunnelStatus.currentUrl 
+                    : 'https://cardapio.botecosivirino.com.br')}
               </span>
             </div>
           </div>
@@ -447,7 +451,12 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
             ) : (
               <>
                 <button
-                  onClick={() => copyToClipboard(tunnelStatus.currentUrl, true)}
+                  onClick={() => copyToClipboard(
+                    (tunnelStatus.currentUrl && !tunnelStatus.currentUrl.includes('trycloudflare.com')) 
+                      ? tunnelStatus.currentUrl 
+                      : 'https://cardapio.botecosivirino.com.br', 
+                    true
+                  )}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -467,7 +476,9 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
                 </button>
 
                 <a
-                  href={tunnelStatus.currentUrl}
+                  href={(tunnelStatus.currentUrl && !tunnelStatus.currentUrl.includes('trycloudflare.com')) 
+                    ? tunnelStatus.currentUrl 
+                    : 'https://cardapio.botecosivirino.com.br'}
                   target="_blank"
                   rel="noreferrer"
                   style={{

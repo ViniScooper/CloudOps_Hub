@@ -7,7 +7,8 @@ const nextConfig = {
     unoptimized: true,
   },
   async rewrites() {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://peers-discussed-gadgets-metres.trycloudflare.com'
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL
+    if (!backendUrl) return []
     return [
       {
         source: '/api/:path*',
