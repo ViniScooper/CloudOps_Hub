@@ -315,74 +315,116 @@ export default function Page() {
 
       if (isLocalhost) {
         // AMBIENTE LOCAL (Seu PC): Restaura as VMs reais e os containers locais
+        let activeServers = servers
         const savedServers = localStorage.getItem('cloudops_servers')
         if (savedServers) {
           try {
             const parsed = JSON.parse(savedServers)
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setServerList(parsed)
-              setServer(parsed[0])
-            } else {
-              setServerList(servers)
-              setServer(servers[0])
+            if (Array.isArray(parsed) && parsed.length > 0) activeServers = parsed
+          } catch {}
+        }
+        setServerList(activeServers)
+
+        const savedActiveId = localStorage.getItem('cloudops_active_server_id')
+        const targetServer = (savedActiveId && activeServers.find(s => s.id === savedActiveId || s.name === savedActiveId || s.ip === savedActiveId)) || activeServers[0]
+        setServer(targetServer)
+
+        const isVirgin = targetServer?.id === 'oracle-micro-02' || targetServer?.ip === '137.131.187.54' || targetServer?.name === 'cloudops-micro-02'
+        if (isVirgin) {
+          setContainers([
+            {
+              name: 'nginx-proxy',
+              image: 'nginx:alpine',
+              port: '80:80, 443:443',
+              status: 'Running',
+              cpu: '0.1%',
+              ram: '6.5 MB',
+              uptime: 'Ativo'
             }
-          } catch {
-            setServerList(servers)
-            setServer(servers[0])
+          ])
+          setProxyHosts([
+            {
+              id: 'px-micro-01',
+              domain: '137.131.187.54',
+              forward: '127.0.0.1:80',
+              ssl: 'Nginx Edge Proxy',
+              status: 'Active',
+              type: 'HTTP/HTTPS'
+            }
+          ])
+          setBuckets([])
+        } else {
+          const savedContainers = localStorage.getItem(`cloudops_containers_${targetServer.id}`) || localStorage.getItem('cloudops_containers')
+          if (savedContainers) {
+            try { setContainers(JSON.parse(savedContainers)) } catch { setContainers(containersData) }
+          } else {
+            setContainers(containersData)
           }
-        } else {
-          setServerList(servers)
-          setServer(servers[0])
-        }
 
-        const savedContainers = localStorage.getItem('cloudops_containers')
-        if (savedContainers) {
-          try { setContainers(JSON.parse(savedContainers)) } catch { setContainers(containersData) }
-        } else {
-          setContainers(containersData)
-        }
+          const savedBuckets = localStorage.getItem('cloudops_buckets')
+          if (savedBuckets) {
+            try { setBuckets(JSON.parse(savedBuckets)) } catch { setBuckets(bucketsData) }
+          } else {
+            setBuckets(bucketsData)
+          }
 
-        const savedBuckets = localStorage.getItem('cloudops_buckets')
-        if (savedBuckets) {
-          try { setBuckets(JSON.parse(savedBuckets)) } catch { setBuckets(bucketsData) }
-        } else {
-          setBuckets(bucketsData)
-        }
-
-        const savedProxies = localStorage.getItem('cloudops_proxies')
-        if (savedProxies) {
-          try { setProxyHosts(JSON.parse(savedProxies)) } catch { setProxyHosts(proxyHostsData) }
-        } else {
-          setProxyHosts(proxyHostsData)
+          const savedProxies = localStorage.getItem(`cloudops_proxies_${targetServer.id}`) || localStorage.getItem('cloudops_proxies')
+          if (savedProxies) {
+            try { setProxyHosts(JSON.parse(savedProxies)) } catch { setProxyHosts(proxyHostsData) }
+          } else {
+            setProxyHosts(proxyHostsData)
+          }
         }
 
         setTerminalLogs(logs)
       } else {
-        // AMBIENTE WEB / VERCEL: 100% limpo sem nenhuma VM vinculada por padrão
+        // AMBIENTE WEB / VERCEL: Restaura as VMs cadastradas e o nó ativo selecionado
         const savedServers = localStorage.getItem('cloudops_servers')
         if (savedServers) {
           try {
             const parsed = JSON.parse(savedServers)
             if (Array.isArray(parsed) && parsed.length > 0) {
               setServerList(parsed)
-              setServer(parsed[0])
+              const savedActiveId = localStorage.getItem('cloudops_active_server_id')
+              const targetServer = (savedActiveId && parsed.find(s => s.id === savedActiveId || s.name === savedActiveId || s.ip === savedActiveId)) || parsed[0]
+              setServer(targetServer)
+
+              const isVirgin = targetServer?.id === 'oracle-micro-02' || targetServer?.ip === '137.131.187.54' || targetServer?.name === 'cloudops-micro-02'
+              if (isVirgin) {
+                setContainers([
+                  {
+                    name: 'nginx-proxy',
+                    image: 'nginx:alpine',
+                    port: '80:80, 443:443',
+                    status: 'Running',
+                    cpu: '0.1%',
+                    ram: '6.5 MB',
+                    uptime: 'Ativo'
+                  }
+                ])
+                setProxyHosts([
+                  {
+                    id: 'px-micro-01',
+                    domain: '137.131.187.54',
+                    forward: '127.0.0.1:80',
+                    ssl: 'Nginx Edge Proxy',
+                    status: 'Active',
+                    type: 'HTTP/HTTPS'
+                  }
+                ])
+                setBuckets([])
+              } else {
+                const savedContainers = localStorage.getItem(`cloudops_containers_${targetServer.id}`) || localStorage.getItem('cloudops_containers')
+                if (savedContainers) {
+                  try { setContainers(JSON.parse(savedContainers)) } catch {}
+                }
+                const savedProxies = localStorage.getItem(`cloudops_proxies_${targetServer.id}`) || localStorage.getItem('cloudops_proxies')
+                if (savedProxies) {
+                  try { setProxyHosts(JSON.parse(savedProxies)) } catch {}
+                }
+              }
             }
           } catch {}
-        }
-
-        const savedContainers = localStorage.getItem('cloudops_containers')
-        if (savedContainers) {
-          try { setContainers(JSON.parse(savedContainers)) } catch {}
-        }
-
-        const savedBuckets = localStorage.getItem('cloudops_buckets')
-        if (savedBuckets) {
-          try { setBuckets(JSON.parse(savedBuckets)) } catch {}
-        }
-
-        const savedProxies = localStorage.getItem('cloudops_proxies')
-        if (savedProxies) {
-          try { setProxyHosts(JSON.parse(savedProxies)) } catch {}
         }
       }
 
@@ -556,6 +598,9 @@ terraform -version
     setServer(item)
     setServerMenu(false)
     setTopbarServerMenu(false)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cloudops_active_server_id', item.id)
+    }
     doAction(`Contexto alterado para ${item.name}`)
 
     const nowTime = new Date().toLocaleTimeString('pt-BR')
@@ -775,42 +820,87 @@ terraform -version
     </aside>
     <section className="main-content">
       <header className="topbar">
-        <div className="breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span>Workspace</span>
-          <span>/</span>
-          <strong>{active}</strong>
+        <div className="breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ color: '#526e72', fontSize: '12px' }}>Workspace</span>
+            <span style={{ color: '#2a3d40', fontSize: '12px' }}>/</span>
+            <strong style={{ color: '#e2edeb', fontSize: '13px', fontWeight: 600 }}>{active}</strong>
+          </div>
 
-          {/* Indicador Global da VM Conectada visível em todas as páginas */}
-          <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', marginLeft: '6px' }}>
+          <div style={{ width: '1px', height: '16px', background: 'rgba(255, 255, 255, 0.08)', margin: '0 2px' }} />
+
+          {/* Indicador Global da VM Ativa com Design Ultra Premium */}
+          <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
             {server ? (
               <button
                 type="button"
                 onClick={() => setTopbarServerMenu(!topbarServerMenu)}
-                title="VM Ativa em Execução. Clique para alternar entre servidores."
+                title="Clique para alternar o servidor / VM de trabalho"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  padding: '3px 9px',
-                  borderRadius: '6px',
-                  background: 'linear-gradient(135deg, rgba(14, 28, 30, 0.95), rgba(8, 16, 18, 0.95))',
-                  border: '1px solid rgba(32, 214, 199, 0.35)',
+                  gap: '8px',
+                  padding: '4px 10px 4px 6px',
+                  borderRadius: '8px',
+                  background: 'linear-gradient(135deg, rgba(14, 25, 28, 0.95), rgba(7, 14, 16, 0.98))',
+                  border: '1px solid rgba(32, 214, 199, 0.3)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
                   cursor: 'pointer',
-                  fontSize: '11px',
                   color: '#e2edeb',
                   transition: 'all 0.15s ease'
                 }}
               >
-                <span className="provider-mark small oracle" style={{ width: '18px', height: '18px', fontSize: '8px', borderRadius: '4px', lineHeight: '18px' }}>
-                  {server.provider?.toLowerCase().includes('aws') ? 'AWS' : 'OC'}
+                {/* Cloud Pill */}
+                <span 
+                  style={{ 
+                    padding: '2px 6px', 
+                    borderRadius: '4px', 
+                    fontSize: '8.5px', 
+                    fontWeight: 800, 
+                    letterSpacing: '0.4px',
+                    background: server.provider?.toLowerCase().includes('aws') ? '#f4b942' : 'linear-gradient(135deg, #ef9b55, #c25f39)', 
+                    color: '#fff',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                  }}
+                >
+                  {server.provider?.toLowerCase().includes('aws') ? 'AWS' : 'OCI'}
                 </span>
-                <span className="live-dot" style={{ width: '6px', height: '6px' }} />
-                <span style={{ color: '#6f8e91', fontSize: '10px' }}>VM:</span>
-                <strong style={{ color: '#20d6c7', fontWeight: 600 }}>{server.name}</strong>
-                <span style={{ color: '#557477', fontFamily: 'monospace', fontSize: '10px' }}>({server.ip})</span>
-                {serverList.length > 1 && (
-                  <ChevronDown size={11} style={{ color: '#8ca6a5', transform: topbarServerMenu ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
-                )}
+
+                {/* Radar pulse green dot */}
+                <div style={{ position: 'relative', display: 'flex', width: '8px', height: '8px', flexShrink: 0 }}>
+                  <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: '#10b981', opacity: 0.6, animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite' }} />
+                  <span style={{ position: 'relative', width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px #10b981' }} />
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '9px', fontWeight: 700, color: '#20d6c7', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                    NÓ ATIVO:
+                  </span>
+                  <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#f0fdfa' }}>
+                    {server.name}
+                  </span>
+                  <span style={{ 
+                    fontSize: '10.5px', 
+                    fontFamily: 'monospace', 
+                    color: '#38bdf8', 
+                    background: 'rgba(0, 0, 0, 0.45)', 
+                    padding: '1px 6px', 
+                    borderRadius: '4px',
+                    border: '1px solid rgba(56, 189, 248, 0.2)'
+                  }}>
+                    {server.ip}
+                  </span>
+                </div>
+
+                <ChevronDown 
+                  size={12} 
+                  style={{ 
+                    color: '#8ca6a5', 
+                    transform: topbarServerMenu ? 'rotate(180deg)' : 'none', 
+                    transition: 'transform 0.2s ease',
+                    marginLeft: '2px'
+                  }} 
+                />
               </button>
             ) : (
               <button
@@ -820,9 +910,9 @@ terraform -version
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '5px',
-                  padding: '3px 9px',
-                  borderRadius: '6px',
+                  gap: '6px',
+                  padding: '4px 10px',
+                  borderRadius: '8px',
                   background: 'rgba(245, 158, 11, 0.1)',
                   border: '1px solid rgba(245, 158, 11, 0.3)',
                   cursor: 'pointer',
@@ -831,66 +921,139 @@ terraform -version
                 }}
               >
                 <span className="status-dot amber" style={{ width: '6px', height: '6px' }} />
-                <Server size={11} />
-                <span style={{ fontSize: '10px', fontWeight: 600 }}>Sem VM Ativa</span>
-                <span style={{ fontSize: '9px', color: '#9ca3af' }}>(Conectar SSH)</span>
+                <Server size={12} />
+                <span style={{ fontWeight: 600 }}>Nenhum Nó Ativo</span>
+                <span style={{ fontSize: '9.5px', color: '#9ca3af' }}>(Conectar SSH)</span>
               </button>
             )}
 
-            {/* Menu Dropdown Flutuante de Servidores para trocar de VM a partir de qualquer aba */}
-            {topbarServerMenu && serverList.length > 0 && (
+            {/* Backdrop invisível para fechar menu ao clicar fora */}
+            {topbarServerMenu && (
               <div 
-                className="server-menu" 
+                style={{ position: 'fixed', inset: 0, zIndex: 9998 }} 
+                onClick={() => setTopbarServerMenu(false)} 
+              />
+            )}
+
+            {/* Menu Popover Flutuante com Design Premium */}
+            {topbarServerMenu && (
+              <div 
                 style={{ 
                   position: 'absolute', 
-                  top: 'calc(100% + 6px)', 
+                  top: 'calc(100% + 8px)', 
                   left: 0, 
-                  right: 'auto', 
                   zIndex: 9999,
-                  minWidth: '280px',
-                  background: '#0d1618',
-                  border: '1px solid #1f3638',
-                  boxShadow: '0 16px 36px rgba(0,0,0,0.7)',
-                  borderRadius: '8px',
-                  padding: '6px'
+                  width: '340px',
+                  background: 'linear-gradient(180deg, #0c1518 0%, #070d0f 100%)',
+                  border: '1px solid rgba(32, 214, 199, 0.3)',
+                  boxShadow: '0 20px 45px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+                  borderRadius: '12px',
+                  padding: '10px',
+                  backdropFilter: 'blur(20px)'
                 }}
               >
-                <div style={{ padding: '6px 8px 6px', borderBottom: '1px solid #162629', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '9.5px', color: '#6e898a', textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: 700 }}>
-                    Alternar Máquina Virtual (VM)
-                  </span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px 10px', borderBottom: '1px solid #162426', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Server size={13} style={{ color: '#20d6c7' }} />
+                    <span style={{ fontSize: '10px', color: '#8ca6a5', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700 }}>
+                      Nós do Cluster ({serverList.length})
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '9.5px', color: '#526e72' }}>Zero Trust</span>
                 </div>
-                {serverList.map(item => (
-                  <button 
-                    key={item.id} 
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {serverList.map(item => {
+                    const isCurrent = item.id === server?.id
+                    return (
+                      <div
+                        key={item.id} 
+                        onClick={() => handleSwitchServer(item)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          background: isCurrent ? 'linear-gradient(90deg, rgba(32, 214, 199, 0.14) 0%, rgba(32, 214, 199, 0.03) 100%)' : 'rgba(12, 19, 21, 0.6)',
+                          border: isCurrent ? '1px solid rgba(32, 214, 199, 0.35)' : '1px solid #142224',
+                          borderLeft: isCurrent ? '3px solid #20d6c7' : '1px solid #142224',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <span 
+                          style={{ 
+                            padding: '3px 6px', 
+                            borderRadius: '4px', 
+                            fontSize: '8.5px', 
+                            fontWeight: 800, 
+                            background: item.provider?.toLowerCase().includes('aws') ? '#f4b942' : 'linear-gradient(135deg, #ef9b55, #c25f39)', 
+                            color: '#fff',
+                            flexShrink: 0
+                          }}
+                        >
+                          {item.provider?.toLowerCase().includes('aws') ? 'AWS' : 'OCI'}
+                        </span>
+
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                            <strong style={{ fontSize: '11.5px', color: isCurrent ? '#20d6c7' : '#e2edeb', fontWeight: 600 }}>
+                              {item.name}
+                            </strong>
+                            {isCurrent && (
+                              <span style={{ fontSize: '9px', fontWeight: 700, color: '#10b981', background: 'rgba(16, 185, 129, 0.12)', padding: '1px 6px', borderRadius: '4px', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+                                ATIVO
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px' }}>
+                            <span style={{ fontSize: '9.5px', color: '#38bdf8', fontFamily: 'monospace' }}>
+                              {item.ip}
+                            </span>
+                            <span style={{ fontSize: '9.5px', color: '#4d696d' }}>•</span>
+                            <span style={{ fontSize: '9.5px', color: '#728b8c' }}>
+                              {item.id === 'oracle-micro-02' ? '1 OCPU · 1GB (+1GB Swap)' : '2 OCPUs · 1GB RAM'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {isCurrent ? (
+                          <Check size={15} style={{ color: '#20d6c7', flexShrink: 0 }} />
+                        ) : (
+                          <div style={{ width: '14px', height: '14px', borderRadius: '50%', border: '1px solid #2a3d40', flexShrink: 0 }} />
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #162426' }}>
+                  <button
+                    type="button"
                     onClick={() => {
-                      handleSwitchServer(item)
                       setTopbarServerMenu(false)
+                      setConnectModalOpen(true)
                     }}
                     style={{
                       width: '100%',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px',
-                      padding: '8px 10px',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      padding: '7px',
+                      background: 'rgba(32, 214, 199, 0.08)',
+                      border: '1px dashed rgba(32, 214, 199, 0.3)',
                       borderRadius: '6px',
-                      background: item.id === server?.id ? 'rgba(32, 214, 199, 0.12)' : 'transparent',
-                      border: item.id === server?.id ? '1px solid rgba(32, 214, 199, 0.3)' : '1px solid transparent',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      color: item.id === server?.id ? '#20d6c7' : '#d9e2e1',
+                      color: '#20d6c7',
                       fontSize: '11px',
-                      marginBottom: '2px'
+                      fontWeight: 600,
+                      cursor: 'pointer'
                     }}
                   >
-                    <span className="provider-mark small oracle" style={{ width: '22px', height: '22px', fontSize: '8px', borderRadius: '5px' }}>OC</span>
-                    <span style={{ flex: 1 }}>
-                      <b style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: item.id === server?.id ? '#20d6c7' : '#e2edeb' }}>{item.name}</b>
-                      <small style={{ display: 'block', fontSize: '9px', color: '#728b8c', marginTop: '2px' }}>{item.region} · {item.ip}</small>
-                    </span>
-                    {item.id === server?.id && <Check size={14} style={{ color: '#20d6c7' }} />}
+                    <Plus size={13} /> Conectar Outra Máquina (SSH)
                   </button>
-                ))}
+                </div>
               </div>
             )}
           </div>
