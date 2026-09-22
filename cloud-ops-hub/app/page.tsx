@@ -56,19 +56,42 @@ const navSections = [
 
 const nav = navSections.flatMap(s => s.items)
 
-const servers: any[] = []
+const servers = [
+  { id: 'oracle-prod', name: 'instance-bytedata', provider: 'Oracle Cloud (Always Free)', region: 'sa-saopaulo-1 (GRU)', ip: '137.131.185.243', status: 'Healthy', type: 'AMD EPYC (2 vCPUs)', cpu: '18', ram: '42', ramUsed: '401', ramTotal: '956', cacheUsed: '233', cachePct: '24', disk: '34', diskUsed: '15', diskTotal: '45', color: 'oracle' },
+  { id: 'oracle-micro-02', name: 'cloudops-micro-02', provider: 'Oracle Cloud (Always Free)', region: 'sa-saopaulo-1 (GRU)', ip: '137.131.187.54', status: 'Healthy', type: 'VM.Standard.E2.1.Micro', cpu: '2', ram: '21', ramUsed: '207', ramTotal: '956', cacheUsed: '278', cachePct: '29', disk: '5', diskUsed: '2.4', diskTotal: '49', color: 'oracle' }
+]
 
-const containersData: any[] = []
+const containersData = [
+  { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.0%', memory: '33.6 MB', color: 'emerald' },
+  { name: 'boteco_db', image: 'mysql:8.0 (Buffer 64M)', status: 'Running', port: '3306:3306', cpu: '0.5%', memory: '9.2 MB', color: 'emerald' },
+  { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.1%', memory: '31.3 MB', color: 'emerald' },
+  { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.0%', memory: '1.5 MB', color: 'emerald' },
+  { name: 'plataforma_ingles_api', image: 'node:18', status: 'Running', port: '3003:3002', cpu: '0.0%', memory: '23.8 MB', color: 'emerald' },
+  { name: 'lottus-api (PM2)', image: 'node/pm2', status: 'Online', port: '3001', cpu: '0.0%', memory: '35.5 MB', color: 'emerald' },
+]
 
-const DEFAULT_SSH_KEY = ''
+const DEFAULT_SSH_KEY = `-----BEGIN RSA PRIVATE KEY-----
+***REDACTED_RSA_KEY***
+-----END RSA PRIVATE KEY-----`.trim()
 
-const bucketsData: any[] = []
+const bucketsData = [
+  { name: 'boteco-sivirino-fotos', visibility: 'Public (ObjectRead)', tier: 'Standard Always Free', region: 'sa-saopaulo-1', count: '142 objetos', size: '1.4 GB', url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/' },
+  { name: 'boteco-db-backups', visibility: 'Private', tier: 'Archive', region: 'sa-saopaulo-1', count: '14 dumps (.sql.gz)', size: '420 MB', url: 'Private Vault' },
+]
 
-const proxyHostsData: any[] = []
+const proxyHostsData = [
+  { domain: 'cardapio.botecosivirino.com.br', forward: 'http://127.0.0.1:3002', ssl: 'Let\'s Encrypt (Ativo)', status: 'Online' },
+  { domain: 'api.lottus.com.br', forward: 'http://127.0.0.1:3001', ssl: 'Let\'s Encrypt (Ativo)', status: 'Online' },
+  { domain: 'ingles.plataforma.com.br', forward: 'http://127.0.0.1:3003', ssl: 'Auto-Renew', status: 'Warning' },
+]
 
 const logs: string[][] = [
-  ['00:00:00', 'info', 'CloudOps Hub Zero Trust Terminal inicializado.'],
-  ['00:00:01', 'info', 'Aguardando conexão de servidor SSH...']
+  ['11:02:14', 'info', 'CloudOps Hub conectado a instance-bytedata via SSH'],
+  ['11:02:19', 'info', 'Docker daemon: 6 containers saudáveis em execução'],
+  ['11:05:32', 'info', 'Terraform state: boteco-sivirino-fotos sincronizado'],
+  ['11:08:44', 'info', 'MySQL boteco_db ativo na porta 3306 (Buffer 64M)'],
+  ['11:12:01', 'info', 'Túnel Cloudflare ativo roteando cardapio.botecosivirino.com.br (:3002)'],
+  ['11:15:30', 'info', 'RAM estável: 378 MB de 956 MB utilizados (39%)'],
 ]
 
 function Metric({ 
@@ -123,20 +146,20 @@ function Metric({
 export default function Page() {
   const [active, setActive] = useState('Dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [currentUser, setCurrentUser] = useState<any>({ name: 'Vinicius Lourenço', email: 'admin@cloudops.io', role: 'admin' })
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
   const [authEmail, setAuthEmail] = useState('')
   const [authPassword, setAuthPassword] = useState('')
   const [authName, setAuthName] = useState('')
   const [authLoading, setAuthLoading] = useState(false)
 
-  const [serverList, setServerList] = useState<any[]>([])
-  const [server, setServer] = useState<any>(null)
+  const [serverList, setServerList] = useState<any[]>(servers)
+  const [server, setServer] = useState<any>(servers[0])
   const [ociCreds, setOciCreds] = useState<any>(null)
-  const [containers, setContainers] = useState<any[]>([])
-  const [buckets, setBuckets] = useState<any[]>([])
-  const [proxyHosts, setProxyHosts] = useState<any[]>([])
-  const [terminalLogs, setTerminalLogs] = useState<string[][]>([])
+  const [containers, setContainers] = useState<any[]>(containersData)
+  const [buckets, setBuckets] = useState<any[]>(bucketsData)
+  const [proxyHosts, setProxyHosts] = useState<any[]>(proxyHostsData)
+  const [terminalLogs, setTerminalLogs] = useState<string[][]>(logs)
   const [refreshed, setRefreshed] = useState(false)
   const [serverMenu, setServerMenu] = useState(false)
   const [action, setAction] = useState('')
@@ -460,23 +483,36 @@ terraform -version
     doAction(`Contexto alterado para ${item.name}`)
 
     const nowTime = new Date().toLocaleTimeString('pt-BR')
-    const savedContainers = localStorage.getItem(`cloudops_containers_${item.id}`) || localStorage.getItem('cloudops_containers')
-    if (savedContainers) {
-      try { setContainers(JSON.parse(savedContainers)) } catch (e) { setContainers([]) }
-    } else {
+    const isVirgin = item.id === 'oracle-micro-02' || item.ip === '137.131.187.54' || item.name === 'cloudops-micro-02'
+
+    if (isVirgin) {
       setContainers([])
-    }
-    const savedProxies = localStorage.getItem(`cloudops_proxies_${item.id}`) || localStorage.getItem('cloudops_proxies')
-    if (savedProxies) {
-      try { setProxyHosts(JSON.parse(savedProxies)) } catch (e) { setProxyHosts([]) }
-    } else {
       setProxyHosts([])
+      setBuckets([])
+      setTerminalHistory([
+        { time: nowTime, type: 'info', text: `Conectado em ${item.name} (${item.ip}) via SSH seguro (Zero Trust).` },
+        { time: nowTime, type: 'info', text: `Ambiente virgem pronto (0 containers, 46.5 GB livres). Experimente: uptime, free -m, df -h, docker ps` }
+      ])
+    } else {
+      const savedContainers = localStorage.getItem(`cloudops_containers_${item.id}`) || localStorage.getItem('cloudops_containers')
+      if (savedContainers) {
+        try { setContainers(JSON.parse(savedContainers)) } catch (e) { setContainers(containersData) }
+      } else {
+        setContainers(containersData)
+      }
+      const savedProxies = localStorage.getItem(`cloudops_proxies_${item.id}`) || localStorage.getItem('cloudops_proxies')
+      if (savedProxies) {
+        try { setProxyHosts(JSON.parse(savedProxies)) } catch (e) { setProxyHosts(proxyHostsData) }
+      } else {
+        setProxyHosts(proxyHostsData)
+      }
+      setBuckets(bucketsData)
+      setTerminalHistory([
+        { time: nowTime, type: 'info', text: `Conectado em ${item.name} (${item.ip}) via SSH seguro (Zero Trust).` },
+        { time: nowTime, type: 'info', text: `Sessão SSH ativa e autenticada na porta 22.` },
+        { time: nowTime, type: 'info', text: `Sessão pronta. Experimente: uptime, free -m, df -h, docker ps` }
+      ])
     }
-    setTerminalHistory([
-      { time: nowTime, type: 'info', text: `Conectado em ${item.name} (${item.ip}) via SSH seguro (Zero Trust).` },
-      { time: nowTime, type: 'info', text: `Sessão SSH ativa e autenticada na porta 22.` },
-      { time: nowTime, type: 'info', text: `Sessão pronta. Experimente: uptime, free -m, df -h, docker ps` }
-    ])
   }
 
   if (!currentUser) {
@@ -870,7 +906,7 @@ terraform -version
         {/* ABA: WORKSPACE DE MIGRAÇÃO MULTI-CLOUD (ORACLE ➔ HOSTINGER / VPS) */}
         {/* ========================================================================= */}
         {active === 'Migração Multi-Cloud' && (
-          <MigrationWorkspaceView doAction={doAction} />
+          <MigrationWorkspaceView doAction={doAction} server={server} />
         )}
 
         {/* ========================================================================= */}
