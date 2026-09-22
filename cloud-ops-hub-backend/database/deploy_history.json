@@ -48,6 +48,18 @@
     "status": "Sucesso"
   },
   {
+    "id": "dep-3003",
+    "timestamp": "18/09/2026, 09:12:44",
+    "project": "Plataforma Inglês",
+    "type": "DEPLOY",
+    "branch": "main",
+    "commitHash": "c24a90f",
+    "commitMessage": "feat: rotas de aulas interativas e integracao supabase auth",
+    "author": "Vinicius Lourenco",
+    "duration": "48.2s",
+    "status": "Sucesso"
+  },
+  {
     "id": "dep-101",
     "timestamp": "Hoje, 11:45",
     "project": "Boteco Sivirino",

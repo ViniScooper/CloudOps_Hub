@@ -174,7 +174,11 @@ async function executeDeploy({ project = 'cardapio_digital', branch = 'main' }) 
   let commitMsg = 'Deploy efetuado com sucesso';
 
   try {
-    const targetDir = project === 'lottus-api' ? '/home/ubuntu/api_users/api_users' : `/home/ubuntu/${project}`;
+    const targetDir = project === 'lottus-api' 
+      ? '/home/ubuntu/api_users/api_users' 
+      : (project === 'plataforma_ingles' || project === 'plataforma_ingles_api' 
+        ? '/home/ubuntu/plataforma_ingles' 
+        : `/home/ubuntu/${project}`);
       
     logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Acessando diretório ${targetDir} na VM...`);
     logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Executando: git fetch origin && git checkout ${branch} && git pull origin ${branch}...`);
@@ -193,7 +197,7 @@ async function executeDeploy({ project = 'cardapio_digital', branch = 'main' }) 
 
     // Recria os containers no Docker ou recarrega PM2
     logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Atualizando serviços...`);
-    const dockerRes = await runRemoteSsh(`cd ${targetDir} && (docker compose up -d --build 2>/dev/null || pm2 reload all 2>/dev/null || true)`);
+    const dockerRes = await runRemoteSsh(`cd ${targetDir} && (docker compose up -d --build 2>/dev/null || pm2 reload all 2>/dev/null || docker restart plataforma_ingles_api 2>/dev/null || true)`);
     if (dockerRes.stdout) {
       dockerRes.stdout.split('\n').forEach(l => logs.push(`[Deploy] ${l}`));
     }
@@ -211,7 +215,11 @@ async function executeDeploy({ project = 'cardapio_digital', branch = 'main' }) 
     const newEntry = {
       id: `dep-${Date.now().toString().slice(-4)}`,
       timestamp: new Date().toLocaleString('pt-BR'),
-      project: (project === 'cardapio_digital' || project === 'boteco_backend') ? 'Boteco Sivirino' : (project === 'lottus-api' ? 'Lottus API' : project),
+      project: (project === 'cardapio_digital' || project === 'boteco_backend') 
+        ? 'Boteco Sivirino' 
+        : (project === 'lottus-api' 
+          ? 'Lottus API' 
+          : (project === 'plataforma_ingles' || project === 'plataforma_ingles_api' ? 'Plataforma Inglês' : project)),
       type: 'DEPLOY',
       branch,
       commitHash,
@@ -267,7 +275,11 @@ async function executeRollback({ project = 'app_service' }) {
   logs.push(`[${timestamp}] ⏪ ACIONANDO ROLLBACK DE EMERGÊNCIA (Desfazendo último deploy)...`);
 
   try {
-    const targetDir = `/home/ubuntu/${project}`;
+    const targetDir = project === 'lottus-api' 
+      ? '/home/ubuntu/api_users/api_users' 
+      : (project === 'plataforma_ingles' || project === 'plataforma_ingles_api' 
+        ? '/home/ubuntu/plataforma_ingles' 
+        : `/home/ubuntu/${project}`);
     logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Executando git reset --hard HEAD~1 em ${targetDir}...`);
 
     const resetRes = await runRemoteSsh(`cd ${targetDir} && git reset --hard HEAD~1`);
@@ -292,7 +304,11 @@ async function executeRollback({ project = 'app_service' }) {
     const newEntry = {
       id: `rol-${Date.now().toString().slice(-4)}`,
       timestamp: new Date().toLocaleString('pt-BR'),
-      project: project || 'app_service',
+      project: (project === 'cardapio_digital' || project === 'boteco_backend') 
+        ? 'Boteco Sivirino' 
+        : (project === 'lottus-api' 
+          ? 'Lottus API' 
+          : (project === 'plataforma_ingles' || project === 'plataforma_ingles_api' ? 'Plataforma Inglês' : project)),
       type: 'ROLLBACK',
       branch: 'main',
       commitHash,

@@ -142,6 +142,40 @@ function testTargetSsh({ host, port = 22, user = 'root', privateKey, password })
  * Calcula a estimativa precisa de tempo e volume para a migração completa do projeto selecionado
  */
 function getMigrationEstimate(projectId = 'boteco') {
+  if (projectId === 'ingles' || projectId === 'plataforma_ingles_api' || projectId === 'docker-plataforma_ingles_api') {
+    return {
+      source: {
+        provider: 'Oracle Cloud Infrastructure (OCI)',
+        vmName: 'instance-bytedata (Produção)',
+        database: 'Supabase Remoto / Postgres (Auth & Lessons)',
+        dbSize: '~4.5 MB (Dump de dados remotos)',
+        storageBucket: 'Storage de Conteúdo & Aulas (/uploads: ~18 MB)',
+        backendApp: 'Docker plataforma_ingles_api (Porta 3003)',
+        frontendApp: 'Nginx Reverse Proxy (ingles.plataforma.com.br)',
+        currentCost: 'R$ 0,00 / mês (Always Free)'
+      },
+      targetRecommendation: {
+        provider: 'Hostinger Cloud VPS',
+        plan: 'KVM 1',
+        specs: '1 vCPU, 4 GB RAM, 50 GB NVMe',
+        price: 'R$ 19,99 / mês',
+        benefits: 'Node.js 18 containerizado, baixa latência para alunos e SSL dedicado'
+      },
+      estimatedDuration: {
+        totalSeconds: 135,
+        formattedTime: '2 min e 15 segundos',
+        steps: [
+          { name: '1. Validação SSH & Engine Docker no VPS de Destino', estimatedSeconds: 30 },
+          { name: '2. Backup e sincronização de variáveis .env e configs', estimatedSeconds: 8 },
+          { name: '3. Transferência segura de assets e dados via SSH', estimatedSeconds: 12 },
+          { name: '4. Build da imagem Docker plataforma_ingles_api', estimatedSeconds: 45 },
+          { name: '5. Configuração do Proxy Reverso Nginx na porta 3003', estimatedSeconds: 20 },
+          { name: '6. Healthcheck & Teste de Conexão na porta 3003', estimatedSeconds: 20 }
+        ]
+      }
+    };
+  }
+
   if (projectId === 'apiservice' || projectId === 'lottus') {
     return {
       source: {
