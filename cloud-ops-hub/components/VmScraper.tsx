@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Activity, RefreshCw, Server, Shield, Zap, Cloud, Laptop, Play, Square, MessageSquare, Download, CheckCircle2, AlertCircle, Terminal, Cpu } from 'lucide-react'
+import { getApiUrl } from '../lib/api'
 
 interface VmScraperProps {
   scraperData: any
@@ -49,7 +50,7 @@ export function VmScraper({
   const fetchCloudStatus = async () => {
     if (!sshKeyToUse) return
     try {
-      const res = await fetch('http://localhost:3005/api/servers/exec', {
+      const res = await fetch(getApiUrl('/api/servers/exec'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -104,7 +105,7 @@ export function VmScraper({
 
     try {
       doAction(start ? 'Iniciando robô na nuvem (cloudops-micro-02)...' : 'Pausando robô na nuvem...')
-      const res = await fetch('http://localhost:3005/api/servers/exec', {
+      const res = await fetch(getApiUrl('/api/servers/exec'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -133,7 +134,7 @@ export function VmScraper({
   const downloadCloudArmKey = async () => {
     try {
       doAction('Buscando chave privada da VM ARM gerada na nuvem...')
-      const res = await fetch('http://localhost:3005/api/servers/exec', {
+      const res = await fetch(getApiUrl('/api/servers/exec'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -305,7 +306,7 @@ export function VmScraper({
                 onClick={async () => {
                   doAction('Disparando teste de WhatsApp para 558195126839...')
                   try {
-                    await fetch('http://localhost:3005/api/oracle/scraper/test-whatsapp', {
+                    await fetch(getApiUrl('/api/oracle/scraper/test-whatsapp'), {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: '{}'
@@ -516,7 +517,7 @@ export function VmScraper({
                   onClick={async () => {
                     setScraperLoading(true)
                     try {
-                      await fetch('http://localhost:3005/api/oracle/scraper/stop', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+                      await fetch(getApiUrl('/api/oracle/scraper/stop'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
                       doAction('Scraper local interrompido.')
                     } finally {
                       setScraperLoading(false)
@@ -532,7 +533,7 @@ export function VmScraper({
                   onClick={async () => {
                     setScraperLoading(true)
                     try {
-                      await fetch('http://localhost:3005/api/oracle/scraper/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+                      await fetch(getApiUrl('/api/oracle/scraper/start'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
                       doAction('Robô Scraper local iniciado!')
                     } finally {
                       setScraperLoading(false)
@@ -548,7 +549,7 @@ export function VmScraper({
                 onClick={async () => {
                   doAction('Disparando mensagem de teste para o WhatsApp...')
                   try {
-                    await fetch('http://localhost:3005/api/oracle/scraper/test-whatsapp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+                    await fetch(getApiUrl('/api/oracle/scraper/test-whatsapp'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
                     doAction('Notificação enviada para o seu WhatsApp! 📲')
                   } catch (e: any) {
                     doAction('Erro ao testar: ' + e.message)

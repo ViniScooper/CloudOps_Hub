@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { KeyRound, Eye, EyeOff, Plus, Save, RotateCcw, Check, ShieldCheck } from 'lucide-react'
+import { getApiUrl } from '../lib/api'
 
 interface EnvManagerViewProps {
   server: any
@@ -19,7 +20,7 @@ export function EnvManagerView({ server, doAction }: EnvManagerViewProps) {
   const fetchEnv = async () => {
     setIsLoading(true)
     try {
-      const res = await fetch('http://localhost:3005/api/env?project=cardapio_digital')
+      const res = await fetch(getApiUrl('/api/env?project=cardapio_digital'))
       const data = await res.json()
       if (data.envVars) {
         setEnvVars(data.envVars)
@@ -57,20 +58,18 @@ export function EnvManagerView({ server, doAction }: EnvManagerViewProps) {
     setShowSecrets(prev => ({ ...prev, [key]: !prev[key] }))
   }
 
-  const handleValueChange = (index: number, val: string) => {
-    setEnvVars(prev => {
-      const updated = [...prev]
-      updated[index].value = val
-      return updated
-    })
+  const handleToggleSecret = (index: number) => {
+    setEnvVars(prev => prev.map((item, idx) => idx === index ? { ...item, isSecret: !item.isSecret } : item))
   }
 
-  const addVariable = () => {
+  const handleValueChange = (index: number, val: string) => {
+    setEnvVars(prev => prev.map((item, idx) => idx === index ? { ...item, value: val } : item))
+  }
+
+  const handleAddVariable = (e?: any) => {
+    if (e && e.preventDefault) e.preventDefault()
     if (!newKey.trim()) return
-    setEnvVars(prev => [
-      ...prev,
-      { key: newKey.trim().toUpperCase(), value: newValue, isSecret: newIsSecret, description: 'Variável customizada adicionada pelo painel' }
-    ])
+    setEnvVars(prev => [...prev, { key: newKey.trim(), value: newValue.trim(), isSecret: newIsSecret, description: 'Configurada manualmente' }])
     setNewKey('')
     setNewValue('')
     setNewIsSecret(false)
@@ -80,7 +79,7 @@ export function EnvManagerView({ server, doAction }: EnvManagerViewProps) {
   const saveVariables = async () => {
     doAction('Salvando variáveis de ambiente e reiniciando container...')
     try {
-      await fetch('http://localhost:3005/api/env', {
+      await fetch(getApiUrl('/api/env'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ project: 'cardapio_digital', envVars })

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { GitSetupModal } from './GitSetupModal'
 import { CloneRepoModal } from './CloneRepoModal'
+import { getApiUrl } from '../lib/api'
 
 interface DeployViewProps {
   server: any
@@ -43,7 +44,7 @@ export function DeployView({ server, doAction }: DeployViewProps) {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch('http://localhost:3005/api/deploy/history')
+      const res = await fetch(getApiUrl('/api/deploy/history'))
       const data = await res.json()
       if (data.history) {
         setHistory(data.history)
@@ -63,7 +64,7 @@ export function DeployView({ server, doAction }: DeployViewProps) {
     setDeployLogs([`[${new Date().toLocaleTimeString('pt-BR')}] Conectando à VM via SSH (${server?.ip || '137.131.185.243'})...`])
 
     try {
-      const res = await fetch('http://localhost:3005/api/deploy', {
+      const res = await fetch(getApiUrl('/api/deploy'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ project, branch: selectedBranch })
@@ -97,7 +98,7 @@ export function DeployView({ server, doAction }: DeployViewProps) {
     setDeployLogs([`[${new Date().toLocaleTimeString('pt-BR')}] ⏪ Rollback acionado. Conectando à VM para reverter commit...`])
 
     try {
-      const res = await fetch('http://localhost:3005/api/deploy/rollback', {
+      const res = await fetch(getApiUrl('/api/deploy/rollback'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ project })
@@ -127,7 +128,7 @@ export function DeployView({ server, doAction }: DeployViewProps) {
     setDeployLogs([`[${new Date().toLocaleTimeString('pt-BR')}] Iniciando integração de branches (${mergeSourceBranch} ➔ main)...`])
 
     try {
-      const res = await fetch('http://localhost:3005/api/github/pull-request-merge', {
+      const res = await fetch(getApiUrl('/api/github/pull-request-merge'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

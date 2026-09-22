@@ -5,6 +5,7 @@ import {
   X, Check, RefreshCw, GitBranch, Shield, KeyRound, Copy, 
   Terminal, Sparkles, AlertCircle, CheckCircle2, User, Mail
 } from 'lucide-react'
+import { getApiUrl } from '../lib/api'
 
 interface GitSetupModalProps {
   isOpen: boolean
@@ -26,7 +27,7 @@ export function GitSetupModal({ isOpen, onClose, doAction }: GitSetupModalProps)
   const checkStatus = async () => {
     setStatusLoading(true)
     try {
-      const res = await fetch('http://localhost:3005/api/git/status-vm')
+      const res = await fetch(getApiUrl('/api/git/status-vm'))
       const data = await res.json()
       setGitStatus(data)
       if (data.name && data.name !== 'Não configurado') setName(data.name)
@@ -55,7 +56,7 @@ export function GitSetupModal({ isOpen, onClose, doAction }: GitSetupModalProps)
     doAction('Conectando à VM via SSH e configurando Git...')
 
     try {
-      const res = await fetch('http://localhost:3005/api/git/setup-vm', {
+      const res = await fetch(getApiUrl('/api/git/setup-vm'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
