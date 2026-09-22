@@ -430,7 +430,10 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
             .map(m => ({ role: m.role, content: m.content })),
           provider,
           apiKey: apiKey.trim(),
-          model
+          model,
+          serverConnected: !!server,
+          serverName: server?.name || '',
+          serverIp: server?.ip || ''
         })
       })
 
@@ -612,7 +615,13 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
             onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(32, 214, 199, 0.08)')}
           >
             <Database size={12} />
-            <span>RAG: <b>{knowledgeStats?.totalDocuments || 9} docs</b> ({knowledgeStats?.totalChunks || 72} chunks)</span>
+            <span>
+              RAG: {knowledgeStats?.totalDocuments ? (
+                <><b>{knowledgeStats.totalDocuments} docs</b> ({knowledgeStats.totalChunks} chunks)</>
+              ) : (
+                <b>LangChain Ativo</b>
+              )}
+            </span>
           </button>
 
           {/* Cota Groq em Tempo Real */}
@@ -629,13 +638,26 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
               color: '#8ba6aa'
             }}>
               <Zap size={13} style={{ color: '#20d6c7' }} />
-              <span>Cota Groq:</span>
-              <strong style={{ color: '#20d6c7' }}>
-                {rateLimit?.remainingTokens ? Number(rateLimit.remainingTokens).toLocaleString('pt-BR') : '7.900'} / 8.000
-              </strong>
-              <span style={{ color: '#4a656a', fontSize: '10px' }}>
-                ({rateLimit?.remainingRequests || '998'} reqs)
-              </span>
+              {rateLimit?.remainingTokens ? (
+                <>
+                  <span>Cota Groq:</span>
+                  <strong style={{ color: '#20d6c7' }}>
+                    {Number(rateLimit.remainingTokens).toLocaleString('pt-BR')} / {rateLimit.limitTokens ? Number(rateLimit.limitTokens).toLocaleString('pt-BR') : '8.000'}
+                  </strong>
+                  {rateLimit?.remainingRequests && (
+                    <span style={{ color: '#4a656a', fontSize: '10px' }}>
+                      ({rateLimit.remainingRequests} reqs)
+                    </span>
+                  )}
+                </>
+              ) : (
+                <>
+                  <span>Groq API:</span>
+                  <strong style={{ color: apiKey ? '#20d6c7' : '#94a3b8' }}>
+                    {apiKey ? 'Chave Pessoal Ativa' : 'Chave Padrão do Hub'}
+                  </strong>
+                </>
+              )}
             </div>
           )}
 
@@ -649,7 +671,7 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
               padding: '6px 14px',
               borderRadius: '20px',
               background: '#0c1518',
-              border: `1px solid ${keyStatus === 'valid' ? '#20d6c755' : '#f59e0b'}`,
+              border: `1px solid ${apiKey ? '#20d6c755' : '#22383e'}`,
               color: '#dbe7e8',
               fontSize: '11px',
               fontWeight: 600,
@@ -657,10 +679,20 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
               transition: 'all 0.2s'
             }}
             onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#20d6c7')}
-            onMouseLeave={(e) => (e.currentTarget.style.borderColor = keyStatus === 'valid' ? '#20d6c755' : '#f59e0b')}
+            onMouseLeave={(e) => (e.currentTarget.style.borderColor = apiKey ? '#20d6c755' : '#22383e')}
           >
-            <KeyRound size={13} style={{ color: keyStatus === 'valid' ? '#20d6c7' : '#f59e0b' }} />
+            <KeyRound size={13} style={{ color: apiKey ? '#20d6c7' : '#94a3b8' }} />
             <span>{currentProviderConfig.name}: <b>{model.includes('120b') ? 'GPT-120B' : model.includes('27b') ? 'Qwen-27B' : model}</b></span>
+            <span style={{
+              fontSize: '10px',
+              padding: '1px 6px',
+              borderRadius: '10px',
+              background: apiKey ? 'rgba(32, 214, 199, 0.15)' : 'rgba(148, 163, 184, 0.15)',
+              color: apiKey ? '#20d6c7' : '#94a3b8',
+              fontWeight: 500
+            }}>
+              {apiKey ? 'Chave Própria' : 'Padrão Hub'}
+            </span>
             <Settings size={12} style={{ color: '#68868a' }} />
           </button>
 
@@ -1318,6 +1350,20 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
                 </a>
               </div>
 
+              {/* Nota sobre Chave Padrão do Hub vs Chave Pessoal */}
+              <div style={{
+                fontSize: '11px',
+                color: '#8ba6aa',
+                marginBottom: '8px',
+                lineHeight: '1.45',
+                background: 'rgba(15, 23, 42, 0.6)',
+                padding: '8px 10px',
+                borderRadius: '8px',
+                border: '1px solid #1a2a2e'
+              }}>
+                💡 <b>Chave Compartilhada do Hub Ativa:</b> Por padrão, o backend do CloudOps Hub já possui uma chave padrão de demonstração para a Groq Cloud. Inserir sua própria chave é <i>opcional</i>, indicado se você quiser sua cota ilimitada exclusiva ou usar Gemini / OpenAI.
+              </div>
+
               <div style={{ position: 'relative' }}>
                 <input
                   type={showApiKey ? 'text' : 'password'}
@@ -1388,7 +1434,7 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
                     color: '#20d6c7',
                     fontWeight: 600
                   }}>
-                    {knowledgeStats?.totalDocuments || 9} docs • {knowledgeStats?.totalChunks || 72} chunks
+                    {knowledgeStats ? `${knowledgeStats.totalDocuments} docs • ${knowledgeStats.totalChunks} chunks` : 'Carregando base...'}
                   </span>
                 </div>
 

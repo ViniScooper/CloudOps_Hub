@@ -126,8 +126,12 @@ const ODISSEU_TOOLS = [
 ];
 
 // Executor real das ferramentas na VM
-async function runTool(name, args) {
+async function runTool(name, args, serverInfo = null) {
   try {
+    if (serverInfo && !serverInfo.connected && name !== 'search_knowledge_base' && name !== 'manage_cloudflare_tunnel') {
+      return 'Nenhuma VM está conectada no CloudOps Hub no momento. Para inspecionar métricas, containers, logs ou executar comandos, conecte sua máquina virtual na aba Dashboard.';
+    }
+
     switch (name) {
       case 'get_vm_telemetry': {
         const res = await deployService.runRemoteSsh('free -m && echo "---DISK---" && df -h / && echo "---DOCKER---" && docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" && echo "---PM2---" && (source ~/.nvm/nvm.sh 2>/dev/null; pm2 list --no-color 2>/dev/null || echo "Nenhum processo PM2")');
@@ -271,22 +275,27 @@ function getProviderConfig(provider, userKey, userModel) {
 }
 
 // Prompt enxuto enriquecido dinamicamente com RAG LangChain (~350-500 tokens)
-function buildSystemPrompt(query = '') {
+function buildSystemPrompt(query = '', serverInfo = null) {
+  const vmStatusText = serverInfo?.connected
+    ? `Você está conectado à VM do usuário (${serverInfo.name || 'Cloud VM'} - IP: ${serverInfo.ip || 'servidor ativo'}). Você pode consultar métricas, logs e status reais executando as ferramentas disponíveis.`
+    : `ATENÇÃO: NENHUMA VM ESTÁ CONECTADA no momento no CloudOps Hub. Se o usuário perguntar o que está rodando na VM, métricas de memória, containers ou pedir para executar comandos no servidor, NÃO tente chamar ferramentas SSH (elas não funcionarão). Responda diretamente e educadamente que nenhuma máquina virtual foi conectada ainda e explique que ele pode conectar a VM no Dashboard usando o IP e a chave SSH.`;
+
   return `Você é ODISSEU, o Copiloto DevOps e Guardião Inteligente da Nuvem no CloudOps Hub.
-Você está conectado diretamente na VM Oracle Cloud de produção gerenciada por Vinicius Lourenço.
+${vmStatusText}
 
 SEU PAPEL:
-- Responder dúvidas técnicas, diagnosticar logs, containers e infraestrutura.
-- Explicar arquitetura, procedimentos de deploy, rollback, migração multi-cloud e túneis Cloudflare.
-- Quando necessário, ACIONE FERRAMENTAS para checar a VM real ou consultar mais documentação.
-- Fale sempre em português (pt-BR), seja direto, técnico, proativo e conciso.
+- Responder dúvidas técnicas, arquitetura de microserviços, Docker, Nginx, CI/CD, deploys e túneis Cloudflare.
+- Explicar conceitos, comandos Linux e procedimentos recomendados.
+- Executar ações e diagnósticos na VM apenas quando uma máquina estiver conectada.
+- Fale sempre em português (pt-BR), seja direto, técnico, educado e conciso.
 
 ${ragKnowledgeBase.retrieveContext(query)}
 `;
 }
 
 // Loop de execução do Agente com Auto-Failover de Modelos na Groq
-async function askOdisseu({ message, chatHistory = [], provider = 'groq', apiKey = '', model = '' }) {
+async function askOdisseu({ message, chatHistory = [], provider = 'groq', apiKey = '', model = '', serverConnected = false, serverName = '', serverIp = '' }) {
+  const serverInfo = { connected: Boolean(serverConnected), name: serverName, ip: serverIp };
   const config = getProviderConfig(provider, apiKey, model);
 
   if (!config.apiKey) {
@@ -300,7 +309,7 @@ async function askOdisseu({ message, chatHistory = [], provider = 'groq', apiKey
 
   // Prepara histórico mantendo apenas as últimas 4 mensagens para economizar tokens TPM
   const messages = [
-    { role: 'system', content: buildSystemPrompt(message) },
+    { role: 'system', content: buildSystemPrompt(message, serverInfo) },
     ...chatHistory.slice(-4).map(m => ({ role: m.role, content: m.content })),
     { role: 'user', content: message }
   ];
@@ -435,7 +444,7 @@ async function askOdisseu({ message, chatHistory = [], provider = 'groq', apiKey
           toolArgs = {};
         }
 
-        const toolResult = await runTool(toolName, toolArgs);
+        const toolResult = await runTool(toolName, toolArgs, serverInfo);
 
         toolsExecuted.push({
           tool: toolName,

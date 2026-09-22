@@ -566,7 +566,7 @@ fastify.post('/api/cloudflare/delete-domain', async (request) => {
 const odisseuAgent = require('./odisseuAgent');
 
 fastify.post('/api/odisseu/chat', async (request, reply) => {
-  const { message, chatHistory = [], provider = 'groq', apiKey = '', model = '' } = request.body || {};
+  const { message, chatHistory = [], provider = 'groq', apiKey = '', model = '', serverConnected = false, serverName = '', serverIp = '' } = request.body || {};
 
   if (!message || typeof message !== 'string') {
     return reply.status(400).send({ error: 'Mensagem do usuário é obrigatória.' });
@@ -578,7 +578,10 @@ fastify.post('/api/odisseu/chat', async (request, reply) => {
       chatHistory,
       provider,
       apiKey,
-      model
+      model,
+      serverConnected,
+      serverName,
+      serverIp
     });
     return result;
   } catch (err) {
