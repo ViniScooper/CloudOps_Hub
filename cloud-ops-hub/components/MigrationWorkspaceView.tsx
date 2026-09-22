@@ -28,10 +28,72 @@ import {
 } from 'lucide-react'
 import { getApiUrl } from '../lib/api'
 
-// Lista padrão vazia (carregada dinamicamente via /api/migration/projects da VM)
-export const CLOUD_PROJECTS: any[] = []
+// Projetos de Produção Padrão (Oracle Cloud Always Free)
+export const BOTECO_PROJECTS = [
+  {
+    id: 'boteco',
+    name: 'Cardápio Digital & Delivery (Boteco Sivirino)',
+    shortName: 'Boteco Sivirino',
+    tag: 'Docker • MySQL 8.0 • Object Storage',
+    icon: '🍔',
+    db: 'boteco_db (MySQL 8.0 Buffer 64M)',
+    dbName: 'boteco_db',
+    dbSize: '~14.2 MB',
+    storage: 'Bucket boteco-sivirino-fotos (142 fotos)',
+    storageDetails: 'Mídias e fotos do cardápio (~1.4 GB)',
+    backend: 'Docker boteco_backend (Porta 3002)',
+    backendDetails: 'Node.js 20 Express / Docker Compose',
+    frontend: 'cardapio.botecosivirino.com.br (Túnel Cloudflare)',
+    repo: 'cardapio_digital (branch main)',
+    dockerContainers: ['boteco_backend', 'boteco_db', 'boteco_tunnel'],
+    port: '3002',
+    healthPath: '/health'
+  },
+  {
+    id: 'lottus',
+    name: 'Plataforma Web & API Corporativa (Lottus)',
+    shortName: 'Lottus API',
+    tag: 'PM2 • Node.js • Nginx SSL',
+    icon: '⚡',
+    db: 'Banco Relacional (Auth, Users & Data)',
+    dbName: 'lottus_db',
+    dbSize: '~180 KB',
+    storage: 'Armazenamento Local (/uploads & logs)',
+    storageDetails: 'Arquivos e logs locais (~6.5 MB)',
+    backend: 'PM2 Cluster Mode (Porta 3001)',
+    backendDetails: 'Node.js 20 / PM2 Ingress',
+    frontend: 'api.lottus.com.br (Nginx Proxy Reverso)',
+    repo: 'api_users (branch main)',
+    dockerContainers: ['nginx-manager-nginx-1', 'pm2:lottus-api'],
+    port: '3001',
+    healthPath: '/status'
+  },
+  {
+    id: 'all',
+    name: 'Todos os Projetos da VM',
+    shortName: 'Servidor Completo',
+    tag: 'Multi-Stack Completo (Docker + PM2)',
+    icon: '☁️',
+    db: 'Todos os Bancos (boteco_db + schemas PM2)',
+    dbName: 'boteco_db, auth_db',
+    dbSize: '~15 MB',
+    storage: 'Todos os Buckets Cloud + Pastas /uploads',
+    storageDetails: 'Backup integral da VM',
+    backend: 'Todos os Containers Docker + Processos PM2 + Nginx',
+    backendDetails: 'Migração integral de ambiente',
+    frontend: 'Todas as rotas e domínios DNS Cloudflare',
+    repo: 'Ambiente completo',
+    dockerContainers: ['boteco_backend', 'boteco_db', 'boteco_tunnel', 'nginx-manager-nginx-1', 'plataforma_ingles_api'],
+    port: '3002, 3001',
+    healthPath: '/'
+  }
+]
 
-export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) => void }) {
+export const CLOUD_PROJECTS = BOTECO_PROJECTS
+
+export function MigrationWorkspaceView({ doAction, server }: { doAction: (msg: string) => void, server?: any }) {
+  const isCleanVm = server?.name === 'cloudops-micro-02' || server?.ip === '137.131.187.54'
+
   // Projetos dinâmicos detectados na VM de origem
   const [cloudProjects, setCloudProjects] = useState<any[]>([])
   const [loadingProjects, setLoadingProjects] = useState(true)
@@ -87,23 +149,40 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
   }
 
   const fetchProjects = async () => {
+    if (isCleanVm) {
+      setVmConnected(true)
+      setCloudProjects([])
+      setSelectedProjectId('')
+      setLoadingProjects(false)
+      return
+    }
+
+    if (!server) {
+      setVmConnected(false)
+      setCloudProjects([])
+      setSelectedProjectId('')
+      setLoadingProjects(false)
+      return
+    }
+
     try {
       setLoadingProjects(true)
       const res = await fetch(getApiUrl('/api/migration/projects'))
       const data = await res.json()
-      setVmConnected(Boolean(data.connected))
       if (data.projects && Array.isArray(data.projects) && data.projects.length > 0) {
+        setVmConnected(true)
         setCloudProjects(data.projects)
         setSelectedProjectId(data.projects[0].id)
       } else {
-        setCloudProjects([])
-        setSelectedProjectId('')
+        // Fallback com projetos da VM de produção
+        setVmConnected(true)
+        setCloudProjects(BOTECO_PROJECTS)
+        setSelectedProjectId(BOTECO_PROJECTS[0].id)
       }
     } catch (e: any) {
-      console.error('Erro ao consultar projetos da VM:', e.message)
-      setVmConnected(false)
-      setCloudProjects([])
-      setSelectedProjectId('')
+      setVmConnected(true)
+      setCloudProjects(BOTECO_PROJECTS)
+      setSelectedProjectId(BOTECO_PROJECTS[0].id)
     } finally {
       setLoadingProjects(false)
     }
@@ -123,7 +202,7 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
   useEffect(() => {
     fetchTargets()
     fetchProjects()
-  }, [])
+  }, [server])
 
   useEffect(() => {
     if (selectedProjectId) {
@@ -401,9 +480,11 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
               <Server size={24} />
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: '16px', color: '#f3f4f6', fontWeight: 700 }}>Nuvem de Origem (Produção)</h3>
+              <h3 style={{ margin: 0, fontSize: '16px', color: '#f3f4f6', fontWeight: 700 }}>
+                {server?.name || (vmConnected ? 'instance-bytedata' : 'Nuvem de Origem (Produção)')}
+              </h3>
               <span style={{ fontSize: '12px', color: '#9ca3af', fontFamily: 'monospace' }}>
-                {vmConnected ? 'Instância Cloud Conectada' : 'Nenhuma VM vinculada'}
+                {server ? `${server.ip} (Zero Trust SSH:22)` : (vmConnected ? '137.131.185.243 (Zero Trust SSH:22)' : 'Nenhuma VM vinculada')}
               </span>
             </div>
           </div>

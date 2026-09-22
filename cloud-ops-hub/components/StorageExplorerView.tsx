@@ -23,44 +23,116 @@ interface StorageFile {
 const INITIAL_FILES: StorageFile[] = [
   {
     id: 'f-1',
-    name: 'backup_database_production.sql.gz',
+    name: 'picanha-chapa-alho-torrado.jpg',
+    category: 'Pratos',
+    size: '420 KB',
+    bytes: 430080,
+    uploadedAt: 'Hoje, 19:40',
+    dimensions: '1200 x 800',
+    url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/picanha-chapa-alho-torrado.jpg',
+    previewUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80',
+    type: 'image'
+  },
+  {
+    id: 'f-2',
+    name: 'heineken-longneck-gelada.webp',
+    category: 'Bebidas',
+    size: '185 KB',
+    bytes: 189440,
+    uploadedAt: 'Ontem, 21:15',
+    dimensions: '800 x 1000',
+    url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/heineken-longneck-gelada.webp',
+    previewUrl: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=600&auto=format&fit=crop&q=80',
+    type: 'image'
+  },
+  {
+    id: 'f-3',
+    name: 'costela-barbecue-defumada.jpg',
+    category: 'Pratos',
+    size: '560 KB',
+    bytes: 573440,
+    uploadedAt: 'Ontem, 18:02',
+    dimensions: '1400 x 900',
+    url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/costela-barbecue-defumada.jpg',
+    previewUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80',
+    type: 'image'
+  },
+  {
+    id: 'f-4',
+    name: 'chopp-brahma-artesanal-500ml.webp',
+    category: 'Bebidas',
+    size: '210 KB',
+    bytes: 215040,
+    uploadedAt: '14 Set, 15:30',
+    dimensions: '900 x 1200',
+    url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/chopp-brahma-artesanal-500ml.webp',
+    previewUrl: 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=600&auto=format&fit=crop&q=80',
+    type: 'image'
+  },
+  {
+    id: 'f-5',
+    name: 'torresmo-de-rolo-crocante.jpg',
+    category: 'Pratos',
+    size: '390 KB',
+    bytes: 399360,
+    uploadedAt: '14 Set, 14:10',
+    dimensions: '1080 x 1080',
+    url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/torresmo-de-rolo-crocante.jpg',
+    previewUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80',
+    type: 'image'
+  },
+  {
+    id: 'f-6',
+    name: 'banner-topo-cardapio-digital.png',
+    category: 'Banners',
+    size: '890 KB',
+    bytes: 911360,
+    uploadedAt: '12 Set, 11:00',
+    dimensions: '1920 x 600',
+    url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/banner-topo-cardapio-digital.png',
+    previewUrl: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600&auto=format&fit=crop&q=80',
+    type: 'image'
+  },
+  {
+    id: 'f-7',
+    name: 'pudim-leite-condensado-artesanal.jpg',
+    category: 'Sobremesas',
+    size: '310 KB',
+    bytes: 317440,
+    uploadedAt: '11 Set, 17:25',
+    dimensions: '800 x 800',
+    url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/pudim-leite-condensado-artesanal.jpg',
+    previewUrl: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop&q=80',
+    type: 'image'
+  },
+  {
+    id: 'f-8',
+    name: 'backup_mysql_boteco_db_2026_09_16.sql.gz',
     category: 'Backups',
     size: '14.2 MB',
     bytes: 14889779,
     uploadedAt: 'Hoje, 03:00 (Rotina Diária)',
     dimensions: '—',
-    url: '#',
+    url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/backup_mysql_boteco_db_2026_09_16.sql.gz',
     previewUrl: '',
     type: 'archive'
   },
   {
-    id: 'f-2',
-    name: 'app-brand-logo.svg',
-    category: 'Imagens',
-    size: '32 KB',
-    bytes: 32768,
-    uploadedAt: 'Ontem, 14:20',
-    dimensions: '512 x 512',
-    url: '#',
-    previewUrl: '',
+    id: 'f-9',
+    name: 'caipirinha-limao-cachaca-artesanal.webp',
+    category: 'Bebidas',
+    size: '240 KB',
+    bytes: 245760,
+    uploadedAt: '10 Set, 20:45',
+    dimensions: '900 x 1200',
+    url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/caipirinha-limao-cachaca-artesanal.webp',
+    previewUrl: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop&q=80',
     type: 'image'
-  },
-  {
-    id: 'f-3',
-    name: 'docker-compose.production.yml',
-    category: 'Documentos',
-    size: '8 KB',
-    bytes: 8192,
-    uploadedAt: '15 Set, 10:00',
-    dimensions: '—',
-    url: '#',
-    previewUrl: '',
-    type: 'document'
   }
 ]
 
 export function StorageExplorerView({ 
-  bucketName = 'cloud-backups-production',
+  bucketName = 'boteco-sivirino-fotos',
   server,
   doAction
 }: { 
@@ -68,7 +140,7 @@ export function StorageExplorerView({
   server?: any
   doAction: (msg: string) => void 
 }) {
-  const isVirginVM = server?.name === 'cloudops-micro-02'
+  const isVirginVM = server?.name === 'cloudops-micro-02' || server?.ip === '137.131.187.54'
   const currentBucket = isVirginVM ? 'cloudops-micro-02-storage' : bucketName
 
   const [files, setFiles] = useState<StorageFile[]>(() => {
