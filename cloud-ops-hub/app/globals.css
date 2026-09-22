@@ -665,6 +665,11 @@ pre, code {
     height: 58px !important;
   }
 
+  .breadcrumb-workspace,
+  .breadcrumb-slash {
+    display: none !important;
+  }
+
   .page-content {
     padding: 18px 14px !important;
     max-width: 100% !important;
@@ -700,16 +705,53 @@ pre, code {
     height: 54px !important;
   }
 
-  .breadcrumb {
+  /* Breadcrumb e Seletor de Servidor Responsivos */
+  .breadcrumb-workspace,
+  .breadcrumb-slash {
+    display: none !important;
+  }
+
+  .breadcrumb-active {
     font-size: 11px !important;
-    max-width: 130px !important;
+    max-width: 65px !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
   }
 
-  .breadcrumb span:first-child {
+  .server-label-prefix {
     display: none !important;
+  }
+
+  .server-ip-badge {
+    display: none !important;
+  }
+
+  .topbar-server-btn {
+    padding: 0 7px 0 4px !important;
+    height: 28px !important;
+    max-width: 140px !important;
+  }
+
+  .server-name-text {
+    max-width: 85px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* Menu dropdown como card flutuante centralizado e fixo na tela mobile */
+  .topbar-server-dropdown {
+    position: fixed !important;
+    top: 56px !important;
+    left: 8px !important;
+    right: 8px !important;
+    width: auto !important;
+    max-width: 380px !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(32, 214, 199, 0.4) !important;
+    z-index: 999999 !important;
   }
 
   .top-actions {

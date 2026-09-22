@@ -709,38 +709,45 @@ terraform -version
       </div>
     </aside>
     <section className="main-content">
-      <header className="topbar" style={{ position: 'relative', zIndex: 1000 }}>
-        <div className="breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'nowrap', whiteSpace: 'nowrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}>
-            <span style={{ color: '#526e72', fontSize: '11.5px' }}>Workspace</span>
-            <span style={{ color: '#2a3d40', fontSize: '11.5px' }}>/</span>
-            <strong style={{ color: '#e2edeb', fontSize: '12.5px', fontWeight: 600 }}>{active}</strong>
+      <header className="topbar" style={{ position: 'relative', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+        <div className="topbar-nav" style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: '1 1 auto' }}>
+          {/* Breadcrumb da visualização atual */}
+          <div className="topbar-breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}>
+            <span className="breadcrumb-workspace" style={{ color: '#526e72', fontSize: '11.5px', whiteSpace: 'nowrap' }}>Workspace</span>
+            <span className="breadcrumb-slash" style={{ color: '#2a3d40', fontSize: '11.5px' }}>/</span>
+            <strong className="breadcrumb-active" style={{ color: '#e2edeb', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }}>{active}</strong>
           </div>
 
-          <div style={{ width: '1px', height: '15px', background: 'rgba(255, 255, 255, 0.1)', margin: '0 4px', flexShrink: 0 }} />
+          <div className="topbar-divider" style={{ width: '1px', height: '16px', background: 'rgba(255, 255, 255, 0.12)', margin: '0 2px', flexShrink: 0 }} />
 
-          {/* Indicador Global da VM Ativa com Design Ultra Compacto e Flutuante */}
-          <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
+          {/* Indicador Global da VM Ativa com Design Responsivo & Flutuante */}
+          <div className="topbar-server-wrapper" style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
             {server ? (
               <button
                 type="button"
-                onClick={() => setTopbarServerMenu(!topbarServerMenu)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setTopbarServerMenu(!topbarServerMenu)
+                }}
                 title="Clique para alternar o servidor / VM de trabalho"
+                className="topbar-server-btn"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '7px',
+                  gap: '6px',
                   height: '28px',
-                  padding: '0 9px 0 5px',
+                  padding: '0 8px 0 5px',
                   borderRadius: '6px',
                   background: 'linear-gradient(135deg, rgba(16, 28, 30, 0.98), rgba(7, 14, 16, 0.98))',
-                  border: '1px solid rgba(32, 214, 199, 0.35)',
-                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.45)',
+                  border: '1px solid rgba(32, 214, 199, 0.4)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.5)',
                   cursor: 'pointer',
                   color: '#e2edeb',
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
-                  transition: 'all 0.15s ease'
+                  transition: 'all 0.15s ease',
+                  WebkitTapHighlightColor: 'transparent',
+                  touchAction: 'manipulation'
                 }}
               >
                 {/* Cloud Pill */}
@@ -767,13 +774,13 @@ terraform -version
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                  <span style={{ fontSize: '8.5px', fontWeight: 700, color: '#20d6c7', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  <span className="server-label-prefix" style={{ fontSize: '8.5px', fontWeight: 700, color: '#20d6c7', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     NÓ:
                   </span>
-                  <span style={{ fontSize: '11px', fontWeight: 600, color: '#f0fdfa' }}>
+                  <span className="server-name-text" style={{ fontSize: '11px', fontWeight: 600, color: '#f0fdfa' }}>
                     {server.name}
                   </span>
-                  <span style={{ 
+                  <span className="server-ip-badge" style={{ 
                     fontSize: '9.5px', 
                     fontFamily: 'monospace', 
                     color: '#38bdf8', 
@@ -787,12 +794,13 @@ terraform -version
                 </div>
 
                 <ChevronDown 
-                  size={11} 
+                  size={12} 
                   style={{ 
                     color: '#8ca6a5', 
                     transform: topbarServerMenu ? 'rotate(180deg)' : 'none', 
                     transition: 'transform 0.2s ease',
-                    flexShrink: 0
+                    flexShrink: 0,
+                    marginLeft: '2px'
                   }} 
                 />
               </button>
@@ -827,17 +835,30 @@ terraform -version
             {/* Backdrop invisível para fechar menu ao clicar fora */}
             {topbarServerMenu && (
               <div 
-                style={{ position: 'fixed', inset: 0, zIndex: 999998 }} 
-                onClick={() => setTopbarServerMenu(false)} 
+                className="topbar-dropdown-backdrop"
+                style={{ 
+                  position: 'fixed', 
+                  inset: 0, 
+                  zIndex: 999998,
+                  background: 'rgba(0, 0, 0, 0.45)',
+                  backdropFilter: 'blur(2px)',
+                  WebkitTapHighlightColor: 'transparent'
+                }} 
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setTopbarServerMenu(false)
+                }} 
               />
             )}
 
-            {/* Menu Popover Flutuante com Z-Index Máximo e renderizado ACIMA de tudo */}
+            {/* Menu Popover Flutuante com Z-Index Máximo e Responsivo */}
             {topbarServerMenu && (
               <div 
+                className="topbar-server-dropdown"
+                onClick={(e) => e.stopPropagation()}
                 style={{ 
                   position: 'absolute', 
-                  top: 'calc(100% + 6px)', 
+                  top: 'calc(100% + 7px)', 
                   left: 0, 
                   zIndex: 999999,
                   width: '320px',
@@ -859,16 +880,22 @@ terraform -version
                   <span style={{ fontSize: '9.5px', color: '#526e72' }}>Zero Trust</span>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                   {serverList.map(item => {
                     const isCurrent = item.id === server?.id
                     return (
-                      <div
+                      <button
                         key={item.id} 
-                        onClick={() => handleSwitchServer(item)}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleSwitchServer(item)
+                        }}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
+                          width: '100%',
+                          textAlign: 'left',
                           gap: '10px',
                           padding: '10px 12px',
                           borderRadius: '8px',
@@ -876,7 +903,9 @@ terraform -version
                           border: isCurrent ? '1px solid rgba(32, 214, 199, 0.35)' : '1px solid #142224',
                           borderLeft: isCurrent ? '3px solid #20d6c7' : '1px solid #142224',
                           cursor: 'pointer',
-                          transition: 'all 0.15s ease'
+                          transition: 'all 0.15s ease',
+                          WebkitTapHighlightColor: 'transparent',
+                          touchAction: 'manipulation'
                         }}
                       >
                         <span 
@@ -920,7 +949,7 @@ terraform -version
                         ) : (
                           <div style={{ width: '14px', height: '14px', borderRadius: '50%', border: '1px solid #2a3d40', flexShrink: 0 }} />
                         )}
-                      </div>
+                      </button>
                     )
                   })}
                 </div>
@@ -928,7 +957,8 @@ terraform -version
                 <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #162426' }}>
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation()
                       setTopbarServerMenu(false)
                       setConnectModalOpen(true)
                     }}
@@ -938,14 +968,16 @@ terraform -version
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '6px',
-                      padding: '7px',
+                      padding: '8px',
                       background: 'rgba(32, 214, 199, 0.08)',
                       border: '1px dashed rgba(32, 214, 199, 0.3)',
                       borderRadius: '6px',
                       color: '#20d6c7',
                       fontSize: '11px',
                       fontWeight: 600,
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      WebkitTapHighlightColor: 'transparent',
+                      touchAction: 'manipulation'
                     }}
                   >
                     <Plus size={13} /> Conectar Outra Máquina (SSH)
