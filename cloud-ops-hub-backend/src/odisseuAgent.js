@@ -130,14 +130,14 @@ async function runTool(name, args) {
   try {
     switch (name) {
       case 'get_vm_telemetry': {
-        const res = await deployService.runRemoteSsh('free -m && echo "---DISK---" && df -h / && echo "---DOCKER---" && docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" && echo "---PM2---" && (pm2 list --no-color 2>/dev/null || echo "Nenhum processo PM2")');
+        const res = await deployService.runRemoteSsh('free -m && echo "---DISK---" && df -h / && echo "---DOCKER---" && docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" && echo "---PM2---" && (source ~/.nvm/nvm.sh 2>/dev/null; pm2 list --no-color 2>/dev/null || echo "Nenhum processo PM2")');
         return res.stdout || 'Telemetria obtida com sucesso.';
       }
 
       case 'get_service_logs': {
         const { serviceName } = args;
         if (!serviceName) return 'Nome do serviço não informado.';
-        const dockerRes = await deployService.runRemoteSsh(`docker logs --tail 30 ${serviceName} 2>&1 || pm2 logs ${serviceName} --lines 30 --nostream 2>&1 || echo "Serviço não encontrado"`);
+        const dockerRes = await deployService.runRemoteSsh(`docker logs --tail 30 ${serviceName} 2>&1 || (source ~/.nvm/nvm.sh 2>/dev/null; pm2 logs ${serviceName} --lines 30 --nostream 2>&1) || echo "Serviço não encontrado"`);
         return dockerRes.stdout || dockerRes.stderr || 'Nenhum log retornado.';
       }
 
