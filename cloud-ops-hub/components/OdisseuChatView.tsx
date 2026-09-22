@@ -8,6 +8,7 @@ import {
   Server, Copy, CheckCheck, Settings, X, CornerDownLeft, Activity,
   Layers, Lock, Database, Code, CheckSquare
 } from 'lucide-react'
+import { getApiUrl } from '../lib/api'
 
 interface Message {
   id: string
@@ -322,11 +323,7 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
 
   // Helper de requisição ao backend
   const fetchBackend = async (endpoint: string, options?: RequestInit) => {
-    try {
-      return await fetch(`http://127.0.0.1:3005${endpoint}`, options)
-    } catch {
-      return await fetch(`http://localhost:3005${endpoint}`, options)
-    }
+    return await fetch(getApiUrl(endpoint), options)
   }
 
   // Consulta status da Base de Conhecimento RAG LangChain

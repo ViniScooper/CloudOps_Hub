@@ -1,0 +1,74 @@
+[
+  {
+    "id": "dep-9753",
+    "timestamp": "18/09/2026, 11:55:19",
+    "project": "Boteco Sivirino",
+    "type": "DEPLOY",
+    "branch": "main",
+    "commitHash": "9ceeaff",
+    "commitMessage": "feat: interceptor de telemetria enviando erros em tempo real para CloudOps Hub",
+    "author": "Vinicius Lourenco",
+    "duration": "55.9s",
+    "status": "Sucesso"
+  },
+  {
+    "id": "dep-6199",
+    "timestamp": "18/09/2026, 11:18:56",
+    "project": "Boteco Sivirino",
+    "type": "DEPLOY",
+    "branch": "main",
+    "commitHash": "39bff49",
+    "commitMessage": "fix: prevencao de wipe de categorias/pratos no start.sh e exibicao de todas categorias criadas no cardapio",
+    "author": "Vinicius Lourenco",
+    "duration": "63.6s",
+    "status": "Sucesso"
+  },
+  {
+    "id": "dep-4201",
+    "timestamp": "18/09/2026, 10:04:14",
+    "project": "Boteco Sivirino",
+    "type": "DEPLOY",
+    "branch": "main",
+    "commitHash": "e468f4d",
+    "commitMessage": "feat: configuracao do link do instagram no painel admin e exibicao clicavel no cardapio",
+    "author": "Vinicius Lourenco",
+    "duration": "22.7s",
+    "status": "Sucesso"
+  },
+  {
+    "id": "dep-0788",
+    "timestamp": "18/09/2026, 10:00:10",
+    "project": "Boteco Sivirino",
+    "type": "DEPLOY",
+    "branch": "desenvolvimento",
+    "commitHash": "e468f4d",
+    "commitMessage": "feat: configuracao do link do instagram no painel admin e exibicao clicavel no cardapio",
+    "author": "Vinicius Lourenco",
+    "duration": "110.4s",
+    "status": "Sucesso"
+  },
+  {
+    "id": "dep-101",
+    "timestamp": "Hoje, 11:45",
+    "project": "Boteco Sivirino",
+    "type": "DEPLOY",
+    "branch": "main",
+    "commitHash": "e4a81fc",
+    "commitMessage": "feat: integracao de cardapio e rotas de delivery",
+    "author": "Vinicius Lourenco",
+    "duration": "4.2s",
+    "status": "Sucesso"
+  },
+  {
+    "id": "dep-100",
+    "timestamp": "Ontem, 19:20",
+    "project": "Boteco Sivirino",
+    "type": "DEPLOY",
+    "branch": "main",
+    "commitHash": "b92c410",
+    "commitMessage": "fix: ajuste no timeout de conexao do mysql",
+    "author": "Vinicius Lourenco",
+    "duration": "3.8s",
+    "status": "Sucesso"
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "id": "ocid1.instance.oc1.sa-saopaulo-1.antxeljr2ltikxqc2pk2eu2pprogtxmjnl7xulskzortzdv5yeowpvpexlmq",
+  "name": "cloudops-micro-02",
+  "shape": "VM.Standard.E2.1.Micro",
+  "publicIp": "137.131.187.54",
+  "privateIp": "10.0.0.75",
+  "user": "ubuntu",
+  "createdAt": "2026-09-17T03:31:55.449Z"
+}

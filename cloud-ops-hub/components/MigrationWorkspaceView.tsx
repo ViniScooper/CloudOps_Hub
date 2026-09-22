@@ -26,6 +26,7 @@ import {
   Sparkles,
   Box
 } from 'lucide-react'
+import { getApiUrl } from '../lib/api'
 
 // Projetos Hospedados na Nuvem Oracle Cloud
 export const CLOUD_PROJECTS = [
@@ -128,7 +129,7 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
   const fetchTargets = async () => {
     try {
       setLoadingTargets(true)
-      const res = await fetch('http://localhost:3005/api/migration/targets')
+      const res = await fetch(getApiUrl('/api/migration/targets'))
       const data = await res.json()
       if (data.targets && Array.isArray(data.targets)) {
         setRegisteredTargets(data.targets)
@@ -141,7 +142,7 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
   }
 
   const fetchEstimate = (projId: string) => {
-    fetch(`http://localhost:3005/api/migration/estimate?project=${projId}`)
+    fetch(getApiUrl(`/api/migration/estimate?project=${projId}`))
       .then(r => r.json())
       .then(d => setEstimate(d))
       .catch(() => {})
@@ -183,7 +184,7 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
     }
     try {
       setSavingTarget(true)
-      const res = await fetch('http://localhost:3005/api/migration/targets', {
+      const res = await fetch(getApiUrl('/api/migration/targets'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -218,7 +219,7 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
     doAction(`Testando conexão SSH com ${targetProvider} (${targetHost}:${targetPort})...`)
 
     try {
-      const res = await fetch('http://localhost:3005/api/migration/test-target', {
+      const res = await fetch(getApiUrl('/api/migration/test-target'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -246,7 +247,7 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
 
   const handleGenerateTerraform = async () => {
     try {
-      const res = await fetch('http://localhost:3005/api/migration/generate-terraform', {
+      const res = await fetch(getApiUrl('/api/migration/generate-terraform'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ host: targetHost, provider: targetProvider.toLowerCase(), project: selectedProjectId })

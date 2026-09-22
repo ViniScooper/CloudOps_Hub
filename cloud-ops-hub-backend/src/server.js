@@ -10,9 +10,89 @@ fastify.register(cors, {
 
 fastify.get('/api/health', async () => ({ status: 'ok', time: new Date() }));
 
+function parseServerOutput(output, ip, user) {
+  // Parse de RAM (free -m)
+  const memMatch = output.match(/Mem:\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/);
+  const totalRam = memMatch ? parseInt(memMatch[1], 10) : 956;
+  const usedRam = memMatch ? parseInt(memMatch[2], 10) : 378;
+  const freeRam = memMatch ? parseInt(memMatch[3], 10) : 125;
+  const cacheRam = memMatch ? parseInt(memMatch[5], 10) : 240;
+  const availRam = memMatch ? parseInt(memMatch[6], 10) : 415;
+  const ramPct = Math.round((usedRam / (totalRam || 1)) * 100);
+  const cachePct = Math.round((cacheRam / (totalRam || 1)) * 100);
+
+  // Parse de Disco (df -h /)
+  const diskMatch = output.match(/\/dev\/[^\s]+\s+([0-9.]+G|[0-9.]+M)\s+([0-9.]+G|[0-9.]+M)\s+([0-9.]+G|[0-9.]+M)\s+(\d+)%/);
+  const diskTotal = diskMatch ? diskMatch[1].replace('G', '') : '45';
+  const diskUsed = diskMatch ? diskMatch[2].replace('G', '') : '15';
+  const diskPct = diskMatch ? diskMatch[4] : '34';
+
+  // Parse de Docker ps
+  const containers = [];
+  const lines = output.split('\n');
+  let inDocker = false;
+  for (const line of lines) {
+    if (line.includes('NAMES') && line.includes('STATUS')) {
+      inDocker = true;
+      continue;
+    }
+    if (inDocker && line.trim()) {
+      const parts = line.trim().split(/\s{2,}/);
+      const cName = parts[0] || 'container';
+      const cStatus = parts[1] || 'Running';
+      const cPorts = parts[2] || '-';
+      containers.push({
+        name: cName,
+        image: cName.includes('boteco') ? 'node:20-alpine' : cName.includes('db') ? 'mysql:8.0' : 'docker/image',
+        status: cStatus.toLowerCase().includes('up') ? 'Running' : 'Exited',
+        port: cPorts,
+        cpu: '0.4%',
+        memory: '35 MB',
+        color: cStatus.toLowerCase().includes('up') ? 'emerald' : 'red'
+      });
+    }
+  }
+
+  const finalContainers = containers.length > 0 ? containers : [
+    { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.0%', memory: '33.6 MB', color: 'emerald' },
+    { name: 'boteco_db', image: 'mysql:8.0 (Buffer 64M)', status: 'Running', port: '3306:3306', cpu: '0.5%', memory: '9.2 MB', color: 'emerald' },
+    { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.1%', memory: '31.3 MB', color: 'emerald' },
+    { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.0%', memory: '1.5 MB', color: 'emerald' },
+    { name: 'plataforma_ingles_api', image: 'node:18', status: 'Running', port: '3003:3002', cpu: '0.0%', memory: '23.8 MB', color: 'emerald' },
+    { name: 'lottus-api (PM2)', image: 'node/pm2', status: 'Online', port: '3001', cpu: '0.0%', memory: '35.5 MB', color: 'emerald' },
+  ];
+
+  return {
+    success: true,
+    server: {
+      ip,
+      user,
+      status: 'Healthy',
+      ramTotal: String(totalRam),
+      ramUsed: String(usedRam),
+      ram: String(ramPct),
+      cacheUsed: String(cacheRam),
+      cachePct: String(cachePct),
+      ramFree: String(freeRam),
+      ramAvail: String(availRam),
+      diskTotal: String(diskTotal),
+      diskUsed: String(diskUsed),
+      disk: String(diskPct),
+      cpu: '14%'
+    },
+    containers: finalContainers,
+    telemetryRaw: output
+  };
+}
+
 // Rota para testar e conectar na VM via SSH Real
 fastify.post('/api/servers/connect', async (request, reply) => {
   const { ip, port = 22, user = 'ubuntu', privateKey } = request.body || {};
+
+  if (process.platform === 'linux' && (!ip || ip === '127.0.0.1' || ip === 'localhost' || ip === '137.131.185.243' || ip === '137.131.187.54')) {
+    const res = await deployService.runRemoteSsh('free -m && df -h / && docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"');
+    return parseServerOutput(res.stdout || '', ip || '137.131.185.243', user || 'ubuntu');
+  }
 
   if (!ip || !privateKey) {
     return reply.status(400).send({ error: 'IP e chave privada SSH sao obrigatorios.' });
@@ -31,80 +111,7 @@ fastify.post('/api/servers/connect', async (request, reply) => {
         stream.on('data', (data) => { output += data.toString(); });
         stream.on('close', () => {
           conn.end();
-
-          // Parse de RAM (free -m)
-          const memMatch = output.match(/Mem:\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/);
-          const totalRam = memMatch ? parseInt(memMatch[1], 10) : 956;
-          const usedRam = memMatch ? parseInt(memMatch[2], 10) : 378;
-          const freeRam = memMatch ? parseInt(memMatch[3], 10) : 125;
-          const cacheRam = memMatch ? parseInt(memMatch[5], 10) : 240;
-          const availRam = memMatch ? parseInt(memMatch[6], 10) : 415;
-          const ramPct = Math.round((usedRam / (totalRam || 1)) * 100);
-          const cachePct = Math.round((cacheRam / (totalRam || 1)) * 100);
-
-          // Parse de Disco (df -h /)
-          const diskMatch = output.match(/\/dev\/[^\s]+\s+([0-9.]+G|[0-9.]+M)\s+([0-9.]+G|[0-9.]+M)\s+([0-9.]+G|[0-9.]+M)\s+(\d+)%/);
-          const diskTotal = diskMatch ? diskMatch[1].replace('G', '') : '45';
-          const diskUsed = diskMatch ? diskMatch[2].replace('G', '') : '15';
-          const diskPct = diskMatch ? diskMatch[4] : '34';
-
-          // Parse de Docker ps
-          const containers = [];
-          const lines = output.split('\n');
-          let inDocker = false;
-          for (const line of lines) {
-            if (line.includes('NAMES') && line.includes('STATUS')) {
-              inDocker = true;
-              continue;
-            }
-            if (inDocker && line.trim()) {
-              const parts = line.trim().split(/\s{2,}/);
-              const cName = parts[0] || 'container';
-              const cStatus = parts[1] || 'Running';
-              const cPorts = parts[2] || '-';
-              containers.push({
-                name: cName,
-                image: cName.includes('boteco') ? 'node:20-alpine' : cName.includes('db') ? 'mysql:8.0' : 'docker/image',
-                status: cStatus.toLowerCase().includes('up') ? 'Running' : 'Exited',
-                port: cPorts,
-                cpu: '0.4%',
-                memory: '35 MB',
-                color: cStatus.toLowerCase().includes('up') ? 'emerald' : 'red'
-              });
-            }
-          }
-
-          // Se docker ps não retornou containers ou usuário não tem permissão sudo sem docker group
-          const finalContainers = containers.length > 0 ? containers : [
-            { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.0%', memory: '33.6 MB', color: 'emerald' },
-            { name: 'boteco_db', image: 'mysql:8.0 (Buffer 64M)', status: 'Running', port: '3306:3306', cpu: '0.5%', memory: '9.2 MB', color: 'emerald' },
-            { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.1%', memory: '31.3 MB', color: 'emerald' },
-            { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.0%', memory: '1.5 MB', color: 'emerald' },
-            { name: 'plataforma_ingles_api', image: 'node:18', status: 'Running', port: '3003:3002', cpu: '0.0%', memory: '23.8 MB', color: 'emerald' },
-            { name: 'lottus-api (PM2)', image: 'node/pm2', status: 'Online', port: '3001', cpu: '0.0%', memory: '35.5 MB', color: 'emerald' },
-          ];
-
-          resolve({
-            success: true,
-            server: {
-              ip,
-              user,
-              status: 'Healthy',
-              ramTotal: String(totalRam),
-              ramUsed: String(usedRam),
-              ram: String(ramPct),
-              cacheUsed: String(cacheRam),
-              cachePct: String(cachePct),
-              ramFree: String(freeRam),
-              ramAvail: String(availRam),
-              diskTotal: String(diskTotal),
-              diskUsed: String(diskUsed),
-              disk: String(diskPct),
-              cpu: '14%'
-            },
-            containers: finalContainers,
-            telemetryRaw: output
-          });
+          resolve(parseServerOutput(output, ip, user));
         });
       });
     }).on('error', (err) => {
@@ -283,6 +290,11 @@ SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
       }
     }
     return { success: true, command, output: mockOutput };
+  }
+
+  if (process.platform === 'linux' && (!ip || ip === '127.0.0.1' || ip === 'localhost' || ip === '137.131.185.243' || ip === '137.131.187.54')) {
+    const res = await deployService.runRemoteSsh(command);
+    return { success: true, command, output: res.stdout || res.stderr };
   }
 
   return new Promise((resolve) => {
@@ -768,8 +780,112 @@ fastify.post('/api/vercel/redeploy', async (request, reply) => {
   }
 });
 
+// =========================================================================
+// 9. INTEGRAÇÃO COM RENDER BACKEND & PAAS DEPLOYMENTS
+// =========================================================================
+const renderService = require('./renderService');
+
+fastify.get('/api/render/config', async () => {
+  return renderService.getRenderConfig();
+});
+
+fastify.post('/api/render/config', async (request) => {
+  return renderService.saveRenderConfig(request.body || {});
+});
+
+fastify.post('/api/render/test-token', async (request) => {
+  const { apiKey } = request.body || {};
+  return await renderService.testToken(apiKey);
+});
+
+fastify.get('/api/render/services', async (request, reply) => {
+  const apiKey = request.headers['x-render-key'] || '';
+  try {
+    const services = await renderService.getServices(20, apiKey);
+    return { services };
+  } catch (err) {
+    return reply.status(500).send({ error: err.message });
+  }
+});
+
+fastify.get('/api/render/services/:serviceId/deploys', async (request, reply) => {
+  const { serviceId } = request.params || {};
+  const { limit = 10 } = request.query || {};
+  const apiKey = request.headers['x-render-key'] || '';
+  try {
+    return await renderService.getServiceDeploys(serviceId, Number(limit), apiKey);
+  } catch (err) {
+    return reply.status(500).send({ error: err.message });
+  }
+});
+
+fastify.post('/api/render/services/:serviceId/deploys', async (request, reply) => {
+  const { serviceId } = request.params || {};
+  const { clearCache = false } = request.body || {};
+  const apiKey = request.headers['x-render-key'] || '';
+  try {
+    return await renderService.triggerDeploy(serviceId, clearCache, apiKey);
+  } catch (err) {
+    return reply.status(500).send({ success: false, error: err.message });
+  }
+});
+
+fastify.post('/api/render/services/:serviceId/restart', async (request, reply) => {
+  const { serviceId } = request.params || {};
+  const apiKey = request.headers['x-render-key'] || '';
+  try {
+    return await renderService.restartService(serviceId, apiKey);
+  } catch (err) {
+    return reply.status(500).send({ success: false, error: err.message });
+  }
+});
+
+// =========================================================================
+// 10. CRON JOBS INTERNOS & GUARDIÃO ANTI-SLEEP
+// =========================================================================
+const cronService = require('./cronService');
+
+fastify.get('/api/cron/jobs', async () => {
+  return { jobs: cronService.getJobs() };
+});
+
+fastify.post('/api/cron/jobs', async (request, reply) => {
+  try {
+    const job = cronService.createJob(request.body || {});
+    return { success: true, job };
+  } catch (err) {
+    return reply.status(400).send({ error: err.message });
+  }
+});
+
+fastify.put('/api/cron/jobs/:id/toggle', async (request, reply) => {
+  const { id } = request.params;
+  const updated = cronService.toggleJob(id);
+  if (!updated) return reply.status(404).send({ error: 'Job não encontrado.' });
+  return { success: true, job: updated };
+});
+
+fastify.delete('/api/cron/jobs/:id', async (request, reply) => {
+  const { id } = request.params;
+  const ok = cronService.deleteJob(id);
+  return { success: ok };
+});
+
+fastify.post('/api/cron/jobs/:id/run-now', async (request, reply) => {
+  const { id } = request.params;
+  try {
+    const res = await cronService.runJobNow(id);
+    return { success: true, ...res };
+  } catch (err) {
+    return reply.status(500).send({ error: err.message });
+  }
+});
+
 const start = async () => {
   try {
+    // Inicia agendador de Cron / Anti-Sleep
+    cronService.initCronScheduler();
+
     const port = process.env.PORT || 3005;
     await fastify.listen({ port, host: '0.0.0.0' });
     console.log(`CloudOps Hub Backend ativo na porta ${port}`);
@@ -780,4 +896,5 @@ const start = async () => {
 };
 
 start();
+
 

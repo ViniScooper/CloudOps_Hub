@@ -5,6 +5,7 @@ import {
   X, Check, RefreshCw, GitBranch, Shield, Container, Terminal, 
   Sparkles, AlertCircle, CheckCircle2, ArrowRight, FolderPlus, Play
 } from 'lucide-react'
+import { getApiUrl } from '../lib/api'
 
 interface CloneRepoModalProps {
   isOpen: boolean
@@ -44,7 +45,7 @@ export function CloneRepoModal({ isOpen, onClose, doAction, onProjectAdded }: Cl
     doAction(`Clonando e lançando ${projectName || 'novo projeto'} na VM...`)
 
     try {
-      const res = await fetch('http://localhost:3005/api/projects/clone-and-launch', {
+      const res = await fetch(getApiUrl('/api/projects/clone-and-launch'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

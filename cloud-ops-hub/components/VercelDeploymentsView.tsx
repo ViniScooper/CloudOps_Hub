@@ -6,6 +6,7 @@ import {
   Clock, GitBranch, GitCommit, User, KeyRound, Eye, EyeOff, ShieldCheck,
   Play, Settings, Layers, ArrowUpRight, Check, Sparkles
 } from 'lucide-react'
+import { getApiUrl } from '../lib/api'
 
 // Ícone vetorial oficial da Vercel (Triângulo clássico)
 export function VercelIcon({ size = 16, color = 'currentColor', style = {} }: { size?: number; color?: string; style?: React.CSSProperties }) {
@@ -49,7 +50,7 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
       setLoading(true)
       const tokenHeader = vercelToken || localStorage.getItem('vercel_user_token') || ''
       
-      const res = await fetch('http://localhost:3005/api/vercel/deployments?limit=8', {
+      const res = await fetch(getApiUrl('/api/vercel/deployments?limit=8'), {
         headers: tokenHeader ? { 'x-vercel-token': tokenHeader } : {}
       })
       const result = await res.json()
@@ -71,7 +72,7 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
   // Carrega configuração salva no backend e no localStorage
   const loadConfig = async () => {
     try {
-      const res = await fetch('http://localhost:3005/api/vercel/config')
+      const res = await fetch(getApiUrl('/api/vercel/config'))
       const cfg = await res.json()
       if (cfg) {
         setProjectName(cfg.projectName || 'cardapio_digital')
@@ -113,7 +114,7 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
       doAction('Disparando redeploy na Vercel...')
       const tokenHeader = vercelToken || localStorage.getItem('vercel_user_token') || ''
 
-      const res = await fetch('http://localhost:3005/api/vercel/redeploy', {
+      const res = await fetch(getApiUrl('/api/vercel/redeploy'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -154,7 +155,7 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
       setError('')
 
       if (trimmedToken) {
-        const testRes = await fetch('http://localhost:3005/api/vercel/test-token', {
+        const testRes = await fetch(getApiUrl('/api/vercel/test-token'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token: trimmedToken })
@@ -183,7 +184,7 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
       }
 
       // Salva no backend
-      await fetch('http://localhost:3005/api/vercel/config', {
+      await fetch(getApiUrl('/api/vercel/config'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

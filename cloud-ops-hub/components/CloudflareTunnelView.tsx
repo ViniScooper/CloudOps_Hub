@@ -6,6 +6,7 @@ import {
   Edit2, Trash2, CheckCircle2, AlertTriangle, Activity, Zap, Server,
   Lock, ArrowRight, X, Radio
 } from 'lucide-react'
+import { getApiUrl } from '../lib/api'
 
 interface DomainItem {
   id: string
@@ -70,11 +71,7 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
 
   // Helper para chamar o backend
   const fetchBackend = async (endpoint: string, options?: RequestInit) => {
-    try {
-      return await fetch(`http://127.0.0.1:3005${endpoint}`, options)
-    } catch {
-      return await fetch(`http://localhost:3005${endpoint}`, options)
-    }
+    return await fetch(getApiUrl(endpoint), options)
   }
 
   // Carrega status ao vivo do túnel e domínios

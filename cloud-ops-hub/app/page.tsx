@@ -18,7 +18,9 @@ import { StorageExplorerView } from '../components/StorageExplorerView'
 import { LogsTelemetryView } from '../components/LogsTelemetryView'
 import { MigrationWorkspaceView } from '../components/MigrationWorkspaceView'
 import { VercelDeploymentsView, VercelIcon } from '../components/VercelDeploymentsView'
+import { RenderDeploymentsView, RenderIcon } from '../components/RenderDeploymentsView'
 import { Rocket, KeyRound, Bot, ArrowLeftRight } from 'lucide-react'
+import { getApiUrl } from '../lib/api'
 
 const navSections = [
   {
@@ -28,6 +30,7 @@ const navSections = [
       { label: 'Odisseu AI', icon: Bot, badge: 'Copilot' },
       { label: 'Deploy', icon: Rocket, badge: 'CI/CD' },
       { label: 'Vercel Frontend', icon: VercelIcon, badge: 'Edge' },
+      { label: 'Render Backend', icon: RenderIcon, badge: 'PaaS' },
       { label: 'Monitoramento & Logs', icon: Activity, badge: 'Realtime' },
       { label: 'Migração Multi-Cloud', icon: ArrowLeftRight, badge: '1-Click' },
     ]
@@ -264,7 +267,7 @@ export default function Page() {
   useEffect(() => {
     const fetchScraperStatus = async () => {
       try {
-        const res = await fetch('http://localhost:3005/api/oracle/scraper/status')
+        const res = await fetch(getApiUrl('/api/oracle/scraper/status'))
         if (res.ok) {
           const data = await res.json()
           setScraperData(data)
@@ -491,7 +494,7 @@ cd ~/terraform && terraform init -upgrade -no-color
 terraform -version
       `.trim()
 
-      const res = await fetch('http://localhost:3005/api/servers/exec', {
+      const res = await fetch(getApiUrl('/api/servers/exec'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -522,7 +525,7 @@ terraform -version
     setIsDroppingCache(true)
     doAction('Otimizando memória... executando drop_caches na VM')
     try {
-      const res = await fetch('http://127.0.0.1:3005/api/servers/drop-caches', { 
+      const res = await fetch(getApiUrl('/api/servers/drop-caches'), { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})
@@ -973,6 +976,13 @@ terraform -version
         )}
 
         {/* ========================================================================= */}
+        {/* ABA: RENDER BACKEND & CRON JOBS ANTI-SLEEP */}
+        {/* ========================================================================= */}
+        {active === 'Render Backend' && (
+          <RenderDeploymentsView doAction={doAction} />
+        )}
+
+        {/* ========================================================================= */}
         {/* ABA: WORKSPACE DE MIGRAÇÃO MULTI-CLOUD (ORACLE ➔ HOSTINGER / VPS) */}
         {/* ========================================================================= */}
         {active === 'Migração Multi-Cloud' && (
@@ -1007,7 +1017,7 @@ terraform -version
                 onClick={async () => {
                   doAction('Configurando rotação de logs Docker e liberando disco...')
                   try {
-                    const res = await fetch('http://localhost:3005/api/docker/optimize-logs', {
+                    const res = await fetch(getApiUrl('/api/docker/optimize-logs'), {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ ip: server?.ip || '137.131.185.243', user: 'ubuntu' })
@@ -1064,7 +1074,7 @@ terraform -version
                         setIsLoadingLogs(true)
                         setContainerLogsText('Carregando logs via Docker Engine SSH...')
                         try {
-                          const res = await fetch('http://localhost:3005/api/servers/exec', {
+                          const res = await fetch(getApiUrl('/api/servers/exec'), {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ ip: server?.ip || '137.131.185.243', user: 'ubuntu', command: `docker logs --tail 60 ${item.name}` })
@@ -1239,7 +1249,7 @@ terraform -version
                     const now = new Date().toTimeString().split(' ')[0]
                     setTerminalHistory(prev => [...prev, { time: now, type: 'info', text: `$ ${fastCmd.cmd}` }])
                     try {
-                      const res = await fetch('http://localhost:3005/api/servers/exec', {
+                      const res = await fetch(getApiUrl('/api/servers/exec'), {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
@@ -1307,7 +1317,7 @@ terraform -version
                   setTerminalHistory(prev => [...prev, { time: now, type: 'info', text: `$ ${cmd}` }])
 
                   try {
-                    const res = await fetch('http://localhost:3005/api/servers/exec', {
+                    const res = await fetch(getApiUrl('/api/servers/exec'), {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ 
@@ -1579,7 +1589,7 @@ terraform -version
                     setIsConnecting(true)
                     try {
                       // Conecta com o backend real do CloudOps Hub
-                      const res = await fetch('http://localhost:3005/api/servers/connect', {
+                      const res = await fetch(getApiUrl('/api/servers/connect'), {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ ip: vmIp, port: Number(vmPort), user: vmUser, privateKey: vmKey })
@@ -2088,7 +2098,7 @@ terraform -version
                           onClick={async () => {
                             doAction('Disparando mensagem de teste para o WhatsApp...')
                             try {
-                              await fetch('http://localhost:3005/api/oracle/scraper/test-whatsapp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+                              await fetch(getApiUrl('/api/oracle/scraper/test-whatsapp'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
                               doAction('Notificação enviada para o seu WhatsApp! 📲')
                             } catch (e: any) {
                               doAction('Erro ao testar: ' + e.message)
@@ -2317,7 +2327,7 @@ terraform -version
                     onClick={async () => {
                       setIsLoadingLogs(true)
                       try {
-                        const res = await fetch('http://localhost:3005/api/servers/exec', {
+                        const res = await fetch(getApiUrl('/api/servers/exec'), {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ ip: server?.ip || '137.131.185.243', user: 'ubuntu', command: `docker logs --tail 60 ${activeLogContainer}` })

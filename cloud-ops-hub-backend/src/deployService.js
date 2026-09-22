@@ -1,4 +1,5 @@
 const { Client } = require('ssh2');
+const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const oracleScraper = require('./oracleScraper');
@@ -14,6 +15,18 @@ function getSshKey() {
 }
 
 function runRemoteSsh(command) {
+  if (process.platform === 'linux') {
+    return new Promise((resolve) => {
+      exec(command, { maxBuffer: 1024 * 1024 * 10 }, (err, stdout, stderr) => {
+        resolve({
+          stdout: stdout ? stdout.trim() : '',
+          stderr: stderr ? stderr.trim() : '',
+          code: err ? (err.code || 1) : 0
+        });
+      });
+    });
+  }
+
   return new Promise((resolve, reject) => {
     const key = getSshKey();
     if (!key) {

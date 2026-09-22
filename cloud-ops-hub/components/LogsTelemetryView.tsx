@@ -16,9 +16,10 @@ import {
   ShieldAlert,
   Zap,
   Clock,
-  Eye,
-  X
+  Layers,
+  ChevronDown
 } from 'lucide-react'
+import { getApiUrl } from '../lib/api'
 
 interface TelemetryLog {
   id: string
@@ -52,7 +53,7 @@ export function LogsTelemetryView({ doAction }: { doAction: (msg: string) => voi
       if (filterSource !== 'ALL') params.append('source', filterSource)
       if (searchTerm.trim()) params.append('search', searchTerm.trim())
 
-      const res = await fetch(`http://localhost:3005/api/telemetry/logs?${params.toString()}`)
+      const res = await fetch(getApiUrl(`/api/telemetry/logs?${params.toString()}`))
       const data = await res.json()
       if (data.logs) {
         setLogs(data.logs)
@@ -77,13 +78,13 @@ export function LogsTelemetryView({ doAction }: { doAction: (msg: string) => voi
   const handleClear = async () => {
     if (!confirm('Deseja realmente limpar todos os logs de telemetria?')) return
     try {
-      let res = await fetch('http://localhost:3005/api/telemetry/clear', {
+      let res = await fetch(getApiUrl('/api/telemetry/clear'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})
       })
       if (!res.ok) {
-        res = await fetch('http://localhost:3005/api/telemetry/clear')
+        res = await fetch(getApiUrl('/api/telemetry/clear'))
       }
       setLogs([])
       setMetrics({ total: 0, errors: 0, warnings: 0, info: 0 })
