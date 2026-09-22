@@ -221,7 +221,7 @@ export function HelpView({ onNavigate }: HelpViewProps) {
         <BookOpen size={16} style={{ color: '#20d6c7' }} /> Primeiros Passos: Como Usar o Sistema
       </h3>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px', marginBottom: '28px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '14px', marginBottom: '28px' }}>
         {steps.map((step, idx) => {
           const Icon = step.icon
           return (
@@ -486,7 +486,7 @@ export function HelpView({ onNavigate }: HelpViewProps) {
           Entenda detalhadamente a função de cada módulo, o que você pode executar nele e quando utilizá-lo na sua rotina diária:
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '14px' }}>
           
           {/* 1. Dashboard */}
           <div style={{ background: '#070a0c', padding: '16px', borderRadius: '8px', border: '1px solid #142023', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>

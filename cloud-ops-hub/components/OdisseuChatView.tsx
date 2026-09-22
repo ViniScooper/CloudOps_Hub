@@ -522,14 +522,15 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
 
       {/* 1. CABEÇALHO ELEGANTE COM ESTILO COPILOT */}
       <header style={{
-        padding: '14px 22px',
+        padding: '12px 18px',
         background: 'rgba(9, 15, 18, 0.95)',
         backdropFilter: 'blur(16px)',
         borderBottom: '1px solid #162428',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '14px',
+        flexWrap: 'wrap',
+        gap: '12px',
         zIndex: 10
       }}>
         {/* Identidade do Odisseu */}
@@ -589,7 +590,7 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
         </div>
 
         {/* Indicadores, Cota e Controles */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
           {/* Badge Interativo da Base de Conhecimento RAG LangChain */}
           <button
             onClick={() => setConfigOpen(true)}
@@ -714,7 +715,7 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
           }}>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
               gap: '12px'
             }}>
               {[
