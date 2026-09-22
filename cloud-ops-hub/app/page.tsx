@@ -310,18 +310,26 @@ export default function Page() {
       const isLocalhost = typeof window !== 'undefined' && 
         (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '0.0.0.0')
 
-      if (isLocalhost) {
-        // AMBIENTE LOCAL (Seu PC): Restaura as VMs reais e os containers locais
-        let activeServers = servers
-        const savedServers = localStorage.getItem('cloudops_servers')
-        if (savedServers) {
-          try {
-            const parsed = JSON.parse(savedServers)
-            if (Array.isArray(parsed) && parsed.length > 0) activeServers = parsed
-          } catch {}
-        }
-        setServerList(activeServers)
+      const savedUserStr = localStorage.getItem('cloudops_user') || sessionStorage.getItem('cloudops_user')
+      const loggedUser = savedUserStr ? JSON.parse(savedUserStr) : null
+      const isMasterUser = (loggedUser?.email || '').trim().toLowerCase() === 'vviniciuslourenco@gmail.com'
 
+      // Se for o Master, carrega o cluster completo (instance-bytedata + cloudops-micro-02)
+      // Se for outro usuário cadastrado, a base inicia 100% LIMPA para ele conectar suas próprias VMs
+      let activeServers = isMasterUser ? servers : []
+
+      const storageKey = isMasterUser ? 'cloudops_servers' : `cloudops_servers_${loggedUser?.id || loggedUser?.email || 'guest'}`
+      const savedServers = localStorage.getItem(storageKey)
+      if (savedServers) {
+        try {
+          const parsed = JSON.parse(savedServers)
+          if (Array.isArray(parsed) && parsed.length > 0) activeServers = parsed
+        } catch {}
+      }
+
+      setServerList(activeServers)
+
+      if (activeServers.length > 0) {
         const savedActiveId = localStorage.getItem('cloudops_active_server_id')
         const targetServer = (savedActiveId && activeServers.find(s => s.id === savedActiveId || s.name === savedActiveId || s.ip === savedActiveId)) || activeServers[0]
         setServer(targetServer)
@@ -355,82 +363,31 @@ export default function Page() {
           if (savedContainers) {
             try { setContainers(JSON.parse(savedContainers)) } catch { setContainers(containersData) }
           } else {
-            setContainers(containersData)
+            setContainers(isMasterUser ? containersData : [])
           }
 
           const savedBuckets = localStorage.getItem('cloudops_buckets')
           if (savedBuckets) {
             try { setBuckets(JSON.parse(savedBuckets)) } catch { setBuckets(bucketsData) }
           } else {
-            setBuckets(bucketsData)
+            setBuckets(isMasterUser ? bucketsData : [])
           }
 
           const savedProxies = localStorage.getItem(`cloudops_proxies_${targetServer.id}`) || localStorage.getItem('cloudops_proxies')
           if (savedProxies) {
             try { setProxyHosts(JSON.parse(savedProxies)) } catch { setProxyHosts(proxyHostsData) }
           } else {
-            setProxyHosts(proxyHostsData)
+            setProxyHosts(isMasterUser ? proxyHostsData : [])
           }
         }
-
         setTerminalLogs(logs)
       } else {
-        // AMBIENTE WEB / VERCEL: Restaura as VMs cadastradas e o nó ativo selecionado
-        let activeServers = servers
-        const savedServers = localStorage.getItem('cloudops_servers')
-        if (savedServers) {
-          try {
-            const parsed = JSON.parse(savedServers)
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              activeServers = parsed
-            }
-          } catch {}
-        }
-        setServerList(activeServers)
-        const savedActiveId = localStorage.getItem('cloudops_active_server_id')
-        const targetServer = (savedActiveId && activeServers.find(s => s.id === savedActiveId || s.name === savedActiveId || s.ip === savedActiveId)) || activeServers[0]
-        setServer(targetServer)
-
-        const isVirgin = targetServer?.id === 'oracle-micro-02' || targetServer?.ip === '137.131.187.54' || targetServer?.name === 'cloudops-micro-02'
-        if (isVirgin) {
-          setContainers([
-            {
-              name: 'nginx-proxy',
-              image: 'nginx:alpine',
-              port: '80:80, 443:443',
-              status: 'Running',
-              cpu: '0.1%',
-              ram: '6.5 MB',
-              uptime: 'Ativo'
-            }
-          ])
-          setProxyHosts([
-            {
-              id: 'px-micro-01',
-              domain: '137.131.187.54',
-              forward: '127.0.0.1:80',
-              ssl: 'Nginx Edge Proxy',
-              status: 'Active',
-              type: 'HTTP/HTTPS'
-            }
-          ])
-          setBuckets([])
-        } else {
-          const savedContainers = localStorage.getItem(`cloudops_containers_${targetServer.id}`) || localStorage.getItem('cloudops_containers')
-          if (savedContainers) {
-            try { setContainers(JSON.parse(savedContainers)) } catch { setContainers(containersData) }
-          } else {
-            setContainers(containersData)
-          }
-          const savedProxies = localStorage.getItem(`cloudops_proxies_${targetServer.id}`) || localStorage.getItem('cloudops_proxies')
-          if (savedProxies) {
-            try { setProxyHosts(JSON.parse(savedProxies)) } catch { setProxyHosts(proxyHostsData) }
-          } else {
-            setProxyHosts(proxyHostsData)
-          }
-          setBuckets(bucketsData)
-        }
-        setTerminalLogs(logs)
+        // Base limpa para novos usuários
+        setServer(null)
+        setContainers([])
+        setBuckets([])
+        setProxyHosts([])
+        setTerminalLogs([])
       }
 
       const savedOci = localStorage.getItem('cloudops_oci')
