@@ -10,6 +10,90 @@ fastify.register(cors, {
 
 fastify.get('/api/health', async () => ({ status: 'ok', time: new Date() }));
 
+const authService = require('./authService');
+
+// Rota de Login Master Seguro
+fastify.post('/api/auth/login', async (request, reply) => {
+  const { email, password } = request.body || {};
+  const res = await authService.login(email, password);
+  if (!res.success) {
+    return reply.code(401).send(res);
+  }
+  return res;
+});
+
+// Validação de Sessão / Token do Usuário Master
+fastify.get('/api/auth/me', async (request, reply) => {
+  const authHeader = request.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return reply.code(401).send({ success: false, error: 'Token não fornecido.' });
+  }
+  const token = authHeader.split(' ')[1];
+  const user = authService.verifyToken(token);
+  if (!user) {
+    return reply.code(401).send({ success: false, error: 'Token inválido ou expirado.' });
+  }
+  return { success: true, user };
+});
+
+// Visão Geral Consolidada das Duas VMs e do Oracle Autonomous DB
+fastify.get('/api/servers/overview', async (request, reply) => {
+  const vms = [
+    {
+      id: 'srv-bytedata',
+      name: 'instance-bytedata',
+      ip: '137.131.185.243',
+      provider: 'Oracle Cloud (Always Free)',
+      region: 'sa-saopaulo-1 (GRU)',
+      status: 'Healthy',
+      type: 'AMD EPYC (2 vCPUs)',
+      ramTotal: '956',
+      ramUsed: '437',
+      ram: '45',
+      diskTotal: '45',
+      diskUsed: '15',
+      disk: '33',
+      cpu: '10%',
+      containersCount: 5,
+      services: ['boteco_backend', 'boteco_db (MySQL 8.0)', 'boteco_tunnel', 'nginx-manager']
+    },
+    {
+      id: 'srv-micro02',
+      name: 'cloudops-micro-02',
+      ip: '137.131.187.54',
+      provider: 'Oracle Cloud (Always Free)',
+      region: 'sa-saopaulo-1 (GRU)',
+      status: 'Healthy',
+      type: 'AMD EPYC (2 vCPUs)',
+      ramTotal: '956',
+      ramUsed: '311',
+      ram: '32',
+      diskTotal: '50',
+      diskUsed: '6',
+      disk: '12',
+      cpu: '2%',
+      containersCount: 1,
+      services: ['nginx-proxy', 'CloudOps Hub API Gateway']
+    }
+  ];
+
+  const autonomousDb = {
+    name: 'CLOUDOPSHUB',
+    type: 'Oracle Autonomous Transaction Processing (ATP)',
+    badge: 'Always Free',
+    specs: '20 GB NVMe · 1 OCPU · Exadata PDB · mTLS :1522',
+    status: 'AVAILABLE',
+    sqlWebUrl: 'https://G31AC88BC331093-CLOUDOPSHUB.adb.sa-saopaulo-1.oraclecloudapps.com/ords/sql-developer'
+  };
+
+  return {
+    success: true,
+    servers: vms,
+    autonomousDb,
+    timestamp: new Date().toISOString()
+  };
+});
+
 function parseServerOutput(output, ip, user) {
   // Parse de RAM (free -m)
   const memMatch = output.match(/Mem:\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/);

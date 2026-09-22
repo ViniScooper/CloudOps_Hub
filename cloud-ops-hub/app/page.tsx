@@ -19,6 +19,7 @@ import { LogsTelemetryView } from '../components/LogsTelemetryView'
 import { MigrationWorkspaceView } from '../components/MigrationWorkspaceView'
 import { VercelDeploymentsView, VercelIcon } from '../components/VercelDeploymentsView'
 import { RenderDeploymentsView, RenderIcon } from '../components/RenderDeploymentsView'
+import { LoginView } from '../components/LoginView'
 import { Rocket, KeyRound, Bot, ArrowLeftRight } from 'lucide-react'
 import { getApiUrl } from '../lib/api'
 
@@ -170,12 +171,8 @@ function Metric({
 export default function Page() {
   const [active, setActive] = useState('Dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [currentUser, setCurrentUser] = useState<any>({ name: 'Vinicius Lourenço', email: 'admin@cloudops.io', role: 'admin' })
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
-  const [authEmail, setAuthEmail] = useState('')
-  const [authPassword, setAuthPassword] = useState('')
-  const [authName, setAuthName] = useState('')
-  const [authLoading, setAuthLoading] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [authChecked, setAuthChecked] = useState(false)
 
   const [serverList, setServerList] = useState<any[]>([])
   const [server, setServer] = useState<any>(null)
@@ -379,53 +376,61 @@ export default function Page() {
         setTerminalLogs(logs)
       } else {
         // AMBIENTE WEB / VERCEL: Restaura as VMs cadastradas e o nó ativo selecionado
+        let activeServers = servers
         const savedServers = localStorage.getItem('cloudops_servers')
         if (savedServers) {
           try {
             const parsed = JSON.parse(savedServers)
             if (Array.isArray(parsed) && parsed.length > 0) {
-              setServerList(parsed)
-              const savedActiveId = localStorage.getItem('cloudops_active_server_id')
-              const targetServer = (savedActiveId && parsed.find(s => s.id === savedActiveId || s.name === savedActiveId || s.ip === savedActiveId)) || parsed[0]
-              setServer(targetServer)
-
-              const isVirgin = targetServer?.id === 'oracle-micro-02' || targetServer?.ip === '137.131.187.54' || targetServer?.name === 'cloudops-micro-02'
-              if (isVirgin) {
-                setContainers([
-                  {
-                    name: 'nginx-proxy',
-                    image: 'nginx:alpine',
-                    port: '80:80, 443:443',
-                    status: 'Running',
-                    cpu: '0.1%',
-                    ram: '6.5 MB',
-                    uptime: 'Ativo'
-                  }
-                ])
-                setProxyHosts([
-                  {
-                    id: 'px-micro-01',
-                    domain: '137.131.187.54',
-                    forward: '127.0.0.1:80',
-                    ssl: 'Nginx Edge Proxy',
-                    status: 'Active',
-                    type: 'HTTP/HTTPS'
-                  }
-                ])
-                setBuckets([])
-              } else {
-                const savedContainers = localStorage.getItem(`cloudops_containers_${targetServer.id}`) || localStorage.getItem('cloudops_containers')
-                if (savedContainers) {
-                  try { setContainers(JSON.parse(savedContainers)) } catch {}
-                }
-                const savedProxies = localStorage.getItem(`cloudops_proxies_${targetServer.id}`) || localStorage.getItem('cloudops_proxies')
-                if (savedProxies) {
-                  try { setProxyHosts(JSON.parse(savedProxies)) } catch {}
-                }
-              }
+              activeServers = parsed
             }
           } catch {}
         }
+        setServerList(activeServers)
+        const savedActiveId = localStorage.getItem('cloudops_active_server_id')
+        const targetServer = (savedActiveId && activeServers.find(s => s.id === savedActiveId || s.name === savedActiveId || s.ip === savedActiveId)) || activeServers[0]
+        setServer(targetServer)
+
+        const isVirgin = targetServer?.id === 'oracle-micro-02' || targetServer?.ip === '137.131.187.54' || targetServer?.name === 'cloudops-micro-02'
+        if (isVirgin) {
+          setContainers([
+            {
+              name: 'nginx-proxy',
+              image: 'nginx:alpine',
+              port: '80:80, 443:443',
+              status: 'Running',
+              cpu: '0.1%',
+              ram: '6.5 MB',
+              uptime: 'Ativo'
+            }
+          ])
+          setProxyHosts([
+            {
+              id: 'px-micro-01',
+              domain: '137.131.187.54',
+              forward: '127.0.0.1:80',
+              ssl: 'Nginx Edge Proxy',
+              status: 'Active',
+              type: 'HTTP/HTTPS'
+            }
+          ])
+          setBuckets([])
+        } else {
+          const savedContainers = localStorage.getItem(`cloudops_containers_${targetServer.id}`) || localStorage.getItem('cloudops_containers')
+          if (savedContainers) {
+            try { setContainers(JSON.parse(savedContainers)) } catch { setContainers(containersData) }
+          } else {
+            setContainers(containersData)
+          }
+          const savedProxies = localStorage.getItem(`cloudops_proxies_${targetServer.id}`) || localStorage.getItem('cloudops_proxies')
+          if (savedProxies) {
+            try { setProxyHosts(JSON.parse(savedProxies)) } catch { setProxyHosts(proxyHostsData) }
+          } else {
+            setProxyHosts(proxyHostsData)
+          }
+          setBuckets(bucketsData)
+        }
+        setTerminalLogs(logs)
       }
 
       const savedOci = localStorage.getItem('cloudops_oci')
@@ -659,93 +664,15 @@ terraform -version
 
   if (!currentUser) {
     return (
-      <main className="modal-overlay" style={{ background: '#080b0d' }}>
-        <div className="modal-card" style={{ maxWidth: '440px', border: '1px solid #182326', background: '#101719', padding: '32px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-            <div className="brand-mark" style={{ margin: '0 auto 14px', width: '42px', height: '42px', borderRadius: '12px' }}>
-              <Cloud size={24} />
-            </div>
-            <h1 style={{ fontSize: '20px', color: '#d9e2e1', margin: '0 0 6px', fontWeight: 600 }}>CloudOps <b style={{ color: '#20d6c7' }}>Hub</b></h1>
-            <p style={{ fontSize: '11px', color: '#6f8387', margin: 0 }}>
-              {authMode === 'login' ? 'Entre para gerenciar seus servidores e infraestrutura.' : 'Crie sua conta no cofre de gerenciamento Multi-Cloud.'}
-            </p>
-          </div>
-
-          <form onSubmit={async (e) => {
-            e.preventDefault()
-            setAuthLoading(true)
-            setTimeout(() => {
-              const displayName = (authName && authName.trim()) ? authName.trim() : (authEmail.split('@')[0] || 'Usuário')
-              const u = { name: displayName, email: authEmail, role: 'admin' }
-              setCurrentUser(u)
-              localStorage.setItem('cloudops_user', JSON.stringify(u))
-              setAuthLoading(false)
-              doAction(`Bem-vindo ao CloudOps Hub, ${displayName}! 🚀`)
-            }, 500)
-          }}>
-            {authMode === 'register' && (
-              <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '10px', color: '#6f8387', marginBottom: '6px', textTransform: 'uppercase' }}>Nome Completo</label>
-                <input 
-                  type="text" 
-                  required
-                  placeholder="Seu nome" 
-                  value={authName} 
-                  onChange={e => setAuthName(e.target.value)}
-                  style={{ width: '100%', height: '38px', background: '#080b0d', border: '1px solid #182326', borderRadius: '6px', padding: '0 12px', color: '#d9e2e1', fontSize: '12px', outline: 'none' }}
-                />
-              </div>
-            )}
-
-            <div style={{ marginBottom: '14px' }}>
-              <label style={{ display: 'block', fontSize: '10px', color: '#6f8387', marginBottom: '6px', textTransform: 'uppercase' }}>E-mail de Acesso</label>
-              <input 
-                type="email" 
-                required
-                placeholder="seu.email@exemplo.com" 
-                value={authEmail} 
-                onChange={e => setAuthEmail(e.target.value)}
-                style={{ width: '100%', height: '38px', background: '#080b0d', border: '1px solid #182326', borderRadius: '6px', padding: '0 12px', color: '#d9e2e1', fontSize: '12px', outline: 'none' }}
-              />
-            </div>
-
-            <div style={{ marginBottom: '22px' }}>
-              <label style={{ display: 'block', fontSize: '10px', color: '#6f8387', marginBottom: '6px', textTransform: 'uppercase' }}>Senha</label>
-              <input 
-                type="password" 
-                required
-                placeholder="••••••••" 
-                value={authPassword} 
-                onChange={e => setAuthPassword(e.target.value)}
-                style={{ width: '100%', height: '38px', background: '#080b0d', border: '1px solid #182326', borderRadius: '6px', padding: '0 12px', color: '#d9e2e1', fontSize: '12px', outline: 'none' }}
-              />
-            </div>
-
-            <button 
-              type="submit" 
-              className="primary-button" 
-              disabled={authLoading}
-              style={{ width: '100%', height: '40px', justifyContent: 'center', fontSize: '12px', marginBottom: '16px' }}
-            >
-              {authLoading ? 'Autenticando...' : (authMode === 'login' ? 'Entrar no Hub' : 'Criar Minha Conta')}
-            </button>
-
-            <div style={{ textAlign: 'center', fontSize: '11px', color: '#6f8387' }}>
-              {authMode === 'login' ? (
-                <>Não tem conta? <button type="button" onClick={() => setAuthMode('register')} style={{ color: '#20d6c7', border: 0, background: 'transparent', cursor: 'pointer', fontWeight: 600 }}>Cadastre-se</button></>
-              ) : (
-                <>Já tem conta? <button type="button" onClick={() => setAuthMode('login')} style={{ color: '#20d6c7', border: 0, background: 'transparent', cursor: 'pointer', fontWeight: 600 }}>Fazer login</button></>
-              )}
-            </div>
-          </form>
-
-          <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #182326', textAlign: 'center', fontSize: '10px', color: '#6f8387', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-            <span className="live-dot" /> Protegido com AES-256 & JWT Seguro
-          </div>
-        </div>
-      </main>
+      <LoginView
+        onSuccess={(user, token) => {
+          setCurrentUser(user)
+          doAction(`Bem-vindo ao CloudOps Hub, ${user.name}! 🚀`)
+        }}
+      />
     )
   }
+
 
   return <main className="app-shell">
     <button className="mobile-menu" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Abrir menu"><Menu size={20} /></button>
@@ -803,7 +730,13 @@ terraform -version
         <button 
           className="nav-item logout-btn" 
           title="Fazer logout e encerrar a sessão segura" 
-          onClick={() => { setCurrentUser(null); localStorage.removeItem('cloudops_user') }}
+          onClick={() => {
+            setCurrentUser(null)
+            localStorage.removeItem('cloudops_user')
+            localStorage.removeItem('cloudops_token')
+            sessionStorage.removeItem('cloudops_user')
+            sessionStorage.removeItem('cloudops_token')
+          }}
         >
           <LogOut size={16} />
           <span>Sair da Conta</span>
