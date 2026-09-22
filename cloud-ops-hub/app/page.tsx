@@ -186,6 +186,7 @@ export default function Page() {
   const [terminalLogs, setTerminalLogs] = useState<string[][]>([])
   const [refreshed, setRefreshed] = useState(false)
   const [serverMenu, setServerMenu] = useState(false)
+  const [topbarServerMenu, setTopbarServerMenu] = useState(false)
   const [action, setAction] = useState('')
   const [cloudShellOpen, setCloudShellOpen] = useState(false)
   const [rawCloudShellText, setRawCloudShellText] = useState('')
@@ -554,6 +555,7 @@ terraform -version
   const handleSwitchServer = (item: any) => {
     setServer(item)
     setServerMenu(false)
+    setTopbarServerMenu(false)
     doAction(`Contexto alterado para ${item.name}`)
 
     const nowTime = new Date().toLocaleTimeString('pt-BR')
@@ -773,10 +775,125 @@ terraform -version
     </aside>
     <section className="main-content">
       <header className="topbar">
-        <div className="breadcrumb">
+        <div className="breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <span>Workspace</span>
           <span>/</span>
           <strong>{active}</strong>
+
+          {/* Indicador Global da VM Conectada visível em todas as páginas */}
+          <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', marginLeft: '6px' }}>
+            {server ? (
+              <button
+                type="button"
+                onClick={() => setTopbarServerMenu(!topbarServerMenu)}
+                title="VM Ativa em Execução. Clique para alternar entre servidores."
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '3px 9px',
+                  borderRadius: '6px',
+                  background: 'linear-gradient(135deg, rgba(14, 28, 30, 0.95), rgba(8, 16, 18, 0.95))',
+                  border: '1px solid rgba(32, 214, 199, 0.35)',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                  color: '#e2edeb',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span className="provider-mark small oracle" style={{ width: '18px', height: '18px', fontSize: '8px', borderRadius: '4px', lineHeight: '18px' }}>
+                  {server.provider?.toLowerCase().includes('aws') ? 'AWS' : 'OC'}
+                </span>
+                <span className="live-dot" style={{ width: '6px', height: '6px' }} />
+                <span style={{ color: '#6f8e91', fontSize: '10px' }}>VM:</span>
+                <strong style={{ color: '#20d6c7', fontWeight: 600 }}>{server.name}</strong>
+                <span style={{ color: '#557477', fontFamily: 'monospace', fontSize: '10px' }}>({server.ip})</span>
+                {serverList.length > 1 && (
+                  <ChevronDown size={11} style={{ color: '#8ca6a5', transform: topbarServerMenu ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                )}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConnectModalOpen(true)}
+                title="Nenhuma máquina conectada. Clique para conectar via SSH."
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '3px 9px',
+                  borderRadius: '6px',
+                  background: 'rgba(245, 158, 11, 0.1)',
+                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                  color: '#f59e0b'
+                }}
+              >
+                <span className="status-dot amber" style={{ width: '6px', height: '6px' }} />
+                <Server size={11} />
+                <span style={{ fontSize: '10px', fontWeight: 600 }}>Sem VM Ativa</span>
+                <span style={{ fontSize: '9px', color: '#9ca3af' }}>(Conectar SSH)</span>
+              </button>
+            )}
+
+            {/* Menu Dropdown Flutuante de Servidores para trocar de VM a partir de qualquer aba */}
+            {topbarServerMenu && serverList.length > 0 && (
+              <div 
+                className="server-menu" 
+                style={{ 
+                  position: 'absolute', 
+                  top: 'calc(100% + 6px)', 
+                  left: 0, 
+                  right: 'auto', 
+                  zIndex: 9999,
+                  minWidth: '280px',
+                  background: '#0d1618',
+                  border: '1px solid #1f3638',
+                  boxShadow: '0 16px 36px rgba(0,0,0,0.7)',
+                  borderRadius: '8px',
+                  padding: '6px'
+                }}
+              >
+                <div style={{ padding: '6px 8px 6px', borderBottom: '1px solid #162629', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '9.5px', color: '#6e898a', textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: 700 }}>
+                    Alternar Máquina Virtual (VM)
+                  </span>
+                </div>
+                {serverList.map(item => (
+                  <button 
+                    key={item.id} 
+                    onClick={() => {
+                      handleSwitchServer(item)
+                      setTopbarServerMenu(false)
+                    }}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '8px 10px',
+                      borderRadius: '6px',
+                      background: item.id === server?.id ? 'rgba(32, 214, 199, 0.12)' : 'transparent',
+                      border: item.id === server?.id ? '1px solid rgba(32, 214, 199, 0.3)' : '1px solid transparent',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      color: item.id === server?.id ? '#20d6c7' : '#d9e2e1',
+                      fontSize: '11px',
+                      marginBottom: '2px'
+                    }}
+                  >
+                    <span className="provider-mark small oracle" style={{ width: '22px', height: '22px', fontSize: '8px', borderRadius: '5px' }}>OC</span>
+                    <span style={{ flex: 1 }}>
+                      <b style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: item.id === server?.id ? '#20d6c7' : '#e2edeb' }}>{item.name}</b>
+                      <small style={{ display: 'block', fontSize: '9px', color: '#728b8c', marginTop: '2px' }}>{item.region} · {item.ip}</small>
+                    </span>
+                    {item.id === server?.id && <Check size={14} style={{ color: '#20d6c7' }} />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <div className="top-actions">
           <button className="icon-button" onClick={() => doAction('Buscar recursos na VM...')} aria-label="Pesquisar">
