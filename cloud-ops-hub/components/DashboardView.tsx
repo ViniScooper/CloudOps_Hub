@@ -2,8 +2,9 @@
 
 import React from 'react'
 import {
-  MoreHorizontal, ArrowUpRight, RotateCcw, Database, Cloud, Archive, Copy, ExternalLink, Server
+  MoreHorizontal, ArrowUpRight, RotateCcw, Database, Cloud, Archive, Copy, ExternalLink, Server, ShieldCheck
 } from 'lucide-react'
+import { getApiUrl } from '../lib/api'
 
 interface DashboardViewProps {
   server: any
@@ -284,12 +285,74 @@ export function DashboardView({
                 </div>
 
                 <div className="backup-row">
-                  <span><Archive size={14} /> Rotina de Backup</span>
+                  <span><Archive size={14} /> Rotina de Backup (.sql.gz)</span>
                   <button 
-                    title="Executar rotina de backup no servidor conectado" 
-                    onClick={() => doAction('Rotina de snapshot de backup executada com sucesso!')}
+                    title="Executar backup do banco MySQL agora e compactar em .sql.gz" 
+                    onClick={async () => {
+                      doAction('Iniciando dump do MySQL boteco_db e compactação gzip...')
+                      try {
+                        const res = await fetch(getApiUrl('/api/backups/create'), { method: 'POST' })
+                        const data = await res.json()
+                        if (data.success) {
+                          doAction(`✅ Snapshot gerado com sucesso: ${data.filename}! Salvo na VM.`)
+                        } else {
+                          doAction(`Aviso: ${data.error || 'Falha no dump'}`)
+                        }
+                      } catch (err: any) {
+                        doAction(`Erro ao gerar backup: ${err.message}`)
+                      }
+                    }}
                   >
-                    <Copy size={13} /> Gerar Snapshot
+                    <Copy size={13} /> Gerar Snapshot Agora
+                  </button>
+                </div>
+
+                {/* Card do Guardião Watchdog 24/7 */}
+                <div className="data-service" style={{ marginTop: '10px', borderLeft: '3px solid #10b981', background: 'rgba(16, 185, 129, 0.05)', padding: '10px 12px' }}>
+                  <span className="service-icon managed" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
+                    <ShieldCheck size={16} />
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <strong style={{ color: '#f0fdfa', fontSize: '11.5px' }}>Guardião Watchdog 24/7</strong>
+                      <span style={{ fontSize: '8.5px', fontWeight: 800, padding: '1px 5px', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
+                        ATIVO (3M)
+                      </span>
+                    </div>
+                    <small style={{ color: '#829d9c', fontSize: '10px', display: 'block', marginTop: '2px' }}>
+                      Vigiando RAM &gt; 90% e auto-cura de containers via WhatsApp
+                    </small>
+                  </div>
+                  <button
+                    type="button"
+                    title="Dispara um alerta de teste real para o WhatsApp de Vinicius"
+                    onClick={async () => {
+                      doAction('Disparando alerta de teste no WhatsApp (CallMeBot)...')
+                      try {
+                        const res = await fetch(getApiUrl('/api/watchdog/test-alert'), { method: 'POST' })
+                        const data = await res.json()
+                        if (data.success) {
+                          doAction('✅ Alerta de teste enviado com sucesso para o WhatsApp!')
+                        } else {
+                          doAction(`Aviso: ${data.error || 'Falha ao enviar'}`)
+                        }
+                      } catch (e: any) {
+                        doAction(`Erro no teste: ${e.message}`)
+                      }
+                    }}
+                    style={{
+                      background: 'rgba(32, 214, 199, 0.1)',
+                      border: '1px solid rgba(32, 214, 199, 0.3)',
+                      color: '#20d6c7',
+                      borderRadius: '5px',
+                      fontSize: '10px',
+                      fontWeight: 600,
+                      padding: '4px 8px',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    🧪 Testar WhatsApp
                   </button>
                 </div>
               </>
