@@ -130,7 +130,7 @@ async function runTool(name, args) {
   try {
     switch (name) {
       case 'get_vm_telemetry': {
-        const res = await deployService.runRemoteSsh('free -m && echo "---DISK---" && df -h / && echo "---DOCKER---" && docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" && echo "---PM2---" && (pm2 jlist 2>/dev/null || echo "[]")');
+        const res = await deployService.runRemoteSsh('free -m && echo "---DISK---" && df -h / && echo "---DOCKER---" && docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" && echo "---PM2---" && (pm2 list --no-color 2>/dev/null || echo "Nenhum processo PM2")');
         return res.stdout || 'Telemetria obtida com sucesso.';
       }
 
@@ -307,20 +307,29 @@ async function askOdisseu({ message, chatHistory = [], provider = 'groq', apiKey
 
   const toolsExecuted = [];
   let iterations = 0;
-  const maxIterations = 4;
+  const maxIterations = 5;
   let currentModel = config.defaultModel;
 
   while (iterations < maxIterations) {
     iterations++;
 
+    // Se estiver na última iteração permitida e já houver ferramentas rodadas, desativa ferramentas
+    // para forçar a síntese final em texto ao usuário
+    const isFinalIteration = (iterations === maxIterations && toolsExecuted.length > 0);
+
     const payload = {
       model: currentModel,
-      messages,
-      tools: ODISSEU_TOOLS,
-      tool_choice: 'auto',
-      max_tokens: 550,
+      messages: isFinalIteration
+        ? [...messages, { role: 'user', content: 'Com base em todos os dados e ferramentas coletadas acima, apresente sua resposta final completa e formatada em Markdown.' }]
+        : messages,
+      max_tokens: 650,
       temperature: 0.2
     };
+
+    if (!isFinalIteration) {
+      payload.tools = ODISSEU_TOOLS;
+      payload.tool_choice = 'auto';
+    }
 
     let response;
     try {
@@ -434,8 +443,8 @@ async function askOdisseu({ message, chatHistory = [], provider = 'groq', apiKey
           result: typeof toolResult === 'string' ? toolResult.slice(0, 800) : toolResult
         });
 
-        // Limita o retorno da tool a 800 caracteres para não estourar tokens
-        const safeResult = typeof toolResult === 'string' ? toolResult.slice(0, 800) : JSON.stringify(toolResult).slice(0, 800);
+        // Limita o retorno da tool a 1500 caracteres para não estourar tokens sem perder dados
+        const safeResult = typeof toolResult === 'string' ? toolResult.slice(0, 1500) : JSON.stringify(toolResult).slice(0, 1500);
 
         messages.push({
           role: 'tool',
@@ -472,6 +481,43 @@ async function askOdisseu({ message, chatHistory = [], provider = 'groq', apiKey
       usage,
       rateLimit
     };
+  }
+
+  // Se encerrou o loop mas ferramentas foram executadas, faz uma chamada de síntese final direta
+  if (toolsExecuted.length > 0) {
+    try {
+      const fallbackRes = await fetch(config.endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...config.authHeader(config.apiKey)
+        },
+        body: JSON.stringify({
+          model: currentModel,
+          messages: [
+            ...messages,
+            { role: 'user', content: 'Com base em todas as ferramentas executadas acima, forneça a resposta final detalhada em Markdown para o usuário. Não utilize novas ferramentas.' }
+          ],
+          max_tokens: 700,
+          temperature: 0.2
+        })
+      });
+      if (fallbackRes.ok) {
+        const fallbackData = await fallbackRes.json();
+        const fallbackChoice = fallbackData.choices?.[0];
+        if (fallbackChoice?.message?.content) {
+          return {
+            success: true,
+            provider: config.name,
+            model: currentModel,
+            reply: fallbackChoice.message.content,
+            toolsExecuted
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('[OdisseuAgent] Erro na síntese de fallback:', e.message);
+    }
   }
 
   return {
