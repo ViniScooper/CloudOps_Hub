@@ -11,6 +11,21 @@ fastify.register(cors, {
 fastify.get('/api/health', async () => ({ status: 'ok', time: new Date() }));
 
 const authService = require('./authService');
+const emailService = require('./emailService');
+
+// Solicitação de Acesso / Cadastro de Novos Usuários
+fastify.post('/api/auth/request-access', async (request, reply) => {
+  const { name, email, note } = request.body || {};
+  if (!name || !email) {
+    return reply.code(400).send({ success: false, error: 'Nome e e-mail são obrigatórios.' });
+  }
+
+  await emailService.sendAccessRequestEmail({ name: name.trim(), email: email.trim(), note: note ? note.trim() : '' });
+  return {
+    success: true,
+    message: 'Solicitação enviada ao administrador! Aguarde as instruções de acesso por e-mail.'
+  };
+});
 
 // Rota de Login Master Seguro
 fastify.post('/api/auth/login', async (request, reply) => {

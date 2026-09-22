@@ -2,7 +2,7 @@
 
 import React from 'react'
 import {
-  MoreHorizontal, ArrowUpRight, RotateCcw, Database, Cloud, Archive, Copy, ExternalLink
+  MoreHorizontal, ArrowUpRight, RotateCcw, Database, Cloud, Archive, Copy, ExternalLink, Server
 } from 'lucide-react'
 
 interface DashboardViewProps {
@@ -22,7 +22,42 @@ export function DashboardView({
   setActive,
   doAction
 }: DashboardViewProps) {
-  if (!server) return null
+  if (!server) {
+    return (
+      <div style={{
+        textAlign: 'center',
+        padding: '60px 24px',
+        background: 'linear-gradient(180deg, rgba(16, 28, 32, 0.6) 0%, rgba(7, 14, 17, 0.8) 100%)',
+        borderRadius: '16px',
+        border: '1px dashed rgba(32, 214, 199, 0.3)',
+        marginTop: '20px'
+      }}>
+        <div style={{
+          display: 'inline-flex',
+          padding: '16px',
+          borderRadius: '50%',
+          background: 'rgba(32, 214, 199, 0.1)',
+          color: '#20d6c7',
+          marginBottom: '16px'
+        }}>
+          <Server size={36} />
+        </div>
+        <h2 style={{ fontSize: '20px', color: '#f0fdfa', margin: '0 0 8px', fontWeight: 600 }}>
+          Nenhum Servidor Conectado
+        </h2>
+        <p style={{ fontSize: '13px', color: '#829396', maxWidth: '460px', margin: '0 auto 24px', lineHeight: 1.5 }}>
+          Seu ambiente está limpo e pronto. Conecte sua máquina virtual (Oracle Cloud, AWS EC2, DigitalOcean ou VPS própria) via SSH para começar a monitorar telemetria, gerenciar Docker e criar túneis de borda.
+        </p>
+        <button
+          className="primary-button"
+          style={{ padding: '10px 20px', fontSize: '13px', margin: '0 auto' }}
+          onClick={() => doAction('Abra o menu superior para conectar uma VM')}
+        >
+          + Conectar Minha Primeira VM / VPS (SSH)
+        </button>
+      </div>
+    )
+  }
 
   return (
     <>
