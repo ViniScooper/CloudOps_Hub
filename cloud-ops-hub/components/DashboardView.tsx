@@ -2,7 +2,7 @@
 
 import React from 'react'
 import {
-  MoreHorizontal, ArrowUpRight, RotateCcw, Database, Cloud, Archive, Copy
+  MoreHorizontal, ArrowUpRight, RotateCcw, Database, Cloud, Archive, Copy, ExternalLink
 } from 'lucide-react'
 
 interface DashboardViewProps {
@@ -152,9 +152,54 @@ export function DashboardView({
           <div className="panel-header">
             <div>
               <h3>Serviços de Dados & DBA</h3>
-              <p>Estado de bancos e backups</p>
+              <p>Bancos Gerenciados OCI & Containers Locais</p>
             </div>
             <Database size={18} className="database-icon" />
+          </div>
+
+          {/* Banco de Dados em Nuvem: Oracle Autonomous Database (ATP) */}
+          <div className="data-service" style={{ border: '1px solid rgba(249, 115, 22, 0.3)', background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(13, 20, 24, 0.6) 100%)', borderRadius: '8px', padding: '10px 12px', marginBottom: '10px' }}>
+            <span className="service-icon" style={{ background: 'rgba(249, 115, 22, 0.2)', color: '#f97316' }}>
+              <Database size={16} />
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                <strong style={{ color: '#ffedd5', fontSize: '13px' }}>CLOUDOPSHUB (Oracle ATP)</strong>
+                <span style={{ fontSize: '10px', background: 'rgba(32, 214, 199, 0.15)', color: '#20d6c7', border: '1px solid rgba(32, 214, 199, 0.3)', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>Always Free</span>
+              </div>
+              <small style={{ color: '#9ca3af', display: 'block', fontSize: '11px', marginTop: '2px' }}>
+                20 GB NVMe · 1 OCPU · Exadata PDB · mTLS :1522
+              </small>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="status-text emerald" style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#20d6c7', display: 'inline-block' }}></span>
+                Ativo
+              </span>
+              <a
+                href="https://G31AC88BC331093-CLOUDOPSHUB.adb.sa-saopaulo-1.oraclecloudapps.com/ords/sql-developer"
+                target="_blank"
+                rel="noreferrer"
+                className="action-btn"
+                style={{
+                  fontSize: '11px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  background: 'rgba(249, 115, 22, 0.15)',
+                  color: '#fb923c',
+                  border: '1px solid rgba(249, 115, 22, 0.3)',
+                  textDecoration: 'none',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+                title="Abrir Oracle Database Actions / SQL Developer Web"
+              >
+                SQL Web <ExternalLink size={12} />
+              </a>
+            </div>
           </div>
 
           {(() => {
@@ -170,33 +215,31 @@ export function DashboardView({
               <>
                 {dbContainers.length > 0 ? (
                   dbContainers.map(c => (
-                    <div className="data-service" key={c.name}>
+                    <div className="data-service" key={c.name} style={{ marginBottom: '8px' }}>
                       <span className="service-icon postgres"><Database size={16} /></span>
-                      <div>
+                      <div style={{ flex: 1 }}>
                         <strong>{c.name.toUpperCase()} ({c.image})</strong>
-                        <small>Porta {c.port || 'Padrão'} · Status: {c.status || 'Rodando'}</small>
+                        <small>Porta {c.port || 'Padrão'} · Docker Local na VM</small>
                       </div>
                       <span className="status-text emerald">Healthy</span>
                     </div>
                   ))
                 ) : (
-                  <div style={{ padding: '20px 16px', textAlign: 'center', color: '#6f8387' }}>
-                    <div style={{ display: 'inline-flex', padding: '10px', borderRadius: '50%', background: 'rgba(32, 214, 199, 0.05)', marginBottom: '8px', color: '#20d6c7' }}>
-                      <Database size={20} />
-                    </div>
-                    <p style={{ margin: '0 0 4px', fontSize: '13px', color: '#d9e2e1', fontWeight: 600 }}>Nenhum Banco Detectado</p>
-                    <small style={{ fontSize: '11px', color: '#6f8387', display: 'block', marginBottom: '12px' }}>Nenhum container MySQL, Postgres ou Redis rodando nesta VM.</small>
+                  <div style={{ padding: '8px 12px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '6px', marginBottom: '8px', border: '1px dashed rgba(255, 255, 255, 0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '11px', color: '#829396' }}>
+                      Nenhum container MySQL/Postgres local rodando nesta VM ({server.name}).
+                    </span>
                     <button 
-                      className="primary-button" 
-                      style={{ fontSize: '11px', padding: '5px 12px', margin: '0 auto' }}
+                      className="text-link" 
+                      style={{ fontSize: '11px', color: '#20d6c7', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}
                       onClick={() => setActive('Docker')}
                     >
-                      Provisionar via Docker
+                      + Docker DB
                     </button>
                   </div>
                 )}
 
-                <div className="data-service" style={{ marginTop: '10px' }}>
+                <div className="data-service" style={{ marginTop: '6px' }}>
                   <span className="service-icon managed"><Cloud size={16} /></span>
                   <div>
                     <strong>Cloud Object Storage</strong>
