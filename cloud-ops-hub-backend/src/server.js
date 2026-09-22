@@ -943,10 +943,174 @@ fastify.post('/api/cron/jobs/:id/run-now', async (request, reply) => {
   }
 });
 
+// =========================================================================
+// 11. GESTÃO DE CICLO DE VIDA DOCKER (START, STOP, RESTART & LOGS AO VIVO)
+// =========================================================================
+const dockerService = require('./dockerService');
+
+fastify.post('/api/docker/action', async (request, reply) => {
+  const { container, action } = request.body || {};
+  try {
+    const res = await dockerService.executeContainerAction({ container, action });
+    return res;
+  } catch (err) {
+    return reply.status(500).send({ success: false, error: err.message });
+  }
+});
+
+fastify.get('/api/docker/logs/:container', async (request, reply) => {
+  const { container } = request.params;
+  const { tail = 100 } = request.query || {};
+  try {
+    const res = await dockerService.getContainerLogs({ container, tail });
+    return res;
+  } catch (err) {
+    return reply.status(500).send({ success: false, error: err.message });
+  }
+});
+
+fastify.get('/api/docker/containers', async (request, reply) => {
+  try {
+    const list = await dockerService.listContainersDetailed();
+    return { success: true, containers: list };
+  } catch (err) {
+    return reply.status(500).send({ success: false, error: err.message });
+  }
+});
+
+// =========================================================================
+// 12. PAINEL DE GESTÃO & APROVAÇÃO DE USUÁRIOS (MASTER)
+// =========================================================================
+const userManagementService = require('./userManagementService');
+
+fastify.get('/api/admin/requests', async (request, reply) => {
+  try {
+    const requests = await userManagementService.getAccessRequests();
+    return { success: true, requests };
+  } catch (err) {
+    return reply.status(500).send({ success: false, error: err.message });
+  }
+});
+
+fastify.post('/api/admin/approve-request', async (request, reply) => {
+  const { requestId, email, name } = request.body || {};
+  try {
+    const res = await userManagementService.approveRequest({ requestId, email, name });
+    return res;
+  } catch (err) {
+    return reply.status(500).send({ success: false, error: err.message });
+  }
+});
+
+fastify.post('/api/admin/reject-request', async (request, reply) => {
+  const { requestId, reason } = request.body || {};
+  try {
+    const res = await userManagementService.rejectRequest({ requestId, reason });
+    return res;
+  } catch (err) {
+    return reply.status(500).send({ success: false, error: err.message });
+  }
+});
+
+fastify.get('/api/admin/users', async () => {
+  const users = await userManagementService.listRegisteredUsers();
+  return { success: true, users };
+});
+
+// =========================================================================
+// 13. PERSISTÊNCIA SEGURA DE SERVIDORES (AES-256 USER SERVERS)
+// =========================================================================
+const userServerService = require('./userServerService');
+
+fastify.get('/api/user/servers', async (request, reply) => {
+  const authHeader = request.headers.authorization;
+  let userId = 'usr-anon';
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const user = authService.verifyToken(authHeader.split(' ')[1]);
+    if (user) userId = user.id;
+  }
+  const servers = await userServerService.listUserServers(userId);
+  return { success: true, servers };
+});
+
+fastify.post('/api/user/servers', async (request, reply) => {
+  const authHeader = request.headers.authorization;
+  let userId = 'usr-anon';
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const user = authService.verifyToken(authHeader.split(' ')[1]);
+    if (user) userId = user.id;
+  }
+
+  const { name, ip, port, user, privateKey, provider } = request.body || {};
+  try {
+    const server = await userServerService.addServer({ userId, name, ip, port, user, privateKey, provider });
+    return { success: true, server };
+  } catch (err) {
+    return reply.status(400).send({ success: false, error: err.message });
+  }
+});
+
+fastify.delete('/api/user/servers/:id', async (request, reply) => {
+  const authHeader = request.headers.authorization;
+  let userId = 'usr-anon';
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const user = authService.verifyToken(authHeader.split(' ')[1]);
+    if (user) userId = user.id;
+  }
+  const { id } = request.params;
+  const res = await userServerService.deleteUserServer(userId, id);
+  return res;
+});
+
+// =========================================================================
+// 14. WATCHDOG & MONITORAMENTO DE SAÚDE (WHATSAPP CALLMEBOT)
+// =========================================================================
+const watchdogService = require('./watchdogService');
+
+fastify.get('/api/watchdog/status', async () => {
+  return { success: true, ...watchdogService.getWatchdogStatus() };
+});
+
+fastify.post('/api/watchdog/test-alert', async () => {
+  const res = await watchdogService.testAlert();
+  return { success: true, ...res };
+});
+
+fastify.post('/api/watchdog/check-now', async () => {
+  await watchdogService.runHealthCheck();
+  return { success: true, ...watchdogService.getWatchdogStatus() };
+});
+
+// =========================================================================
+// 15. BACKUPS AUTOMATIZADOS DO MYSQL & DUMPS
+// =========================================================================
+const backupService = require('./backupService');
+
+fastify.post('/api/backups/create', async (request, reply) => {
+  try {
+    const res = await backupService.createBackup();
+    return res;
+  } catch (err) {
+    return reply.status(500).send({ success: false, error: err.message });
+  }
+});
+
+fastify.get('/api/backups', async (request, reply) => {
+  try {
+    const backups = await backupService.listBackups();
+    return { success: true, backups };
+  } catch (err) {
+    return reply.status(500).send({ success: false, error: err.message });
+  }
+});
+
 const start = async () => {
   try {
     // Inicia agendador de Cron / Anti-Sleep
     cronService.initCronScheduler();
+
+    // Inicia Watchdog de Monitoramento Proativo de RAM e Containers
+    watchdogService.startWatchdog(3);
 
     const port = process.env.PORT || 3005;
     await fastify.listen({ port, host: '0.0.0.0' });
@@ -958,5 +1122,6 @@ const start = async () => {
 };
 
 start();
+
 
 

@@ -5,7 +5,8 @@ import {
   Activity, Bell, Check, ChevronDown, CircleHelp, Cloud, Container, Database,
   HardDrive, LayoutDashboard, Menu, MoreHorizontal, Network, Plus, RefreshCw,
   Search, Server, Settings, TerminalSquare, X, Zap, Globe2, ArrowUpRight,
-  Copy, RotateCcw, Archive, ExternalLink, Layers3, Shield, User, Lock, LogOut
+  Copy, RotateCcw, Archive, ExternalLink, Layers3, Shield, User, Lock, LogOut,
+  Play, Square, FileText, Users, ShieldCheck
 } from 'lucide-react'
 import { VmScraper } from '../components/VmScraper'
 import { DashboardView } from '../components/DashboardView'
@@ -20,6 +21,7 @@ import { MigrationWorkspaceView } from '../components/MigrationWorkspaceView'
 import { VercelDeploymentsView, VercelIcon } from '../components/VercelDeploymentsView'
 import { RenderDeploymentsView, RenderIcon } from '../components/RenderDeploymentsView'
 import { LoginView } from '../components/LoginView'
+import { UserManagementView } from '../components/UserManagementView'
 import { Rocket, KeyRound, Bot, ArrowLeftRight } from 'lucide-react'
 import { getApiUrl } from '../lib/api'
 
@@ -619,6 +621,55 @@ terraform -version
     }
   }
 
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0)
+
+  // Consulta solicitações pendentes de cadastro para o usuário Master
+  useEffect(() => {
+    if (currentUser && (currentUser.email === 'vviniciuslourenco@gmail.com' || currentUser.role === 'admin' || currentUser.role === 'master')) {
+      fetch(getApiUrl('/api/admin/requests'))
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && Array.isArray(data.requests)) {
+            const count = data.requests.filter((r: any) => r.status === 'pending').length
+            setPendingRequestsCount(count)
+          }
+        })
+        .catch(() => {})
+    }
+  }, [currentUser])
+
+  // Ações de Ciclo de Vida Real do Docker (Start, Stop, Restart)
+  const handleDockerAction = async (containerName: string, action: 'start' | 'stop' | 'restart') => {
+    const actionLabel = action === 'start' ? 'Iniciando' : action === 'stop' ? 'Parando' : 'Reiniciando'
+    doAction(`${actionLabel} container ${containerName}...`)
+    try {
+      const res = await fetch(getApiUrl('/api/docker/action'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ container: containerName, action })
+      })
+      const data = await res.json()
+      if (data.success) {
+        doAction(`✅ Container ${containerName}: ${action} executado com sucesso! (Status: ${data.status})`)
+        setContainers(prev => prev.map(c => {
+          if (c.name === containerName) {
+            const isUp = action === 'start' || (action === 'restart' && data.status !== 'exited')
+            return {
+              ...c,
+              status: isUp ? 'Running' : 'Exited',
+              color: isUp ? 'emerald' : 'red'
+            }
+          }
+          return c
+        }))
+      } else {
+        doAction(`Erro ao executar ${action}: ${data.error || 'Falha na resposta'}`)
+      }
+    } catch (err: any) {
+      doAction(`Falha na requisição Docker: ${err.message}`)
+    }
+  }
+
   if (!currentUser) {
     return (
       <LoginView
@@ -680,6 +731,21 @@ terraform -version
           <Layers3 size={16} />
           <span>Recursos & VMs</span>
         </button>
+        {(currentUser.email === 'vviniciuslourenco@gmail.com' || currentUser.role === 'admin' || currentUser.role === 'master') && (
+          <button 
+            className={`nav-item ${active === 'Usuários & Aprovações' ? 'active' : ''}`}
+            title="Gerenciar solicitações de acesso e cadastros pendentes"
+            onClick={() => { setActive('Usuários & Aprovações'); setSidebarOpen(false) }}
+          >
+            <Users size={16} style={{ color: '#20d6c7' }} />
+            <span>Aprovações & Usuários</span>
+            {pendingRequestsCount > 0 && (
+              <span className="nav-badge" style={{ background: '#f59e0b', color: '#000', fontWeight: 800 }}>
+                {pendingRequestsCount}
+              </span>
+            )}
+          </button>
+        )}
         <button className="nav-item" title="Abrir configurações de segurança, chaves AES-256 e túneis" onClick={() => setSettingsOpen(true)}>
           <Settings size={16} />
           <span>Configurações</span>
@@ -1221,6 +1287,13 @@ terraform -version
         )}
 
         {/* ========================================================================= */}
+        {/* ABA: GESTÃO & APROVAÇÃO DE USUÁRIOS (MASTER) */}
+        {/* ========================================================================= */}
+        {active === 'Usuários & Aprovações' && (
+          <UserManagementView doAction={doAction} />
+        )}
+
+        {/* ========================================================================= */}
         {/* ABA: CENTRAL DE AJUDA & GUIA DE PRIMEIROS PASSOS */}
         {/* ========================================================================= */}
         {active === 'Ajuda & Guia' && (
@@ -1281,58 +1354,85 @@ terraform -version
                     <div style={{ padding: '24px', textAlign: 'center', color: '#6f8387', fontSize: '11px' }}>
                       Nenhum container Docker encontrado na máquina.
                     </div>
-                  ) : containers.map((item, idx) => (
-                    <div className="container-row" key={item.name}>
-                      <span className={`status-dot ${item.color || 'emerald'}`} />
-                      <div className="container-info">
-                        <strong>{item.name}</strong>
-                        <small>{item.image} | Mapeamento de Portas: {item.port}</small>
-                      </div>
-                      <span className={`status-text ${item.color || 'emerald'}`}>{item.status}</span>
-                      <div className="container-stats">
-                        <span><b>{item.cpu || '0%'}</b><small>CPU</small></span>
-                        <span><b>{item.memory || '0 MB'}</b><small>RAM</small></span>
-                      </div>
-                      <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
-                        <button 
-                          className="row-menu" 
-                          title={`Ver logs ao vivo do container ${item.name}`} 
-                          onClick={async () => {
-                            setActiveLogContainer(item.name)
-                            setLogsModalOpen(true)
-                            setIsLoadingLogs(true)
-                            setContainerLogsText('Carregando logs via Docker Engine SSH...')
-                            try {
-                              const res = await fetch(getApiUrl('/api/servers/exec'), {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ ip: server?.ip || '137.131.185.243', user: 'ubuntu', command: `docker logs --tail 60 ${item.name}` })
-                              })
-                              const data = await res.json()
-                              if (data.output && data.output.trim()) {
-                                setContainerLogsText(data.output)
-                              } else {
-                                if (item.name.includes('ingles')) {
-                                  setContainerLogsText(`[2026-09-14 20:30:11] [INFO] [plataforma_ingles_api] Initializing Supabase client...\n[2026-09-14 20:30:18] [ERROR] Supabase authentication error: Invalid API key or missing SUPABASE_SERVICE_ROLE_KEY\n[2026-09-14 20:30:25] [FATAL] Healthcheck probe failed: HTTP 503 Service Unavailable (Supabase unreachable)\n[2026-09-14 20:30:30] [INFO] Process container status marked as UNHEALTHY by Docker daemon.\n[2026-09-14 20:35:00] [HINT] Configure SUPABASE_URL e SUPABASE_ANON_KEY no arquivo .env do container.`)
+                  ) : containers.map((item, idx) => {
+                    const isRunning = item.status?.toLowerCase().includes('running') || item.status?.toLowerCase().includes('up') || item.status?.toLowerCase().includes('healthy')
+                    return (
+                      <div className="container-row" key={item.name}>
+                        <span className={`status-dot ${isRunning ? 'emerald' : 'red'}`} />
+                        <div className="container-info">
+                          <strong>{item.name}</strong>
+                          <small>{item.image} | Mapeamento: {item.port}</small>
+                        </div>
+                        <span className={`status-text ${isRunning ? 'emerald' : 'red'}`}>{item.status}</span>
+                        <div className="container-stats">
+                          <span><b>{item.cpu || '0%'}</b><small>CPU</small></span>
+                          <span><b>{item.memory || '0 MB'}</b><small>RAM</small></span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px', marginLeft: 'auto', alignItems: 'center' }}>
+                          {/* Botão Start */}
+                          {!isRunning && (
+                            <button 
+                              className="row-menu" 
+                              title={`Iniciar container ${item.name}`}
+                              style={{ color: '#10b981' }}
+                              onClick={() => handleDockerAction(item.name, 'start')}
+                            >
+                              <Play size={13} />
+                            </button>
+                          )}
+
+                          {/* Botão Stop */}
+                          {isRunning && (
+                            <button 
+                              className="row-menu" 
+                              title={`Parar container ${item.name}`}
+                              style={{ color: '#f87171' }}
+                              onClick={() => handleDockerAction(item.name, 'stop')}
+                            >
+                              <Square size={12} />
+                            </button>
+                          )}
+
+                          {/* Botão Restart */}
+                          <button 
+                            className="row-menu" 
+                            title={`Reiniciar container ${item.name}`}
+                            style={{ color: '#38bdf8' }}
+                            onClick={() => handleDockerAction(item.name, 'restart')}
+                          >
+                            <RotateCcw size={13} />
+                          </button>
+
+                          {/* Botão Logs ao Vivo */}
+                          <button 
+                            className="row-menu" 
+                            title={`Ver logs ao vivo do container ${item.name}`} 
+                            onClick={async () => {
+                              setActiveLogContainer(item.name)
+                              setLogsModalOpen(true)
+                              setIsLoadingLogs(true)
+                              setContainerLogsText('Carregando logs via Docker Engine SSH...')
+                              try {
+                                const res = await fetch(getApiUrl(`/api/docker/logs/${encodeURIComponent(item.name)}?tail=100`))
+                                const data = await res.json()
+                                if (data.logs) {
+                                  setContainerLogsText(data.logs)
                                 } else {
-                                  setContainerLogsText(`[2026-09-14 16:35:01] [INFO] ${item.name} daemon running in production mode\n[2026-09-14 16:35:02] [INFO] Healthcheck probe passed: 200 OK\n[2026-09-14 16:35:10] [INFO] Ready to accept requests on port ${item.port}`)
+                                  setContainerLogsText('Nenhum log retornado pelo Docker.')
                                 }
+                              } catch (err: any) {
+                                setContainerLogsText(`Erro ao consultar logs de ${item.name}: ${err.message}`)
+                              } finally {
+                                setIsLoadingLogs(false)
                               }
-                            } catch (err: any) {
-                              setContainerLogsText(`Erro ao consultar logs de ${item.name}: ${err.message}`)
-                            } finally {
-                              setIsLoadingLogs(false)
-                            }
-                          }}
-                        >
-                          <Search size={14} />
-                        </button>
-                        <button className="row-menu" title={`Reiniciar container ${item.name}`} onClick={() => doAction(`Container ${item.name} reiniciado com sucesso!`)}>
-                          <RotateCcw size={14} />
-                        </button>
+                            }}
+                          >
+                            <FileText size={13} />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </section>
             </>
