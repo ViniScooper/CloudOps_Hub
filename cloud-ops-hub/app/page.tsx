@@ -127,7 +127,7 @@ export default function Page() {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
   const [authEmail, setAuthEmail] = useState('admin@cloudops.io')
   const [authPassword, setAuthPassword] = useState('123456')
-  const [authName, setAuthName] = useState('Vinicius Lourenço')
+  const [authName, setAuthName] = useState('Administrador')
   const [authLoading, setAuthLoading] = useState(false)
 
   const [serverList, setServerList] = useState<any[]>([])
@@ -459,41 +459,24 @@ terraform -version
     setServerMenu(false)
     doAction(`Contexto alterado para ${item.name}`)
 
-    const isNew = item.id === 'oracle-micro-02' || item.ip === '137.131.187.54' || item.name === 'cloudops-micro-02'
     const nowTime = new Date().toLocaleTimeString('pt-BR')
-    if (isNew) {
-      setContainers([])
-      setProxyHosts([])
-      setTerminalHistory([
-        { time: nowTime, type: 'info', text: `Conectado em ${item.name} (${item.ip}) via SSH seguro (Zero Trust).` },
-        { time: nowTime, type: 'info', text: `Ambiente virgem pronto (0 containers, 46.5 GB livres). Experimente: uptime, free -m, df -h, docker ps` }
-      ])
+    const savedContainers = localStorage.getItem(`cloudops_containers_${item.id}`) || localStorage.getItem('cloudops_containers')
+    if (savedContainers) {
+      try { setContainers(JSON.parse(savedContainers)) } catch (e) { setContainers([]) }
     } else {
-      const savedContainers = localStorage.getItem('cloudops_containers')
-      if (savedContainers && JSON.parse(savedContainers).length > 0) {
-        setContainers(JSON.parse(savedContainers))
-      } else {
-        setContainers([
-          { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.0%', memory: '33.6 MB', color: 'emerald' },
-          { name: 'boteco_db', image: 'mysql:8.0 (Buffer 64M)', status: 'Running', port: '3306:3306', cpu: '0.5%', memory: '9.2 MB', color: 'emerald' },
-          { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.1%', memory: '31.3 MB', color: 'emerald' },
-          { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.0%', memory: '1.5 MB', color: 'emerald' },
-          { name: 'plataforma_ingles_api', image: 'node:18', status: 'Running', port: '3003:3002', cpu: '0.0%', memory: '23.8 MB', color: 'emerald' },
-          { name: 'lottus-api (PM2)', image: 'node/pm2', status: 'Online', port: '3001', cpu: '0.0%', memory: '35.5 MB', color: 'emerald' },
-        ])
-      }
-      const savedProxies = localStorage.getItem('cloudops_proxies')
-      if (savedProxies && JSON.parse(savedProxies).length > 0) {
-        setProxyHosts(JSON.parse(savedProxies))
-      } else {
-        setProxyHosts(proxyHostsData)
-      }
-      setTerminalHistory([
-        { time: nowTime, type: 'info', text: `Conectado em ${item.name} (${item.ip}) via SSH seguro (Zero Trust).` },
-        { time: nowTime, type: 'info', text: `Túnel Cloudflare ativo na porta 3002.` },
-        { time: nowTime, type: 'info', text: `Sessão pronta. Experimente: docker ps, uptime, free -m, df -h` }
-      ])
+      setContainers([])
     }
+    const savedProxies = localStorage.getItem(`cloudops_proxies_${item.id}`) || localStorage.getItem('cloudops_proxies')
+    if (savedProxies) {
+      try { setProxyHosts(JSON.parse(savedProxies)) } catch (e) { setProxyHosts([]) }
+    } else {
+      setProxyHosts([])
+    }
+    setTerminalHistory([
+      { time: nowTime, type: 'info', text: `Conectado em ${item.name} (${item.ip}) via SSH seguro (Zero Trust).` },
+      { time: nowTime, type: 'info', text: `Sessão SSH ativa e autenticada na porta 22.` },
+      { time: nowTime, type: 'info', text: `Sessão pronta. Experimente: uptime, free -m, df -h, docker ps` }
+    ])
   }
 
   if (!currentUser) {
