@@ -420,9 +420,7 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
               }}>
                 {isVirginVM 
                   ? 'Nenhum túnel ativo no nó • Portas externas fechadas com segurança' 
-                  : (tunnelStatus.currentUrl && !tunnelStatus.currentUrl.includes('trycloudflare.com') 
-                    ? tunnelStatus.currentUrl 
-                    : 'https://cardapio.botecosivirino.com.br')}
+                  : (tunnelStatus.currentUrl || 'https://his-unified-cleanup-cancellation.trycloudflare.com')}
               </span>
             </div>
           </div>
@@ -451,12 +449,7 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
             ) : (
               <>
                 <button
-                  onClick={() => copyToClipboard(
-                    (tunnelStatus.currentUrl && !tunnelStatus.currentUrl.includes('trycloudflare.com')) 
-                      ? tunnelStatus.currentUrl 
-                      : 'https://cardapio.botecosivirino.com.br', 
-                    true
-                  )}
+                  onClick={() => copyToClipboard(tunnelStatus.currentUrl || 'https://his-unified-cleanup-cancellation.trycloudflare.com', true)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -476,9 +469,7 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
                 </button>
 
                 <a
-                  href={(tunnelStatus.currentUrl && !tunnelStatus.currentUrl.includes('trycloudflare.com')) 
-                    ? tunnelStatus.currentUrl 
-                    : 'https://cardapio.botecosivirino.com.br'}
+                  href={tunnelStatus.currentUrl || 'https://his-unified-cleanup-cancellation.trycloudflare.com'}
                   target="_blank"
                   rel="noreferrer"
                   style={{
