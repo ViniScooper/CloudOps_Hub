@@ -465,25 +465,19 @@ body { background:#0b1010; color:#dfe8e5; }
 
 html, body {
   overflow-x: hidden;
-  max-width: 100vw;
+  max-width: 100%;
   width: 100%;
 }
 
 .app-shell {
-  overflow-x: hidden;
-  max-width: 100vw;
-  width: 100%;
-  position: relative;
-  min-height: 100vh;
-}
-
-.main-content {
-  overflow-x: hidden;
-  max-width: 100%;
-  width: 100%;
-  min-width: 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  position: relative;
+  overflow-x: hidden;
+  background: radial-gradient(circle at 76% -14%, #123d3b 0, transparent 25%), var(--carbon-bg);
 }
 
 /* Base resets preventing horizontal overflow */
@@ -498,14 +492,108 @@ pre, code {
   word-break: break-word;
 }
 
-table, .resource-table, .container-list {
-  max-width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+/* Desktop First Class Experience (> 960px) */
+@media (min-width: 961px) {
+  .app-shell {
+    display: flex !important;
+    flex-direction: row !important;
+    min-height: 100vh !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  .sidebar {
+    width: 268px !important;
+    min-width: 268px !important;
+    max-width: 268px !important;
+    min-height: 100vh !important;
+    height: 100vh !important;
+    position: sticky !important;
+    top: 0 !important;
+    flex-shrink: 0 !important;
+    transform: none !important;
+    display: flex !important;
+    z-index: 40 !important;
+    box-shadow: none !important;
+    overflow-y: auto !important;
+  }
+
+  .main-content {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: calc(100% - 268px) !important;
+    max-width: calc(100% - 268px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-x: hidden !important;
+  }
+
+  .topbar {
+    height: 64px !important;
+    padding: 0 34px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .page-content {
+    width: 100% !important;
+    max-width: 1440px !important;
+    margin: 0 auto !important;
+    padding: 28px 34px 32px !important;
+    box-sizing: border-box !important;
+  }
+
+  .metrics-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 14px !important;
+  }
+
+  .overview-grid,
+  .lower-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 16px !important;
+  }
+
+  .resource-table {
+    width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .resource-table-head {
+    display: grid !important;
+  }
+
+  .container-list {
+    overflow: visible !important;
+  }
+
+  .mobile-menu,
+  .mobile-close,
+  .sidebar-backdrop {
+    display: none !important;
+  }
 }
 
 /* Tablet & Mobile (< 960px) */
 @media (max-width: 960px) {
+  .app-shell {
+    flex-direction: column !important;
+  }
+
+  .main-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  table, .resource-table, .container-list {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
   .sidebar {
     position: fixed !important;
     top: 0 !important;

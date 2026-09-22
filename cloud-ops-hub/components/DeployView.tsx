@@ -171,6 +171,16 @@ export function DeployView({ server, doAction }: DeployViewProps) {
             Integração contínua real conectada à sua VM na Oracle Cloud, com rollback de emergência e histórico auditável.
           </p>
         </div>
+        {server ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', background: 'rgba(32, 214, 199, 0.08)', border: '1px solid rgba(32, 214, 199, 0.25)', borderRadius: '6px', fontSize: '11px', color: '#20d6c7' }}>
+            <span className="live-dot" />
+            <span>Alvo SSH: <b>{server.name}</b> ({server.ip})</span>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', background: 'rgba(244, 185, 66, 0.08)', border: '1px solid rgba(244, 185, 66, 0.25)', borderRadius: '6px', fontSize: '11px', color: '#f4b942' }}>
+            <span>⚠️ Nenhuma VM conectada</span>
+          </div>
+        )}
       </div>
 
       {/* Seção 1: Automação de Pull Request & Merge */}

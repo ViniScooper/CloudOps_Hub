@@ -693,8 +693,8 @@ terraform -version
         </div>
       </header>
       <div className={active === 'Odisseu AI' ? 'page-content odisseu-page-content' : 'page-content'}>
-        {/* Cabeçalho da página (oculto no Odisseu AI para dar espaço total ao chat) */}
-        {active !== 'Odisseu AI' && (
+        {/* Cabeçalho exclusivo do Dashboard (Painel de Controle, métricas de hardware da VM) */}
+        {active === 'Dashboard' && (
           <>
             <div className="page-heading">
               <div>
@@ -840,7 +840,7 @@ terraform -version
         {/* ========================================================================= */}
         {/* ABA: DEPLOY / CI-CD ZERO TOUCH */}
         {/* ========================================================================= */}
-        {server && active === 'Deploy' && (
+        {active === 'Deploy' && (
           <DeployView server={server} doAction={doAction} />
         )}
 
@@ -1081,7 +1081,7 @@ terraform -version
         </>}
 
 
-        {active !== 'Odisseu AI' && (
+        {(active === 'Dashboard' || active === 'Terminal') && (
         <section className="panel terminal-panel command-panel" style={{ marginTop: active === 'Terminal' ? '0' : '14px' }}>
           <div className="terminal-header">
             <div>
@@ -1260,14 +1260,16 @@ terraform -version
           </div>
         </section>
         )}
-        <div className="bottom-strip">
-          <div><Check size={16} /><span>{server ? 'Servidor conectado e túnel seguro ativo' : 'Aguardando conexão com servidor'}</span></div>
-          <span>{server ? 'Verificado há 12 segundos' : 'Status: Offline'}</span>
-          <div className="secure">
-            <Server size={14} /> {serverList.length} servidor(es) conectado(s) 
-            {server && <button title="Reiniciar agentes de coleta de métricas" onClick={() => doAction('Agentes de telemetria reiniciados com sucesso')}><RotateCcw size={13} /> Reiniciar agentes</button>}
+        {active === 'Dashboard' && (
+          <div className="bottom-strip">
+            <div><Check size={16} /><span>{server ? 'Servidor conectado e túnel seguro ativo' : 'Aguardando conexão com servidor'}</span></div>
+            <span>{server ? 'Verificado há 12 segundos' : 'Status: Offline'}</span>
+            <div className="secure">
+              <Server size={14} /> {serverList.length} servidor(es) conectado(s) 
+              {server && <button title="Reiniciar agentes de coleta de métricas" onClick={() => doAction('Agentes de telemetria reiniciados com sucesso')}><RotateCcw size={13} /> Reiniciar agentes</button>}
+            </div>
           </div>
-        </div>
+        )}
         {action && <div className="toast"><Check size={15} /> {action}</div>}
 
         {cloudShellOpen && (
