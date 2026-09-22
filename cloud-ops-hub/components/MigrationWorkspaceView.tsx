@@ -28,71 +28,16 @@ import {
 } from 'lucide-react'
 import { getApiUrl } from '../lib/api'
 
-// Projetos e Stacks Hospedados na Nuvem
-export const CLOUD_PROJECTS = [
-  {
-    id: 'webapp',
-    name: 'Aplicação Web Full-Stack',
-    shortName: 'Web App & API',
-    tag: 'Docker • MySQL 8.0 • Object Storage',
-    icon: '🚀',
-    db: 'MySQL 8.0 (Schemas de Produção)',
-    dbName: 'production_db',
-    dbSize: '~35 MB',
-    storage: 'Object Storage (Assets & Uploads)',
-    storageDetails: 'Mídias e documentos (~15 MB)',
-    backend: 'Docker app_backend (Porta 3000)',
-    backendDetails: 'Node.js 20 Express / Docker Compose',
-    frontend: 'Frontend Web SPA / PWA',
-    repo: 'web-app (branch main)',
-    dockerContainers: ['app_backend', 'app_db', 'app_proxy'],
-    port: '3000',
-    healthPath: '/health'
-  },
-  {
-    id: 'apiservice',
-    name: 'Microsserviço de API & Auth',
-    shortName: 'Core API Service',
-    tag: 'PM2 • Node.js • Postgres/MySQL',
-    icon: '⚡',
-    db: 'Banco Relacional (Auth, Users & Data)',
-    dbName: 'core_api_db',
-    dbSize: '~20 MB',
-    storage: 'Armazenamento Local (/uploads & logs)',
-    storageDetails: 'Arquivos e logs locais (~5 MB)',
-    backend: 'PM2 Cluster Mode (Porta 8080)',
-    backendDetails: 'Node.js 20 / PM2 Ingress',
-    frontend: 'API Ingress (api.empresa.com.br)',
-    repo: 'core_api (branch main)',
-    dockerContainers: ['nginx-ingress', 'pm2:core_api'],
-    port: '8080',
-    healthPath: '/status'
-  },
-  {
-    id: 'all',
-    name: 'Todos os Projetos da Nuvem',
-    shortName: 'Servidor Completo',
-    tag: 'Multi-Stack Completo (Docker + PM2)',
-    icon: '☁️',
-    db: 'Todos os Bancos (production_db + core_api_db)',
-    dbName: 'production_db, core_api_db',
-    dbSize: '~55 MB',
-    storage: 'Todos os Buckets Cloud + Pastas /uploads',
-    storageDetails: 'Mídia e arquivos consolidados (~20 MB)',
-    backend: 'Todos os Containers Docker + Processos PM2',
-    backendDetails: 'app_backend, app_db, core_api, nginx',
-    frontend: 'Todas as Rotas e Domínios Nginx',
-    repo: 'web-app + core_api',
-    dockerContainers: ['app_backend', 'app_db', 'app_proxy', 'nginx-ingress', 'pm2:core_api'],
-    port: '3000 e 8080',
-    healthPath: '/'
-  }
-]
+// Lista padrão vazia (carregada dinamicamente via /api/migration/projects da VM)
+export const CLOUD_PROJECTS: any[] = []
 
 export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) => void }) {
-  // Projeto Selecionado da Nuvem de Origem
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('webapp')
-  const currentProject = CLOUD_PROJECTS.find(p => p.id === selectedProjectId) || CLOUD_PROJECTS[0]
+  // Projetos dinâmicos detectados na VM de origem
+  const [cloudProjects, setCloudProjects] = useState<any[]>([])
+  const [loadingProjects, setLoadingProjects] = useState(true)
+  const [vmConnected, setVmConnected] = useState(false)
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('')
+  const currentProject = cloudProjects.find(p => p.id === selectedProjectId) || (cloudProjects.length > 0 ? cloudProjects[0] : null)
 
   // Servidores Cadastrados no Hub com Status OK
   const [registeredTargets, setRegisteredTargets] = useState<any[]>([])
@@ -141,7 +86,34 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
     }
   }
 
+  const fetchProjects = async () => {
+    try {
+      setLoadingProjects(true)
+      const res = await fetch(getApiUrl('/api/migration/projects'))
+      const data = await res.json()
+      setVmConnected(Boolean(data.connected))
+      if (data.projects && Array.isArray(data.projects) && data.projects.length > 0) {
+        setCloudProjects(data.projects)
+        setSelectedProjectId(data.projects[0].id)
+      } else {
+        setCloudProjects([])
+        setSelectedProjectId('')
+      }
+    } catch (e: any) {
+      console.error('Erro ao consultar projetos da VM:', e.message)
+      setVmConnected(false)
+      setCloudProjects([])
+      setSelectedProjectId('')
+    } finally {
+      setLoadingProjects(false)
+    }
+  }
+
   const fetchEstimate = (projId: string) => {
+    if (!projId) {
+      setEstimate(null)
+      return
+    }
     fetch(getApiUrl(`/api/migration/estimate?project=${projId}`))
       .then(r => r.json())
       .then(d => setEstimate(d))
@@ -150,10 +122,13 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
 
   useEffect(() => {
     fetchTargets()
+    fetchProjects()
   }, [])
 
   useEffect(() => {
-    fetchEstimate(selectedProjectId)
+    if (selectedProjectId) {
+      fetchEstimate(selectedProjectId)
+    }
   }, [selectedProjectId])
 
   const handleSelectTarget = (target: any) => {
@@ -261,6 +236,10 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
   }
 
   const handleStartMigration = async () => {
+    if (!currentProject) {
+      alert('Nenhum projeto selecionado para migração. Publique um projeto ou conecte sua VM primeiro.')
+      return
+    }
     if (!targetHost.trim()) {
       alert('Por favor, informe o IP da nova VPS de destino (Hostinger).')
       return
@@ -357,29 +336,35 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
             </span>
           </div>
           <p style={{ margin: '8px 0 0', color: '#9ca3af', fontSize: '14px', lineHeight: '1.6', maxWidth: '800px' }}>
-            Transfira a infraestrutura completa de <b>{currentProject.name}</b> ({currentProject.tag}) da Oracle Cloud para a {targetProvider} ou outra VPS de forma 100% automatizada.
+            {currentProject ? (
+              <>Transfira a infraestrutura completa de <b>{currentProject.name}</b> ({currentProject.tag}) da Oracle Cloud para a {targetProvider || 'Hostinger'} ou outra VPS de forma 100% automatizada.</>
+            ) : (
+              <>Conecte uma instância cloud e publique sua aplicação para transferir infraestrutura, banco de dados e arquivos com Zero Downtime.</>
+            )}
           </p>
         </div>
 
         <div style={{ display: 'flex', gap: '10px' }}>
           <button
             onClick={handleGenerateTerraform}
+            disabled={!currentProject}
             style={{
               background: '#0c1316',
               border: '1px solid #1f2d30',
-              color: '#20d6c7',
+              color: currentProject ? '#20d6c7' : '#556568',
               padding: '10px 18px',
               borderRadius: '8px',
               fontSize: '12px',
               fontWeight: 700,
-              cursor: 'pointer',
+              cursor: currentProject ? 'pointer' : 'not-allowed',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
+              opacity: currentProject ? 1 : 0.6,
               transition: 'all 0.2s'
             }}
           >
-            <FileCode2 size={15} /> Ver Script Terraform ({currentProject.shortName})
+            <FileCode2 size={15} /> Ver Script Terraform {currentProject ? `(${currentProject.shortName})` : ''}
           </button>
         </div>
       </div>
@@ -392,9 +377,23 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
             <span style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700 }}>
               Servidor de Origem (Ativo Hoje)
             </span>
-            <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '3px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700 }}>
-              ● Produção no Ar
-            </span>
+            {loadingProjects ? (
+              <span style={{ background: 'rgba(156, 163, 175, 0.15)', color: '#9ca3af', border: '1px solid rgba(156, 163, 175, 0.3)', padding: '3px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700 }}>
+                Verificando...
+              </span>
+            ) : !vmConnected ? (
+              <span style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '3px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700 }}>
+                ● Nenhuma VM Conectada
+              </span>
+            ) : cloudProjects.length === 0 ? (
+              <span style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.3)', padding: '3px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700 }}>
+                ● VM Conectada (Limpa)
+              </span>
+            ) : (
+              <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '3px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700 }}>
+                ● Produção no Ar
+              </span>
+            )}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
@@ -403,7 +402,9 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: '16px', color: '#f3f4f6', fontWeight: 700 }}>Nuvem de Origem (Produção)</h3>
-              <span style={{ fontSize: '12px', color: '#9ca3af', fontFamily: 'monospace' }}>Instância Cloud Conectada</span>
+              <span style={{ fontSize: '12px', color: '#9ca3af', fontFamily: 'monospace' }}>
+                {vmConnected ? 'Instância Cloud Conectada' : 'Nenhuma VM vinculada'}
+              </span>
             </div>
           </div>
 
@@ -413,88 +414,141 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
               <label htmlFor="cloud-project-select" style={{ fontSize: '11px', color: '#20d6c7', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Layers size={13} /> Escolha o Projeto para Migrar:
               </label>
-              <span style={{ fontSize: '10px', color: '#a3e635', fontWeight: 600 }}>2 Projetos Ativos</span>
+              {loadingProjects ? (
+                <span style={{ fontSize: '10px', color: '#9ca3af' }}>Detectando...</span>
+              ) : cloudProjects.length === 0 ? (
+                <span style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 600 }}>0 Projetos Ativos</span>
+              ) : (
+                <span style={{ fontSize: '10px', color: '#a3e635', fontWeight: 600 }}>
+                  {cloudProjects.filter(p => p.id !== 'all').length} {cloudProjects.filter(p => p.id !== 'all').length === 1 ? 'Projeto Ativo' : 'Projetos Ativos'}
+                </span>
+              )}
             </div>
 
-            {/* SELECT DROPDOWN */}
-            <select
-              id="cloud-project-select"
-              value={selectedProjectId}
-              onChange={e => {
-                setSelectedProjectId(e.target.value)
-                const proj = CLOUD_PROJECTS.find(p => p.id === e.target.value)
-                if (proj) doAction(`Projeto de origem selecionado: ${proj.name}`)
-              }}
-              style={{
-                width: '100%',
-                background: '#0e1619',
-                border: '1px solid rgba(32, 214, 199, 0.4)',
-                borderRadius: '8px',
-                color: '#f3f4f6',
-                padding: '10px 12px',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                outline: 'none',
-                marginBottom: '10px'
-              }}
-            >
-              {CLOUD_PROJECTS.map(proj => (
-                <option key={proj.id} value={proj.id}>
-                  {proj.icon} {proj.name} — {proj.tag}
-                </option>
-              ))}
-            </select>
-
-            {/* PILLS RÁPIDAS PARA CLICAR */}
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              {CLOUD_PROJECTS.map(proj => (
+            {loadingProjects ? (
+              <div style={{ padding: '20px', textAlign: 'center', color: '#9ca3af', fontSize: '12px' }}>
+                <RefreshCw size={16} className="animate-spin" style={{ display: 'inline', marginRight: '6px' }} />
+                Consultando serviços ativos na VM...
+              </div>
+            ) : cloudProjects.length === 0 ? (
+              <div style={{ padding: '18px 14px', border: '1px dashed #223235', borderRadius: '8px', textAlign: 'center', background: '#070b0c' }}>
+                <Box size={26} style={{ margin: '0 auto 8px', color: '#6b7280' }} />
+                <h4 style={{ margin: '0 0 4px', fontSize: '13px', color: '#e5e7eb', fontWeight: 700 }}>
+                  {vmConnected ? 'Nenhum Projeto Rodando na VM' : 'Nenhuma VM Conectada'}
+                </h4>
+                <p style={{ margin: '0 0 12px', fontSize: '11px', color: '#9ca3af', lineHeight: 1.4 }}>
+                  {vmConnected
+                    ? 'Esta máquina virtual está limpa (nenhum container Docker ou processo PM2 ativo). Publique um projeto para habilitar a migração em 1-clique.'
+                    : 'Conecte sua VM ou configure as credenciais SSH para mapear os serviços em execução.'}
+                </p>
                 <button
-                  key={proj.id}
-                  onClick={() => {
-                    setSelectedProjectId(proj.id)
-                    doAction(`Projeto de origem selecionado: ${proj.name}`)
-                  }}
+                  onClick={() => doAction('Ir para Novo Deploy')}
                   style={{
-                    flex: '1 1 calc(33.333% - 6px)',
-                    minWidth: '95px',
-                    padding: '6px 8px',
+                    padding: '6px 14px',
                     borderRadius: '6px',
-                    border: selectedProjectId === proj.id ? '1px solid #20d6c7' : '1px solid #172427',
-                    background: selectedProjectId === proj.id ? 'rgba(32, 214, 199, 0.15)' : '#0b1114',
-                    color: selectedProjectId === proj.id ? '#20d6c7' : '#8fa4a8',
+                    background: 'linear-gradient(135deg, #20d6c7, #0fa396)',
+                    color: '#0a0f12',
+                    fontWeight: 700,
+                    fontSize: '11px',
+                    border: 'none',
                     cursor: 'pointer',
-                    fontSize: '10px',
-                    fontWeight: selectedProjectId === proj.id ? 700 : 500,
-                    textAlign: 'center',
-                    transition: 'all 0.15s'
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px'
                   }}
                 >
-                  {proj.icon} {proj.shortName}
+                  <Sparkles size={12} /> Fazer Primeiro Deploy
                 </button>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <>
+                {/* SELECT DROPDOWN */}
+                <select
+                  id="cloud-project-select"
+                  value={selectedProjectId}
+                  onChange={e => {
+                    setSelectedProjectId(e.target.value)
+                    const proj = cloudProjects.find(p => p.id === e.target.value)
+                    if (proj) doAction(`Projeto de origem selecionado: ${proj.name}`)
+                  }}
+                  style={{
+                    width: '100%',
+                    background: '#0e1619',
+                    border: '1px solid rgba(32, 214, 199, 0.4)',
+                    borderRadius: '8px',
+                    color: '#f3f4f6',
+                    padding: '10px 12px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    outline: 'none',
+                    marginBottom: '10px'
+                  }}
+                >
+                  {cloudProjects.map(proj => (
+                    <option key={proj.id} value={proj.id}>
+                      {proj.icon} {proj.name} — {proj.tag}
+                    </option>
+                  ))}
+                </select>
+
+                {/* PILLS RÁPIDAS PARA CLICAR */}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {cloudProjects.map(proj => (
+                    <button
+                      key={proj.id}
+                      onClick={() => {
+                        setSelectedProjectId(proj.id)
+                        doAction(`Projeto de origem selecionado: ${proj.name}`)
+                      }}
+                      style={{
+                        flex: '1 1 calc(33.333% - 6px)',
+                        minWidth: '95px',
+                        padding: '6px 8px',
+                        borderRadius: '6px',
+                        border: selectedProjectId === proj.id ? '1px solid #20d6c7' : '1px solid #172427',
+                        background: selectedProjectId === proj.id ? 'rgba(32, 214, 199, 0.15)' : '#0b1114',
+                        color: selectedProjectId === proj.id ? '#20d6c7' : '#8fa4a8',
+                        cursor: 'pointer',
+                        fontSize: '10px',
+                        fontWeight: selectedProjectId === proj.id ? 700 : 500,
+                        textAlign: 'center',
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      {proj.icon} {proj.shortName}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
           {/* DETALHES DINÂMICOS DO PROJETO SELECIONADO */}
-          <div style={{ borderTop: '1px solid #182326', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: '#9ca3af' }}>📦 Banco de Dados:</span>
-              <strong style={{ color: '#e5e7eb', textAlign: 'right', fontSize: '12px' }}>{currentProject.db}</strong>
+          {currentProject ? (
+            <div style={{ borderTop: '1px solid #182326', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#9ca3af' }}>📦 Banco de Dados:</span>
+                <strong style={{ color: '#e5e7eb', textAlign: 'right', fontSize: '12px' }}>{currentProject.db}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#9ca3af' }}>🪣 Armazenamento:</span>
+                <strong style={{ color: '#e5e7eb', textAlign: 'right', fontSize: '12px' }}>{currentProject.storage}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#9ca3af' }}>🚀 Aplicação Backend:</span>
+                <strong style={{ color: '#e5e7eb', textAlign: 'right', fontSize: '12px' }}>{currentProject.backend}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#9ca3af' }}>📁 Repositório Git:</span>
+                <strong style={{ color: '#20d6c7', fontFamily: 'monospace', fontSize: '12px' }}>{currentProject.repo}</strong>
+              </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: '#9ca3af' }}>🪣 Armazenamento:</span>
-              <strong style={{ color: '#e5e7eb', textAlign: 'right', fontSize: '12px' }}>{currentProject.storage}</strong>
+          ) : (
+            <div style={{ borderTop: '1px solid #182326', paddingTop: '14px', textAlign: 'center', color: '#6b7280', fontSize: '12px' }}>
+              Nenhum serviço detectado para mapear banco de dados ou armazenamento.
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: '#9ca3af' }}>🚀 Aplicação Backend:</span>
-              <strong style={{ color: '#e5e7eb', textAlign: 'right', fontSize: '12px' }}>{currentProject.backend}</strong>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: '#9ca3af' }}>📁 Repositório Git:</span>
-              <strong style={{ color: '#20d6c7', fontFamily: 'monospace', fontSize: '12px' }}>{currentProject.repo}</strong>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* CARD RESUMO DO DESTINO SELECIONADO (DINÂMICO / VAZIO SE NADA SELECIONADO) */}
@@ -537,7 +591,7 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
             <div style={{ borderTop: '1px solid #182326', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#9ca3af' }}>📦 Projeto a Migrar:</span>
-                <strong style={{ color: '#20d6c7' }}>{currentProject.name}</strong>
+                <strong style={{ color: '#20d6c7' }}>{currentProject ? currentProject.name : 'Nenhum selecionado'}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#9ca3af' }}>💻 Hardware / Specs:</span>
@@ -601,7 +655,7 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
               <div style={{ borderTop: '1px solid #182326', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#6f8387' }}>📦 Projeto a Migrar:</span>
-                  <strong style={{ color: '#20d6c7' }}>{currentProject.name}</strong>
+                  <strong style={{ color: '#20d6c7' }}>{currentProject ? currentProject.name : 'Nenhum selecionado'}</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#6f8387' }}>💻 Hardware / Specs:</span>
@@ -1173,7 +1227,7 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
             </div>
 
             <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '12px' }}>
-              Script Terraform autônomo gerado para provisionar a infraestrutura completa de {currentProject.name} na {targetProvider}:
+              Script Terraform autônomo gerado para provisionar a infraestrutura completa de {currentProject ? currentProject.name : 'Projeto'} na {targetProvider || 'Hostinger'}:
             </p>
 
             <pre style={{
