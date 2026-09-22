@@ -34,9 +34,9 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
   const isVirginVM = server?.name === 'cloudops-micro-02' || server?.ip === '137.131.187.54'
 
   const [tunnelStatus, setTunnelStatus] = useState<any>(() => ({
-    isRunning: !isVirginVM,
-    status: isVirginVM ? 'NotInstalled' : 'Active',
-    currentUrl: isVirginVM ? '' : 'https://cardapio.botecosivirino.com.br',
+    isRunning: false,
+    status: 'Idle',
+    currentUrl: '',
     startedAt: '',
     lastChecked: ''
   }))
@@ -64,8 +64,8 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
   const [modalOpen, setModalOpen] = useState(false)
   const [editingDomainId, setEditingDomainId] = useState<string | null>(null)
   const [domainInput, setDomainInput] = useState('')
-  const [portInput, setPortInput] = useState(isVirginVM ? '80' : '3002')
-  const [typeInput, setTypeInput] = useState(isVirginVM ? 'Túnel Cloudflare (Zero Trust)' : 'Túnel Cloudflare (boteco_tunnel)')
+  const [portInput, setPortInput] = useState('80')
+  const [typeInput, setTypeInput] = useState('Túnel Cloudflare (Zero Trust)')
   const [isSavingDomain, setIsSavingDomain] = useState(false)
   const [pingStatus, setPingStatus] = useState<{ [domain: string]: string }>({})
 
@@ -105,7 +105,7 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
         setTunnelStatus({
           isRunning: data.isRunning,
           status: data.status,
-          currentUrl: data.currentUrl || 'https://cardapio.botecosivirino.com.br',
+          currentUrl: data.currentUrl || '',
           startedAt: data.startedAt,
           lastChecked: data.lastChecked
         })
@@ -528,14 +528,14 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
         <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h3>Apontamento de Domínios (DNS & Rotas de Borda)</h3>
-            <p>Mapeamento de tráfego web para Vercel, Túnel Cloudflare e containers na VM {server?.name || 'instance-bytedata'}</p>
+            <p>Mapeamento de tráfego web para Vercel, Túnel Cloudflare e containers na VM {server?.name || 'conectada'}</p>
           </div>
           <button
             className="refresh-button"
             onClick={() => {
               setEditingDomainId(null)
               setDomainInput('')
-              setPortInput('3002')
+              setPortInput('80')
               setModalOpen(true)
             }}
           >
@@ -551,9 +551,7 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
                 Nenhum Domínio Apontado para {server?.name || 'este servidor'}
               </h4>
               <p style={{ color: '#68868a', fontSize: '11.5px', maxWidth: '460px', margin: '0 auto 16px auto', lineHeight: '1.5' }}>
-                {isVirginVM 
-                  ? 'Esta VM é um nó virgem e limpo. Os domínios de produção (Boteco/Lottus) pertencem à VM instance-bytedata. Clique abaixo para mapear um domínio exclusivo para este nó.' 
-                  : 'Nenhum apontamento de domínio cadastrado neste servidor ainda.'}
+                Nenhum apontamento de domínio cadastrado neste servidor ainda. Clique abaixo para mapear um domínio ou subdomínio exclusivo para os containers desta VM.
               </p>
               <button
                 className="primary-button"
@@ -812,7 +810,7 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
                 </label>
                 <input
                   type="text"
-                  placeholder={isVirginVM ? "ex: api.meunovoprojeto.com ou app.meudominio.com" : "ex: pedidos.botecosivirino.com.br ou app.meusite.com"}
+                  placeholder="ex: app.meusite.com ou api.meusite.com"
                   value={domainInput}
                   onChange={(e) => setDomainInput(e.target.value)}
                   required

@@ -25,13 +25,12 @@ const TERM_SYNONYMS = {
   'ram': ['memoria', 'swap', 'oom', '956mb', 'hardware', 'desempenho', 'queda', 'cpu', 'recursos'],
   'docker': ['container', 'containers', 'compose', 'docker-compose', 'unhealthy', 'restart', 'logs'],
   'pm2': ['lottus', 'node', 'processo', 'ecosystem', 'background', 'ram leve', '15mb'],
-  'boteco': ['sivirino', 'restaurante', 'cardapio', '3002', 'mysql', 'bucket', 'fotos'],
-  'lottus': ['3001', 'pm2', 'lottus-api', 'corporativa'],
-  'tunnel': ['cloudflare', 'cloudflared', 'zero trust', 'cardapio.botecosivirino.com.br', 'dominio', 'ssl'],
+  'storage': ['bucket', 'backups', 'dumps', 'arquivos', 'uploads', 'oci', 's3'],
+  'tunnel': ['cloudflare', 'cloudflared', 'zero trust', 'dominio', 'ssl', 'https'],
   'nginx': ['proxy', 'reverso', 'sites-available', 'subdominio', 'ssl', 'certbot', 'letsencrypt'],
   'scraper': ['robo', 'oracle', 'sem custos', 'sem capacidade', 'out of host capacity', 'a1.flex', 'ampere', 'e2.1.micro'],
   'deploy': ['git', 'pull', 'branch', 'main', 'develop', 'rollback', 'ci/cd', 'zero downtime'],
-  'vercel': ['frontend', 'edge', 'deploy vercel', 'cardapiodigital', 'redeploy', 'build vercel', 'vite']
+  'vercel': ['frontend', 'edge', 'deploy vercel', 'redeploy', 'build vercel', 'nextjs']
 };
 
 class RagKnowledgeBase {
@@ -138,28 +137,23 @@ class RagKnowledgeBase {
   // Conhecimento vivo das rotas, portas e regras fundamentais
   getLiveSystemKnowledgeChunk() {
     return {
-      content: `[INFRAESTRUTURA VIVA & REGRAS RÍGIDAS DE HARDWARE]
-- VM Oracle Cloud: "instance-bytedata" (137.131.185.243), Ubuntu 22.04 LTS, sa-saopaulo-1 (GRU).
-- Hardware Crítico: 956 MB RAM física disponível. Risco real de OOM (Out Of Memory). Swap ativo: 2.0 GB.
-- Regra de Ouro: NOVAS APIs SEMPRE em Node.js com PM2 (~15MB RAM). NUNCA subir múltiplos containers pesados em Docker.
-- Mapa de Portas Reservadas (NÃO USAR):
-  * 80/443: Nginx Proxy Reverso (SSL Let's Encrypt)
-  * 3001: Lottus API (PM2, repo ViniScooper/lottus-api)
-  * 3002: Boteco do Sivirino Backend (Docker, repo ViniScooper/sivirino-backend)
-  * 3003: Plataforma de Inglês API (Docker)
-  * 3306: MySQL 8.0 ('restaurante', 12 categorias, 134 pratos)
-- Portas Livres para Novas APIs: 3004, 3005, 3006, 3007+
+      content: `[INFRAESTRUTURA VIVA & DIRETRIZES DE ENGENHARIA DE NUVEM]
+- Servidores Conectados: Instâncias Cloud (Oracle Cloud, AWS, GCP, VPS), Ubuntu LTS.
+- Gestão de Memória: Em instâncias com recursos limitados (ex: 1GB RAM), manter swap ativo (1-2GB) para prevenir OOM.
+- Boas Práticas: APIs em Node.js/Go com gerenciador de processos PM2 ou containers Docker otimizados.
+- Mapa de Portas Padrão:
+  * 80/443: Nginx Proxy Reverso (SSL Let's Encrypt / Certbot)
+  * 3306: MySQL / 5432: PostgreSQL
+  * 3000-3005: Aplicações Web e APIs Backend
 - Ferramenta de Migração Multi-Cloud (Zero Downtime):
-  * Permite migrar qualquer projeto (Boteco do Sivirino, Lottus API ou Todos) para Hostinger, Hetzner, AWS, Contabo ou Bare-Metal.
-  * Pipeline automatizado: Validação SSH -> Dump MySQL -> Rsync de fotos/storage -> Auto-provisionamento Docker/PM2 -> Cutover Cloudflare DNS.
+  * Permite migrar qualquer projeto para Hostinger, Hetzner, AWS, Contabo ou Bare-Metal.
+  * Pipeline automatizado: Validação SSH -> Dump Banco de Dados -> Rsync de storage -> Auto-provisionamento Docker/PM2 -> Cutover DNS.
   * Suporta geração de scripts Terraform e Bash autônomos.
 - Cloudflare Tunnel Zero Trust:
-  * Domínio público: cardapio.botecosivirino.com.br
-  * Tráfego entra via tunel criptografado na porta 3002 sem abrir portas no firewall da Oracle Cloud.
-- Scraper Oracle 24/7:
-  * Robô em segundo plano buscando instâncias Always Free Ampere (A1.Flex) e E2.1.Micro na região sa-saopaulo-1.
+  * Tráfego entra via túnel criptografado sem abrir portas públicas no firewall da Cloud.
+- Scraper de Instâncias Cloud 24/7:
+  * Robô em segundo plano e monitoramento de capacidade.
 - Frontend Vercel Edge CI/CD:
-  * Projeto: cardapio_digital (produção em cardapiodigital-gamma.vercel.app, branch main).
   * Painel integrado no CloudOps Hub: monitoramento de builds, visualização de status (Ready, Building, Error) e disparo de redeploy com 1 clique.`
     };
   }
@@ -222,12 +216,12 @@ class RagKnowledgeBase {
   retrieveContext(query = '', maxTokensEstimate = 600) {
     const relevantChunks = this.search(query, 3);
 
-    let context = `[REGRAS DA INFRAESTRUTURA - ORACLE CLOUD]:
-- VM: "instance-bytedata" (137.131.185.243), Ubuntu 22.04 LTS
-- Hardware: 956 MB RAM física (Crítico: risco OOM), Swap 2.0 GB ativo
-- Portas Reservadas: 80/443 (Nginx), 3001 (Lottus PM2), 3002 (Boteco Docker), 3003 (Inglês Docker), 3306 (MySQL Docker)
-- Portas Livres: 3004, 3005, 3006+
-- Regra de Ouro: Novas APIs em Node.js com PM2 (~15MB RAM). NUNCA sobrecarregar Docker com múltiplos containers.`;
+    let context = `[REGRAS DA INFRAESTRUTURA CLOUD]:
+- Servidor Conectado: Linux Ubuntu LTS (Zero Trust SSH)
+- Hardware: Monitoramento contínuo de CPU, RAM e Swap contra OOM
+- Portas Reservadas Padrão: 80/443 (Nginx/SSL), 3306 (MySQL), 5432 (Postgres)
+- Portas de Aplicação: 3000-3005+
+- Boas Práticas: APIs leves em Node.js/Go com PM2 ou Docker otimizado.`;
 
     if (relevantChunks.length > 0) {
       context += `\n\n[BASE DE CONHECIMENTO RELEVANTE RECUPERADA]:`;

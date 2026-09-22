@@ -76,32 +76,7 @@ function loadHistory() {
   } catch (err) {
     console.error('Erro ao ler deploy_history.json:', err.message);
   }
-  return [
-    {
-      id: 'dep-101',
-      timestamp: 'Hoje, 11:45',
-      project: 'Boteco Sivirino',
-      type: 'DEPLOY',
-      branch: 'main',
-      commitHash: 'e4a81fc',
-      commitMessage: 'feat: integracao de cardapio e rotas de delivery',
-      author: 'Vinicius Lourenco',
-      duration: '4.2s',
-      status: 'Sucesso'
-    },
-    {
-      id: 'dep-100',
-      timestamp: 'Ontem, 19:20',
-      project: 'Boteco Sivirino',
-      type: 'DEPLOY',
-      branch: 'main',
-      commitHash: 'b92c410',
-      commitMessage: 'fix: ajuste no timeout de conexao do mysql',
-      author: 'Vinicius Lourenco',
-      duration: '3.8s',
-      status: 'Sucesso'
-    }
-  ];
+  return [];
 }
 
 function saveHistory(history) {
@@ -114,59 +89,45 @@ function saveHistory(history) {
   }
 }
 
-async function executeDeploy({ project = 'cardapio_digital', branch = 'main' }) {
+async function executeDeploy({ project = 'app_service', branch = 'main' }) {
   const startTime = Date.now();
   const timestamp = new Date().toLocaleTimeString('pt-BR');
   const logs = [];
 
-  logs.push(`[${timestamp}] 🚀 Iniciando pipeline de Deploy Real via SSH na VM (${process.env.VM_HOST || '137.131.185.243'})...`);
+  logs.push(`[${timestamp}] 🚀 Iniciando pipeline de Deploy Real via SSH na VM (${process.env.VM_HOST || 'Servidor'})...`);
 
   let commitHash = 'latest';
   let commitMsg = 'Deploy efetuado com sucesso';
 
   try {
-    if (project === 'cardapio_digital') {
-      const targetDir = '/home/ubuntu/cardapio_digital';
+    const targetDir = `/home/ubuntu/${project}`;
       
-      logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Acessando diretório ${targetDir} na VM...`);
-      logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Executando: git fetch origin && git checkout ${branch} && git pull origin ${branch}...`);
+    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Acessando diretório ${targetDir} na VM...`);
+    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Executando: git fetch origin && git checkout ${branch} && git pull origin ${branch}...`);
 
-      const gitPullRes = await runRemoteSsh(`cd ${targetDir} && git fetch origin && git checkout ${branch} && git pull origin ${branch}`);
-      if (gitPullRes.stdout) {
-        gitPullRes.stdout.split('\n').forEach(l => logs.push(`[Git] ${l}`));
-      }
-
-      // Obtém o hash e mensagem do commit
-      const gitInfo = await runRemoteSsh(`cd ${targetDir} && git rev-parse --short HEAD && git log -1 --pretty=%B`);
-      const infoParts = gitInfo.stdout.split('\n');
-      commitHash = infoParts[0] || 'head';
-      commitMsg = (infoParts[1] || 'Atualizacao de codigo').trim();
-      logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Commit em execucao: [${commitHash}] ${commitMsg}`);
-
-      // Recria os containers no Docker
-      logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Compilando e recriando containers (docker compose up -d --build)...`);
-      const dockerRes = await runRemoteSsh(`cd ${targetDir} && docker compose up -d --build`);
-      if (dockerRes.stdout) {
-        dockerRes.stdout.split('\n').forEach(l => logs.push(`[Docker] ${l}`));
-      }
-
-      // Validação de containers
-      const psRes = await runRemoteSsh(`docker ps --filter "name=boteco" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"`);
-      logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Status dos containers:`);
-      psRes.stdout.split('\n').forEach(l => logs.push(`  ${l}`));
-
-    } else if (project === 'lottus-api') {
-      const targetDir = '/home/ubuntu/api_users/api_users';
-      logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Acessando diretório ${targetDir}...`);
-      logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Executando: git fetch origin && git pull origin main...`);
-      
-      const gitRes = await runRemoteSsh(`cd ${targetDir} && git pull origin main`);
-      gitRes.stdout.split('\n').forEach(l => logs.push(`[Git] ${l}`));
-
-      logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Recarregando processo PM2 (pm2 reload)...`);
-      await runRemoteSsh(`source ~/.bashrc 2>/dev/null; pm2 reload lottus-api || pm2 reload server || true`);
-      logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] PM2 recarregado com Zero Downtime!`);
+    const gitPullRes = await runRemoteSsh(`cd ${targetDir} && git fetch origin && git checkout ${branch} && git pull origin ${branch}`);
+    if (gitPullRes.stdout) {
+      gitPullRes.stdout.split('\n').forEach(l => logs.push(`[Git] ${l}`));
     }
+
+    // Obtém o hash e mensagem do commit
+    const gitInfo = await runRemoteSsh(`cd ${targetDir} && git rev-parse --short HEAD && git log -1 --pretty=%B`);
+    const infoParts = gitInfo.stdout.split('\n');
+    commitHash = infoParts[0] || 'head';
+    commitMsg = (infoParts[1] || 'Atualizacao de codigo').trim();
+    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Commit em execucao: [${commitHash}] ${commitMsg}`);
+
+    // Recria os containers no Docker ou recarrega PM2
+    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Atualizando serviços...`);
+    const dockerRes = await runRemoteSsh(`cd ${targetDir} && (docker compose up -d --build 2>/dev/null || pm2 reload all 2>/dev/null || true)`);
+    if (dockerRes.stdout) {
+      dockerRes.stdout.split('\n').forEach(l => logs.push(`[Deploy] ${l}`));
+    }
+
+    // Validação de containers
+    const psRes = await runRemoteSsh(`docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | head -n 10`);
+    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Status dos containers:`);
+    psRes.stdout.split('\n').forEach(l => logs.push(`  ${l}`));
 
     const durationSeconds = ((Date.now() - startTime) / 1000).toFixed(1) + 's';
     logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] ✅ Deploy Real concluído com sucesso em ${durationSeconds}!`);
@@ -176,12 +137,12 @@ async function executeDeploy({ project = 'cardapio_digital', branch = 'main' }) 
     const newEntry = {
       id: `dep-${Date.now().toString().slice(-4)}`,
       timestamp: new Date().toLocaleString('pt-BR'),
-      project: project === 'cardapio_digital' ? 'Boteco Sivirino' : 'Lottus API',
+      project: project || 'app_service',
       type: 'DEPLOY',
       branch,
       commitHash,
       commitMessage: commitMsg,
-      author: 'Vinicius Lourenco',
+      author: 'DevOps CI/CD',
       duration: durationSeconds,
       status: 'Sucesso'
     };
@@ -209,12 +170,12 @@ async function executeDeploy({ project = 'cardapio_digital', branch = 'main' }) 
     history.unshift({
       id: `dep-${Date.now().toString().slice(-4)}`,
       timestamp: new Date().toLocaleString('pt-BR'),
-      project: project === 'cardapio_digital' ? 'Boteco Sivirino' : 'Lottus API',
+      project: project || 'app_service',
       type: 'DEPLOY',
       branch,
       commitHash: 'failed',
       commitMessage: err.message,
-      author: 'Vinicius Lourenco',
+      author: 'DevOps CI/CD',
       duration: durationSeconds,
       status: 'Falha'
     });
@@ -224,7 +185,7 @@ async function executeDeploy({ project = 'cardapio_digital', branch = 'main' }) 
   }
 }
 
-async function executeRollback({ project = 'cardapio_digital' }) {
+async function executeRollback({ project = 'app_service' }) {
   const startTime = Date.now();
   const timestamp = new Date().toLocaleTimeString('pt-BR');
   const logs = [];
@@ -232,7 +193,7 @@ async function executeRollback({ project = 'cardapio_digital' }) {
   logs.push(`[${timestamp}] ⏪ ACIONANDO ROLLBACK DE EMERGÊNCIA (Desfazendo último deploy)...`);
 
   try {
-    const targetDir = '/home/ubuntu/cardapio_digital';
+    const targetDir = `/home/ubuntu/${project}`;
     logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Executando git reset --hard HEAD~1 em ${targetDir}...`);
 
     const resetRes = await runRemoteSsh(`cd ${targetDir} && git reset --hard HEAD~1`);
@@ -257,12 +218,12 @@ async function executeRollback({ project = 'cardapio_digital' }) {
     const newEntry = {
       id: `rol-${Date.now().toString().slice(-4)}`,
       timestamp: new Date().toLocaleString('pt-BR'),
-      project: project === 'cardapio_digital' ? 'Boteco Sivirino' : 'Lottus API',
+      project: project || 'app_service',
       type: 'ROLLBACK',
       branch: 'main',
       commitHash,
       commitMessage: `Reversão para versão estável: ${commitMsg}`,
-      author: 'Vinicius Lourenco',
+      author: 'DevOps CI/CD',
       duration: durationSeconds,
       status: 'Sucesso'
     };

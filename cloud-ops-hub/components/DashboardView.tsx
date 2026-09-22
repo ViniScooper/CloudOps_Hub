@@ -157,50 +157,66 @@ export function DashboardView({
             <Database size={18} className="database-icon" />
           </div>
 
-          {server.ip === '137.131.187.54' || server.id === 'oracle-micro-02' ? (
-            <div style={{ padding: '24px 16px', textAlign: 'center', color: '#6f8387' }}>
-              <div style={{ display: 'inline-flex', padding: '10px', borderRadius: '50%', background: 'rgba(32, 214, 199, 0.05)', marginBottom: '8px', color: '#20d6c7' }}>
-                <Database size={20} />
-              </div>
-              <p style={{ margin: '0 0 4px', fontSize: '13px', color: '#d9e2e1', fontWeight: 600 }}>Nenhum Banco Configurado</p>
-              <small style={{ fontSize: '11px', color: '#6f8387', display: 'block', marginBottom: '14px' }}>Esta máquina está 100% limpa. Instale MySQL, Postgres ou Redis quando precisar.</small>
-              <div className="data-service" style={{ textAlign: 'left' }}>
-                <span className="service-icon managed"><Cloud size={16} /></span>
-                <div>
-                  <strong>Oracle Object Storage</strong>
-                  <small>Bucket boteco-sivirino-fotos · 1.4 GB</small>
-                </div>
-                <span className="status-text emerald">Active</span>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="data-service">
-                <span className="service-icon postgres"><Database size={16} /></span>
-                <div>
-                  <strong>MySQL 8.0 (Container boteco_db)</strong>
-                  <small>Porta 3306 ➔ 3306 · Otimizado em 64M</small>
-                </div>
-                <span className="status-text emerald">Healthy</span>
-              </div>
+          {(() => {
+            const dbContainers = containers.filter(c => 
+              c.name.includes('db') || 
+              c.name.includes('mysql') || 
+              c.name.includes('postgres') || 
+              c.name.includes('redis') || 
+              c.name.includes('mongo')
+            )
 
-              <div className="data-service">
-                <span className="service-icon managed"><Cloud size={16} /></span>
-                <div>
-                  <strong>Oracle Object Storage</strong>
-                  <small>Bucket boteco-sivirino-fotos · 1.4 GB</small>
-                </div>
-                <span className="status-text emerald">Active</span>
-              </div>
+            return (
+              <>
+                {dbContainers.length > 0 ? (
+                  dbContainers.map(c => (
+                    <div className="data-service" key={c.name}>
+                      <span className="service-icon postgres"><Database size={16} /></span>
+                      <div>
+                        <strong>{c.name.toUpperCase()} ({c.image})</strong>
+                        <small>Porta {c.port || 'Padrão'} · Status: {c.status || 'Rodando'}</small>
+                      </div>
+                      <span className="status-text emerald">Healthy</span>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ padding: '20px 16px', textAlign: 'center', color: '#6f8387' }}>
+                    <div style={{ display: 'inline-flex', padding: '10px', borderRadius: '50%', background: 'rgba(32, 214, 199, 0.05)', marginBottom: '8px', color: '#20d6c7' }}>
+                      <Database size={20} />
+                    </div>
+                    <p style={{ margin: '0 0 4px', fontSize: '13px', color: '#d9e2e1', fontWeight: 600 }}>Nenhum Banco Detectado</p>
+                    <small style={{ fontSize: '11px', color: '#6f8387', display: 'block', marginBottom: '12px' }}>Nenhum container MySQL, Postgres ou Redis rodando nesta VM.</small>
+                    <button 
+                      className="primary-button" 
+                      style={{ fontSize: '11px', padding: '5px 12px', margin: '0 auto' }}
+                      onClick={() => setActive('Docker')}
+                    >
+                      Provisionar via Docker
+                    </button>
+                  </div>
+                )}
 
-              <div className="backup-row">
-                <span><Archive size={14} /> Rotina de Backup</span>
-                <button title="Executar mysqldump no container boteco_db e salvar no Object Storage" onClick={() => doAction('Backup mysqldump do MySQL iniciado com sucesso!')}>
-                  <Copy size={13} /> Gerar Backup Agora
-                </button>
-              </div>
-            </>
-          )}
+                <div className="data-service" style={{ marginTop: '10px' }}>
+                  <span className="service-icon managed"><Cloud size={16} /></span>
+                  <div>
+                    <strong>Cloud Object Storage</strong>
+                    <small>OCI / AWS S3 Backup Pipeline</small>
+                  </div>
+                  <span className="status-text emerald">Pronto</span>
+                </div>
+
+                <div className="backup-row">
+                  <span><Archive size={14} /> Rotina de Backup</span>
+                  <button 
+                    title="Executar rotina de backup no servidor conectado" 
+                    onClick={() => doAction('Rotina de snapshot de backup executada com sucesso!')}
+                  >
+                    <Copy size={13} /> Gerar Snapshot
+                  </button>
+                </div>
+              </>
+            )
+          })()}
         </section>
       </div>
     </>

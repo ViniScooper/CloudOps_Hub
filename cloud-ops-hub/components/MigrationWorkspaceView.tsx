@@ -28,44 +28,44 @@ import {
 } from 'lucide-react'
 import { getApiUrl } from '../lib/api'
 
-// Projetos Hospedados na Nuvem Oracle Cloud
+// Projetos e Stacks Hospedados na Nuvem
 export const CLOUD_PROJECTS = [
   {
-    id: 'boteco',
-    name: 'Boteco do Sivirino',
-    shortName: 'Cardápio Digital',
-    tag: 'Docker • MySQL 8.0 • Bucket OCI',
-    icon: '🍺',
-    db: 'MySQL 8.0 (12 categorias / 134 pratos)',
-    dbName: 'boteco_db',
-    dbSize: '~42 MB',
-    storage: 'Bucket OCI (8 fotos salvas do cardápio)',
-    storageDetails: 'Imagens e especialidades (~18 MB)',
-    backend: 'Docker boteco_backend (Porta 3002)',
+    id: 'webapp',
+    name: 'Aplicação Web Full-Stack',
+    shortName: 'Web App & API',
+    tag: 'Docker • MySQL 8.0 • Object Storage',
+    icon: '🚀',
+    db: 'MySQL 8.0 (Schemas de Produção)',
+    dbName: 'production_db',
+    dbSize: '~35 MB',
+    storage: 'Object Storage (Assets & Uploads)',
+    storageDetails: 'Mídias e documentos (~15 MB)',
+    backend: 'Docker app_backend (Porta 3000)',
     backendDetails: 'Node.js 20 Express / Docker Compose',
-    frontend: 'Cardápio Digital PWA (Next.js / Proxy OCI)',
-    repo: 'cardapio_digital (branch main)',
-    dockerContainers: ['boteco_backend', 'boteco_db', 'boteco_tunnel'],
-    port: '3002',
-    healthPath: '/config'
+    frontend: 'Frontend Web SPA / PWA',
+    repo: 'web-app (branch main)',
+    dockerContainers: ['app_backend', 'app_db', 'app_proxy'],
+    port: '3000',
+    healthPath: '/health'
   },
   {
-    id: 'lottus',
-    name: 'Lottus API',
-    shortName: 'Plataforma Corporativa',
-    tag: 'PM2 • Node.js • MySQL 8.0',
-    icon: '🏢',
-    db: 'MySQL 8.0 (restaurante / auth & users)',
-    dbName: 'restaurante',
-    dbSize: '~24 MB',
+    id: 'apiservice',
+    name: 'Microsserviço de API & Auth',
+    shortName: 'Core API Service',
+    tag: 'PM2 • Node.js • Postgres/MySQL',
+    icon: '⚡',
+    db: 'Banco Relacional (Auth, Users & Data)',
+    dbName: 'core_api_db',
+    dbSize: '~20 MB',
     storage: 'Armazenamento Local (/uploads & logs)',
-    storageDetails: 'Arquivos e logs locais (~6.5 MB)',
-    backend: 'PM2 Cluster Mode (Porta 3001)',
+    storageDetails: 'Arquivos e logs locais (~5 MB)',
+    backend: 'PM2 Cluster Mode (Porta 8080)',
     backendDetails: 'Node.js 20 / PM2 Ingress',
-    frontend: 'API Ingress (api.lottus.com.br)',
-    repo: 'api_users (branch main)',
-    dockerContainers: ['nginx-manager-nginx-1', 'pm2:lottus_api'],
-    port: '3001',
+    frontend: 'API Ingress (api.empresa.com.br)',
+    repo: 'core_api (branch main)',
+    dockerContainers: ['nginx-ingress', 'pm2:core_api'],
+    port: '8080',
     healthPath: '/status'
   },
   {
@@ -74,24 +74,24 @@ export const CLOUD_PROJECTS = [
     shortName: 'Servidor Completo',
     tag: 'Multi-Stack Completo (Docker + PM2)',
     icon: '☁️',
-    db: 'Todos os Bancos MySQL (boteco_db + restaurante)',
-    dbName: 'boteco_db, restaurante',
-    dbSize: '~66 MB',
-    storage: 'Todos os Buckets OCI + Pastas /uploads',
-    storageDetails: 'Mídia e arquivos consolidados (~24.5 MB)',
+    db: 'Todos os Bancos (production_db + core_api_db)',
+    dbName: 'production_db, core_api_db',
+    dbSize: '~55 MB',
+    storage: 'Todos os Buckets Cloud + Pastas /uploads',
+    storageDetails: 'Mídia e arquivos consolidados (~20 MB)',
     backend: 'Todos os Containers Docker + Processos PM2',
-    backendDetails: 'boteco_backend, boteco_db, lottus_api, nginx',
+    backendDetails: 'app_backend, app_db, core_api, nginx',
     frontend: 'Todas as Rotas e Domínios Nginx',
-    repo: 'cardapio_digital + api_users',
-    dockerContainers: ['boteco_backend', 'boteco_db', 'boteco_tunnel', 'nginx-manager-nginx-1', 'lottus_api'],
-    port: '3002 e 3001',
+    repo: 'web-app + core_api',
+    dockerContainers: ['app_backend', 'app_db', 'app_proxy', 'nginx-ingress', 'pm2:core_api'],
+    port: '3000 e 8080',
     healthPath: '/'
   }
 ]
 
 export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) => void }) {
   // Projeto Selecionado da Nuvem de Origem
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('boteco')
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('webapp')
   const currentProject = CLOUD_PROJECTS.find(p => p.id === selectedProjectId) || CLOUD_PROJECTS[0]
 
   // Servidores Cadastrados no Hub com Status OK
@@ -402,8 +402,8 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
               <Server size={24} />
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: '16px', color: '#f3f4f6', fontWeight: 700 }}>Oracle Cloud Infrastructure</h3>
-              <span style={{ fontSize: '12px', color: '#9ca3af', fontFamily: 'monospace' }}>IP: 137.131.185.243 (sa-saopaulo-1)</span>
+              <h3 style={{ margin: 0, fontSize: '16px', color: '#f3f4f6', fontWeight: 700 }}>Nuvem de Origem (Produção)</h3>
+              <span style={{ fontSize: '12px', color: '#9ca3af', fontFamily: 'monospace' }}>Instância Cloud Conectada</span>
             </div>
           </div>
 
@@ -992,7 +992,7 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
             <input type="checkbox" checked={migrateBackend} onChange={(e) => setMigrateBackend(e.target.checked)} style={{ marginTop: '4px', width: '16px', height: '16px', accentColor: '#20d6c7' }} />
             <div>
               <strong style={{ display: 'block', fontSize: '14px', color: '#f3f4f6', marginBottom: '2px' }}>Containers Docker & Backend</strong>
-              <span style={{ color: '#9ca3af', fontSize: '12px', lineHeight: '1.5', display: 'block' }}>Repositório cardapio_digital, injeção de .env e Docker Compose up.</span>
+              <span style={{ color: '#9ca3af', fontSize: '12px', lineHeight: '1.5', display: 'block' }}>Repositório do projeto, injeção de variáveis .env e Docker Compose up.</span>
             </div>
           </label>
 
@@ -1173,7 +1173,7 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
             </div>
 
             <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '12px' }}>
-              Script Terraform autônomo gerado para provisionar a infraestrutura completa do Boteco do Sivirino na {targetProvider}:
+              Script Terraform autônomo gerado para provisionar a infraestrutura completa de {currentProject.name} na {targetProvider}:
             </p>
 
             <pre style={{

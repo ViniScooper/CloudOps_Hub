@@ -141,16 +141,16 @@ function testTargetSsh({ host, port = 22, user = 'root', privateKey, password })
  * Calcula a estimativa precisa de tempo e volume para a migração completa do projeto selecionado
  */
 function getMigrationEstimate(projectId = 'boteco') {
-  if (projectId === 'lottus') {
+  if (projectId === 'apiservice' || projectId === 'lottus') {
     return {
       source: {
         provider: 'Oracle Cloud Infrastructure (OCI)',
-        vmName: 'instance-bytedata (137.131.185.243)',
-        database: 'MySQL 8.0 (restaurante / auth & users)',
+        vmName: 'Instância Cloud de Produção',
+        database: 'Banco Relacional (auth & users)',
         dbSize: '~180 KB (Dump SQL comprimido)',
-        storageBucket: 'Armazenamento Local (/uploads & tokens: ~6.5 MB)',
-        backendApp: 'Node.js PM2 Cluster (api_users na porta 3001)',
-        frontendApp: 'Nginx Reverse Proxy (api.lottus.com.br)',
+        storageBucket: 'Armazenamento Local (/uploads & logs: ~6.5 MB)',
+        backendApp: 'Node.js PM2 Cluster (Porta 8080)',
+        frontendApp: 'Nginx Reverse Proxy (api.empresa.com.br)',
         currentCost: 'R$ 0,00 / mês (Always Free)'
       },
       targetRecommendation: {
@@ -164,13 +164,13 @@ function getMigrationEstimate(projectId = 'boteco') {
         totalSeconds: 140,
         formattedTime: '2 min e 20 segundos',
         steps: [
-          { name: '1. Validação SSH & Dependências Node/PM2 na Hostinger', estimatedSeconds: 35 },
-          { name: '2. Dump atômico do MySQL na Oracle (mysqldump restaurante)', estimatedSeconds: 6 },
+          { name: '1. Validação SSH & Dependências Node/PM2 no VPS', estimatedSeconds: 35 },
+          { name: '2. Dump atômico do Banco de Dados no servidor de origem', estimatedSeconds: 6 },
           { name: '3. Transferência segura de dados via SSH (SCP/Rsync)', estimatedSeconds: 10 },
-          { name: '4. Restauração do Banco de Dados no Hostinger', estimatedSeconds: 8 },
-          { name: '5. Sincronização de arquivos locais e tokens', estimatedSeconds: 12 },
-          { name: '6. Clone do repositório api_users & PM2 start', estimatedSeconds: 45 },
-          { name: '7. Healthcheck & Teste de Conexão na porta 3001', estimatedSeconds: 10 }
+          { name: '4. Restauração do Banco de Dados no VPS de Destino', estimatedSeconds: 8 },
+          { name: '5. Sincronização de arquivos locais e logs', estimatedSeconds: 12 },
+          { name: '6. Clone do repositório Git & PM2 start', estimatedSeconds: 45 },
+          { name: '7. Healthcheck & Teste de Conexão na porta 8080', estimatedSeconds: 10 }
         ]
       }
     };
@@ -180,11 +180,11 @@ function getMigrationEstimate(projectId = 'boteco') {
     return {
       source: {
         provider: 'Oracle Cloud Infrastructure (OCI)',
-        vmName: 'instance-bytedata (137.131.185.243)',
-        database: 'Todos os Bancos MySQL (boteco_db + restaurante - ~66 MB)',
+        vmName: 'Instância Cloud de Produção',
+        database: 'Todos os Bancos de Dados (production_db + core_api_db)',
         dbSize: '~430 KB (Dumps SQL consolidados)',
-        storageBucket: 'Todos os Buckets OCI + Pastas /uploads (~24.5 MB)',
-        backendApp: 'Docker boteco_backend + Node.js PM2 lottus_api + Nginx',
+        storageBucket: 'Todos os Buckets Cloud + Pastas /uploads (~24.5 MB)',
+        backendApp: 'Todos os Containers Docker + Processos PM2 + Nginx',
         frontendApp: 'Todos os Frontends, Domínios e Certificados SSL',
         currentCost: 'R$ 0,00 / mês (Always Free)'
       },
@@ -211,16 +211,16 @@ function getMigrationEstimate(projectId = 'boteco') {
     };
   }
 
-  // Padrão: Boteco do Sivirino
+  // Padrão: Aplicação Web Full-Stack
   return {
     source: {
       provider: 'Oracle Cloud Infrastructure (OCI)',
-      vmName: 'instance-bytedata (137.131.185.243)',
-      database: 'MySQL 8.0 (12 categorias, 134 pratos, boteco_db)',
-      dbSize: '~250 KB (Dump SQL comprimido)',
-      storageBucket: 'boteco-sivirino-fotos (8 objetos + imagens locais: ~18 MB)',
-      backendApp: 'Docker boteco_backend (Porta 3002)',
-      frontendApp: 'Cardápio Digital PWA (Next.js / Vercel)',
+      vmName: 'Instância Cloud de Produção',
+      database: 'MySQL 8.0 / Postgres (Schemas de Produção)',
+      dbSize: '~15 MB (Dump SQL comprimido)',
+      storageBucket: 'Object Storage (Assets, Mídias e Uploads)',
+      backendApp: 'Docker app_backend (Porta 3000)',
+      frontendApp: 'Web Application PWA / Edge',
       currentCost: 'R$ 0,00 / mês (Always Free)'
     },
     targetRecommendation: {
@@ -234,13 +234,13 @@ function getMigrationEstimate(projectId = 'boteco') {
       totalSeconds: 165,
       formattedTime: '2 min e 45 segundos',
       steps: [
-        { name: '1. Validação SSH & Provisionamento Docker no Hostinger', estimatedSeconds: 45 },
-        { name: '2. Dump atômico do MySQL na Oracle (mysqldump boteco_db)', estimatedSeconds: 8 },
+        { name: '1. Validação SSH & Provisionamento Docker no VPS', estimatedSeconds: 45 },
+        { name: '2. Dump atômico do Banco de Dados (mysqldump / pg_dump)', estimatedSeconds: 8 },
         { name: '3. Transferência segura de dados via SSH (SCP/Rsync)', estimatedSeconds: 12 },
-        { name: '4. Restauração do Banco de Dados no Hostinger', estimatedSeconds: 10 },
-        { name: '5. Sincronização dos Buckets e Fotos do Cardápio', estimatedSeconds: 25 },
+        { name: '4. Restauração do Banco de Dados no VPS de Destino', estimatedSeconds: 10 },
+        { name: '5. Sincronização dos Buckets e Volumes de Uploads', estimatedSeconds: 25 },
         { name: '6. Clone do repositório Git & Docker Compose Build', estimatedSeconds: 55 },
-        { name: '7. Healthcheck & Teste de Conexão na porta 3002', estimatedSeconds: 10 }
+        { name: '7. Healthcheck & Teste de Conexão na porta ativa', estimatedSeconds: 10 }
       ]
     }
   };
@@ -249,10 +249,10 @@ function getMigrationEstimate(projectId = 'boteco') {
 /**
  * Gera script de automação Terraform para provisionar na Hostinger ou VPS
  */
-function generateTerraformScript({ host, provider = 'hostinger', project = 'boteco' }) {
-  const projectName = project === 'lottus' ? 'Lottus API' : project === 'all' ? 'Cluster Multi-Projeto' : 'Boteco do Sivirino';
-  const repoName = project === 'lottus' ? 'api_users' : 'cardapio_digital';
-  const port = project === 'lottus' ? '3001' : '3002';
+function generateTerraformScript({ host, provider = 'hostinger', project = 'webapp' }) {
+  const projectName = project === 'apiservice' || project === 'lottus' ? 'Core API Service' : project === 'all' ? 'Cluster Multi-Projeto' : 'Aplicação Web Full-Stack';
+  const repoName = project === 'apiservice' || project === 'lottus' ? 'core_api' : 'web-app';
+  const port = project === 'apiservice' || project === 'lottus' ? '8080' : '3000';
 
   return `terraform {
   required_version = ">= 1.5.0"
@@ -292,7 +292,7 @@ resource "null_resource" "provision_vps" {
       "ufw allow 22/tcp && ufw allow 80/tcp && ufw allow 443/tcp && ufw allow ${port}/tcp",
       "ufw --force enable",
       "mkdir -p /home/cloudops/${repoName}",
-      "git clone https://github.com/ViniScooper/${repoName}.git /home/cloudops/${repoName} || true",
+      "git clone https://github.com/usuario/${repoName}.git /home/cloudops/${repoName} || true",
       "echo '✅ VPS pronta para receber o dump do banco de dados e subir os serviços!' "
     ]
   }

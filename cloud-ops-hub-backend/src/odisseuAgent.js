@@ -82,7 +82,7 @@ const ODISSEU_TOOLS = [
       parameters: {
         type: 'object',
         properties: {
-          domain: { type: 'string', description: 'Subdomínio (ex: pedidos.botecosivirino.com.br)' },
+          domain: { type: 'string', description: 'Subdomínio (ex: api.meusite.com)' },
           internalPort: { type: 'string', description: 'Porta interna (ex: 3004)' }
         },
         required: ['domain', 'internalPort']
@@ -102,8 +102,8 @@ const ODISSEU_TOOLS = [
             enum: ['status', 'regenerate_url', 'restart', 'map_domain'],
             description: 'Ação: "regenerate_url" ou "restart" para gerar novo link/reiniciar, "map_domain" para apontar domínio, "status" para checar'
           },
-          domain: { type: 'string', description: 'Domínio a apontar (ex: cardapio.novo.com.br)' },
-          port: { type: 'string', description: 'Porta interna da aplicação (ex: 3002, 3001)' }
+          domain: { type: 'string', description: 'Domínio a apontar (ex: app.meudominio.com)' },
+          port: { type: 'string', description: 'Porta interna da aplicação (ex: 3000, 8080)' }
         },
         required: ['action']
       }
@@ -171,7 +171,7 @@ async function runTool(name, args) {
       case 'trigger_deploy': {
         const result = await deployService.executeDeploy({
           branch: args.branch || 'main',
-          project: args.project || 'Boteco Sivirino'
+          project: args.project || 'app_service'
         });
         return JSON.stringify(result);
       }
@@ -206,7 +206,7 @@ server {
         const cloudflareService = require('./cloudflareService');
         if (args.action === 'regenerate_url' || args.action === 'restart') {
           const res = await cloudflareService.regenerateTunnel();
-          return `Túnel Cloudflare reiniciado com sucesso! Link ativo: ${res.url || 'cardapio.botecosivirino.com.br'}`;
+          return `Túnel Cloudflare reiniciado com sucesso! Link ativo: ${res.url || 'Ativo'}`;
         }
         if (args.action === 'map_domain') {
           const res = await cloudflareService.mapOrReplaceDomain({

@@ -1,16 +1,1 @@
-[
-  {
-    "id": "oracle-micro-02",
-    "name": "cloudops-micro-02 (Oracle Secundária)",
-    "provider": "Oracle Cloud",
-    "host": "137.131.187.54",
-    "port": 22,
-    "user": "ubuntu",
-    "authType": "key",
-    "status": "OK",
-    "health": "Conectado (Status OK)",
-    "specs": "1 GB RAM | 49 GB SSD | Always Free",
-    "plan": "VM.Standard.E2.1.Micro",
-    "region": "sa-saopaulo-1 (GRU)"
-  }
-]
+[]
