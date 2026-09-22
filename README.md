@@ -61,26 +61,33 @@ Available in English and Portuguese (PT-BR).
 * **Vercel Edge & Frontend:** Real-time visibility into production edge builds, domains, commit references, and deployment status.
 * **Render Backend & Anti-Sleep Heartbeats:** Monitor backend microservices on Render and configure automated cron heartbeats to prevent free-tier instances from going to sleep.
 
-### 🐳 6. Visual Docker Orchestration & Disk Guard
-* **Container Management:** Inspect all running and stopped containers, view CPU/RAM consumption per microservice, and restart individual services.
-* **Automatic Log Rotation (`max-size: 10m`):** 1-click Docker daemon log configuration to prevent disk exhaustion from unmanaged container stdout/stderr.
+### 🐳 6. Visual Docker Orchestration & Full Lifecycle Control
+* **Complete Lifecycle Management:** Start (▶️), Stop (⏹️), and Restart (🔄) microservices directly from the web or mobile interface without SSHing manually into the machine.
+* **Live Streaming Logs:** Inspect real-time stdout/stderr streams (`docker logs --tail 100 --timestamps`) with instant search, syntax highlighting, and 1-click clipboard copying.
+* **Automatic Log Rotation (`max-size: 10m`):** 1-click Docker daemon log configuration to prevent disk exhaustion from unmanaged container outputs.
 
-### 💻 7. Interactive Zero-Trust Web SSH Terminal
-* **In-Browser Terminal (Bash):** Direct interactive session over SSH with xterm.js styling.
-* **DevOps Shortcuts:** 1-click execution for everyday diagnostics: `docker ps`, `free -m`, `df -h /`, `uptime`, `top (CPU)`, and `netstat -tuln`.
+### 🐕 7. 24/7 SRE Guard Watchdog & WhatsApp Alerts
+* **Autonomous Telemetry Loop:** Periodic background monitor running every 3 minutes directly on the primary Oracle VM (`instance-bytedata`).
+* **Critical Memory Thresholds:** Automatically detects if physical RAM usage hits or exceeds **90%** and triggers an emergency alert to prevent Linux Out-Of-Memory (OOM) killer crashes.
+* **Service Crash Detection:** Monitors critical production containers (`boteco_tunnel`, `boteco_db`, `nginx-manager-nginx-1`) and alerts immediately if any microservice exits or disappears.
+* **Anti-Flood Cooldown:** Smart rate limiting (15 to 30 min cooldown) via CallMeBot WhatsApp API and email notifications.
+* **Dashboard Widget:** Live watchdog health badge with a 1-click `[ 🧪 Testar WhatsApp ]` verification button.
 
-### 🪣 8. Object Storage & Database Backups
-* **Cloud Storage Explorer:** Direct integration with Oracle Cloud Object Storage and AWS S3 buckets.
-* **Automated Database Snapshots:** Trigger snapshot routines and backup dumps for MySQL 8.0 and PostgreSQL databases.
+### 💾 8. Automated MySQL 8.0 Backups & Gzip Retention
+* **Zero-Downtime Database Dumps:** Generates transactional MySQL dumps (`boteco_db`) piped on the fly to `gzip -9`, producing compact `.sql.gz` archives in `/home/ubuntu/backups/`.
+* **Rolling 7-Day Retention:** Automatically purges dumps older than 7 days (`find -mtime +7 -delete`) to conserve NVMe storage on Always Free cloud instances.
+* **1-Click Snapshot:** Instant snapshot trigger directly from the dashboard and Storage Explorer.
 
-### 📱 9. Full Responsive Experience (Mobile, Tablet & Desktop)
-* **Desktop Command Center (>960px):** Spacious, persistent navigation with dedicated workspace views, proportional multi-column grids, and zero layout shift.
-* **Mobile & Tablet PWA (<960px):** Slide-out drawer navigation, touch-friendly scrollable tables, and compact metric cards.
+### 👥 9. Master Admin Approvals & Multi-Tenant Isolation
+* **Role-Based Access Control (RBAC):** Master superuser account (`Vinicius Lourenco - vviniciuslourenco@gmail.com`) with total cluster management.
+* **Tenant Isolation:** New users access a pristine 0-server workspace with a guided 1-click onboarding flow, keeping production VMs strictly private.
+* **1-Click Access Approval:** Master dashboard displays pending access requests with applicant details, automatically generates secure random temporary passwords (`CloudOps#<HEX>!`), activates user accounts, dispatches welcome emails with direct login links, and notifies via WhatsApp.
+* **AES-256-GCM Server Persistence:** Newly attached VMs/VPS are encrypted with AES-256-GCM (including 16-byte random IVs and authentication tags) in MySQL (`user_servers`) and persisted across sessions without exposing private keys.
 
-### 🔒 10. Enterprise-Grade Security
-* **Zero-Knowledge Credential Storage:** SSH keys and API tokens are encrypted locally with AES-256 and stored in memory or client local vault.
-* **Clean Incognito Authentication:** Session management backed by JWT and clean input handling without pre-filled test credentials.
-* **Zero Vendor Lock-In:** 100% open-source codebase with standard POSIX SSH and Docker commands.
+### 🏛️ 10. Multi-VM Cluster & Oracle Autonomous Database (ATP)
+* **Multi-Node Switching:** Fast topbar context switcher toggling between `instance-bytedata` (2 OCPUs · 1GB RAM) and `cloudops-micro-02` (1 OCPU · 1GB (+1GB Swap)).
+* **Oracle ATP Integration:** Direct monitoring and 1-click launch of Oracle Autonomous Transaction Processing (Exadata 20GB NVMe, mTLS :1522) with SQL Developer Web Console.
+* **Cloudflare Zero Trust Anycast:** Tunnel bridge (`trycloudflare.com`) eliminating open inbound ports on the cloud firewall.
 
 ---
 
@@ -90,22 +97,27 @@ Available in English and Portuguese (PT-BR).
 flowchart TD
     User["👨‍💻 DevOps Engineer / Developer (Desktop & Mobile)"] -->|HTTPS / WSS| HubUI["🖥️ CloudOps Hub Frontend (Next.js 16 + React 19)"]
     
-    subgraph HubEngine["CloudOps Hub Control Plane"]
-        HubUI -->|REST API :3005| HubAPI["⚙️ Core Backend Engine (Node.js)"]
-        HubAPI -->|RAG Knowledge Base| Odisseu["🤖 Odisseu AI Copilot (LangChain + Groq/Gemini)"]
-        HubAPI -->|CI/CD Engine| GitFlow["🐙 GitHub GitFlow & PR Merge Engine"]
-        HubAPI -->|Telemetry Engine| Metrics["📊 Telemetry & Error Tracking"]
-        HubAPI -->|Cloud Providers| CloudIntegrations["☁️ Vercel Edge & Render Schedulers"]
+    subgraph EdgeLayer["Edge & Security Layer"]
+        HubUI -->|Anycast Zero Trust Tunnel| CFTunnel["🛡️ Cloudflare Zero Trust Tunnel"]
+        CFTunnel -->|Reverse Proxy :3005| HubAPI["⚙️ Fastify Backend Engine (PM2 on VM)"]
+        HubAPI -->|Alerts & Notifications| CallMeBot["📲 WhatsApp (CallMeBot) & Email Gateway"]
     end
     
-    subgraph TargetFleet["Target Cloud Infrastructure (SSH :22)"]
-        HubAPI -->|Zero-Trust SSH| OCI["☁️ Oracle Cloud (Always Free VM)"]
-        HubAPI -->|Zero-Trust SSH| AWS["🟧 AWS EC2 Instance"]
-        HubAPI -->|Zero-Trust SSH| VPS["🏢 Hostinger / Bare-Metal VPS"]
+    subgraph HubEngine["Control Plane & Daemons"]
+        HubAPI -->|RAG Knowledge Base| Odisseu["🤖 Odisseu AI Copilot (LangChain + Groq/Gemini)"]
+        HubAPI -->|24/7 Health Monitoring| Watchdog["🐕 24/7 SRE Watchdog (RAM >90% & Crash Guard)"]
+        HubAPI -->|Backup Pipeline| BackupEngine["💾 Gzip MySQL Dumps (/home/ubuntu/backups)"]
+        HubAPI -->|RBAC & AES-256| AuthEngine["🔐 Multi-Tenant Vault (user_servers AES-256-GCM)"]
+    end
+    
+    subgraph TargetCluster["Connected Multi-Cloud Fleet"]
+        HubAPI -->|Local Fastify / SSH| VM1["☁️ Node 1: instance-bytedata (137.131.185.243)"]
+        HubAPI -->|Zero-Trust SSH| VM2["☁️ Node 2: cloudops-micro-02 (137.131.187.54)"]
+        HubAPI -->|mTLS :1522 / Wallet| ATP["⚡ Oracle Autonomous Database (ATP Exadata 20GB)"]
         
-        OCI --> DockerEngine["🐳 Docker Microservices Engine"]
-        OCI --> NginxIngress["🌐 Nginx Reverse Proxy & SSL"]
-        OCI --> KernelCache["⚡ Linux Kernel drop_caches"]
+        VM1 --> DockerEngine["🐳 Docker Microservices (boteco_backend, boteco_db, boteco_tunnel)"]
+        VM1 --> NginxIngress["🌐 Nginx Reverse Proxy (80/443)"]
+        VM1 --> PM2Daemon["⚡ PM2 Process Manager (lottus-api, cloudops-hub)"]
     end
 ```
 
@@ -117,22 +129,32 @@ flowchart TD
 ├── cloud-ops-hub/             # Frontend Client (Next.js 16, React 19, Tailwind CSS 4, Cyber-Teal UI)
 │   ├── app/                   # App Router views (layout, page, login, global styling)
 │   ├── components/            # Modular dashboard views:
-│   │   ├── DashboardView.tsx         # Real-time infrastructure & nodes
+│   │   ├── DashboardView.tsx         # Real-time infrastructure, cluster switcher & Watchdog widget
+│   │   ├── UserManagementView.tsx    # Master admin approval panel & user management
 │   │   ├── DeployView.tsx            # CI/CD pipelines, GitFlow PR & instant rollback
 │   │   ├── OdisseuChatView.tsx       # AI Copilot with RAG telemetry context
 │   │   ├── MigrationWorkspaceView.tsx# Multi-Cloud migration & stack inspector
 │   │   ├── VercelDeploymentsView.tsx # Edge frontend status & deployments
 │   │   ├── RenderDeploymentsView.tsx # Backend services & anti-sleep crons
-│   │   ├── StorageExplorerView.tsx   # Oracle Object Storage & AWS S3 buckets
+│   │   ├── StorageExplorerView.tsx   # Oracle Object Storage & MySQL Gzip Backups
 │   │   ├── EnvManagerView.tsx        # Secure environment variables manager
 │   │   └── HelpView.tsx              # Documentation & quick onboarding
 │   └── lib/                   # API clients, auth helpers, and encryption utilities
 │
-├── cloud-ops-hub-backend/     # Automation & Telemetry Engine
-│   ├── src/                   # Server, SSH adapters, deploy pipelines, and AI handlers
-│   └── database/              # Telemetry logs, audit trails, and server registries
+├── cloud-ops-hub-backend/     # Automation & Telemetry Engine (Fastify + SSH)
+│   ├── src/
+│   │   ├── server.js                 # API Gateway, routes & middleware
+│   │   ├── dockerService.js          # Lifecycle control (start, stop, restart, live logs)
+│   │   ├── watchdogService.js        # 24/7 RAM and container health monitoring
+│   │   ├── backupService.js          # Automated MySQL dumps & 7-day gzip rotation
+│   │   ├── userManagementService.js  # Access requests, 1-click approvals & credentials
+│   │   ├── userServerService.js      # AES-256-GCM encrypted SSH server persistence
+│   │   ├── ragKnowledgeBase.js       # Semantic RAG index for Odisseu AI
+│   │   └── deployService.js          # Remote SSH execution & Git pipelines
+│   ├── database/              # Telemetry logs, audit trails, and server registries
+│   └── test_suite_e2e.js      # End-to-end automated testing suite
 │
-└── documentacoes/             # Architecture diagrams, guides, and manuals
+└── documentacoes/             # Comprehensive technical guides & architecture manuals (00 to 11)
 ```
 
 ---

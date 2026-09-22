@@ -19,6 +19,8 @@ Esta pasta contém todos os manuais técnicos, arquiteturais e guias passo a pas
 | **[07. Agente Odisseu RAG & LangChain](file:///C:/Users/vini/Documents/MY_VM_ORACLE/documentacoes/07_AGENTE_ODISSEU_RAG_LANGCHAIN.md)** | Copiloto de nuvem inteligente com RAG dinâmico, Function Calling, telemetria ao vivo e auto-failover. |
 | **[08. Migração Multi-Cloud & Tunnels](file:///C:/Users/vini/Documents/MY_VM_ORACLE/documentacoes/08_MIGRACAO_MULTICLOUD_E_TUNNELS.md)** | Guia completo de migração zero downtime 1-clique (Hostinger, Hetzner, AWS) e túneis Cloudflare Zero Trust. |
 | **[09. Vercel Frontend & Edge](file:///C:/Users/vini/Documents/MY_VM_ORACLE/documentacoes/09_VERCEL_EDGE_E_FRONTEND.md)** | Monitoramento do Cardápio Digital na borda da Vercel, Deploy Hooks, histórico de commits e redeploy em 1 clique. |
+| **[10. Autenticação Master & Multi-Tenant](file:///C:/Users/vini/Documents/MY_VM_ORACLE/documentacoes/10_AUTENTICACAO_MASTER_E_MULTITENANT.md)** | Controle de acesso RBAC, isolamento de novos usuários, aprovação 1-clique e persistência com criptografia AES-256. |
+| **[11. Watchdog 24/7, Docker & Backups](file:///C:/Users/vini/Documents/MY_VM_ORACLE/documentacoes/11_WATCHDOG_BACKUPS_E_CICLO_DOCKER.md)** | Guardião de RAM e containers com alerta no WhatsApp, ciclo de vida Docker (start/stop/restart/logs) e backups em gzip. |
 
 ---
 
