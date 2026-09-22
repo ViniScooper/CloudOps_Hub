@@ -14,9 +14,9 @@ interface GitSetupModalProps {
 }
 
 export function GitSetupModal({ isOpen, onClose, doAction }: GitSetupModalProps) {
-  const [name, setName] = useState('Vinicius Lourenço')
-  const [email, setEmail] = useState('vviniciuslourenco@gmail.com')
-  const [githubUser, setGithubUser] = useState('ViniScooper')
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [githubUser, setGithubUser] = useState('')
   const [githubToken, setGithubToken] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [statusLoading, setStatusLoading] = useState(false)
@@ -143,7 +143,7 @@ export function GitSetupModal({ isOpen, onClose, doAction }: GitSetupModalProps)
                 required
                 value={name}
                 onChange={e => setName(e.target.value)}
-                placeholder="Ex: Vinicius Lourenço"
+                placeholder="Ex: Seu Nome"
                 style={{ width: '100%', background: '#0e1618', border: '1px solid #1f3035', color: '#d9e2e1', padding: '7px 10px', borderRadius: '4px', fontSize: '11px' }}
               />
             </div>
@@ -156,7 +156,7 @@ export function GitSetupModal({ isOpen, onClose, doAction }: GitSetupModalProps)
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="Ex: seu-email@gmail.com"
+                placeholder="Ex: dev@empresa.com"
                 style={{ width: '100%', background: '#0e1618', border: '1px solid #1f3035', color: '#d9e2e1', padding: '7px 10px', borderRadius: '4px', fontSize: '11px' }}
               />
             </div>
@@ -171,7 +171,7 @@ export function GitSetupModal({ isOpen, onClose, doAction }: GitSetupModalProps)
                 type="text" 
                 value={githubUser}
                 onChange={e => setGithubUser(e.target.value)}
-                placeholder="Ex: ViniScooper"
+                placeholder="Ex: usuario-github"
                 style={{ width: '100%', background: '#0e1618', border: '1px solid #1f3035', color: '#d9e2e1', padding: '7px 10px', borderRadius: '4px', fontSize: '11px' }}
               />
             </div>

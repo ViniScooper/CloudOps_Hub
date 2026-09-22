@@ -20,7 +20,7 @@ export function EnvManagerView({ server, doAction }: EnvManagerViewProps) {
   const fetchEnv = async () => {
     setIsLoading(true)
     try {
-      const res = await fetch(getApiUrl('/api/env?project=cardapio_digital'))
+      const res = await fetch(getApiUrl('/api/env?project=app_service'))
       const data = await res.json()
       if (data.envVars) {
         setEnvVars(data.envVars)
@@ -33,22 +33,18 @@ export function EnvManagerView({ server, doAction }: EnvManagerViewProps) {
   }
 
   useEffect(() => {
-    if (server?.ip !== '137.131.187.54' && server?.id !== 'oracle-micro-02') {
-      fetchEnv()
-    } else {
-      setEnvVars([])
-    }
+    fetchEnv()
   }, [server?.ip])
 
-  if (server?.ip === '137.131.187.54' || server?.id === 'oracle-micro-02') {
+  if (!server) {
     return (
       <div className="panel" style={{ padding: '40px 20px', textAlign: 'center', marginTop: '20px' }}>
         <div style={{ display: 'inline-flex', padding: '12px', borderRadius: '50%', background: 'rgba(32, 214, 199, 0.08)', marginBottom: '12px', color: '#20d6c7' }}>
           <KeyRound size={28} />
         </div>
-        <h3 style={{ margin: '0 0 6px', fontSize: '16px', color: '#d9e2e1' }}>Nenhum Arquivo .env Configurado</h3>
+        <h3 style={{ margin: '0 0 6px', fontSize: '16px', color: '#d9e2e1' }}>Nenhum Servidor Conectado</h3>
         <p style={{ margin: '0 auto', fontSize: '12px', color: '#6f8387', maxWidth: '480px' }}>
-          Esta máquina virtual está limpa e ainda não possui projetos rodando. Quando você clonar uma aplicação ou iniciar um container, o cofre de variáveis de ambiente (.env) será ativado aqui.
+          Conecte um servidor para visualizar e gerenciar variáveis de ambiente (.env) com segurança e injeção automática.
         </p>
       </div>
     )
@@ -82,9 +78,9 @@ export function EnvManagerView({ server, doAction }: EnvManagerViewProps) {
       await fetch(getApiUrl('/api/env'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ project: 'cardapio_digital', envVars })
+        body: JSON.stringify({ project: 'app_service', envVars })
       })
-      doAction('Variáveis aplicadas e salvas com sucesso! Notificação enviada ao WhatsApp 📲')
+      doAction('Variáveis aplicadas e salvas com sucesso!')
     } catch (e: any) {
       doAction('Erro ao salvar variáveis: ' + e.message)
     }
@@ -116,8 +112,8 @@ export function EnvManagerView({ server, doAction }: EnvManagerViewProps) {
       <section className="panel" style={{ marginBottom: '20px' }}>
         <div className="panel-header">
           <div>
-            <h3>Variáveis Ativas: cardapio_digital (.env)</h3>
-            <p>Mapeadas e injetadas no container Node.js (boteco_backend)</p>
+            <h3>Variáveis Ativas (.env)</h3>
+            <p>Mapeadas e injetadas no container de produção</p>
           </div>
           <span style={{ fontSize: '11px', color: '#34d399', display: 'flex', alignItems: 'center', gap: '4px' }}>
             <ShieldCheck size={14} /> Criptografia em Trânsito

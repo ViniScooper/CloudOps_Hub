@@ -37,7 +37,7 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
   const [configModalOpen, setConfigModalOpen] = useState(false)
   const [vercelToken, setVercelToken] = useState('')
   const [showToken, setShowToken] = useState(false)
-  const [projectName, setProjectName] = useState('cardapio_digital')
+  const [projectName, setProjectName] = useState('')
   const [deployHookUrl, setDeployHookUrl] = useState('')
   const [testingToken, setTestingToken] = useState(false)
   const [tokenStatus, setTokenStatus] = useState<'idle' | 'valid' | 'invalid'>('idle')
@@ -75,7 +75,7 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
       const res = await fetch(getApiUrl('/api/vercel/config'))
       const cfg = await res.json()
       if (cfg) {
-        setProjectName(cfg.projectName || 'cardapio_digital')
+        setProjectName(cfg.projectName || '')
         setDeployHookUrl(cfg.deployHookUrl || '')
         if (cfg.token && !cfg.token.startsWith('gsk_')) {
           setVercelToken(cfg.token)
@@ -142,7 +142,7 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
   const handleSaveToken = async () => {
     const trimmedToken = vercelToken.trim()
     const trimmedHook = deployHookUrl.trim()
-    const trimmedProject = projectName.trim() || 'cardapio_digital'
+    const trimmedProject = projectName.trim()
 
     if (trimmedToken.startsWith('gsk_')) {
       setError('⚠️ Atenção: A chave informada começa com "gsk_", que é uma chave da Groq (IA) e não da Vercel! Deixe o campo de Token vazio (usando apenas o Deploy Hook) ou crie um Token oficial da Vercel em vercel.com/account/tokens.')
@@ -320,7 +320,7 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
               Projeto Vercel
             </span>
             <a
-              href="https://vercel.com/viniscoopers-projects/cardapio_digital"
+              href="https://vercel.com/dashboard"
               target="_blank"
               rel="noreferrer"
               style={{ fontSize: '11px', color: '#20d6c7', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '3px' }}
@@ -329,7 +329,7 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
             </a>
           </div>
           <div style={{ fontSize: '16px', fontWeight: 700, color: '#f0fdfa' }}>
-            {data?.projectName || 'cardapio_digital'}
+            {data?.projectName || projectName || 'Nenhum projeto configurado'}
           </div>
           <div style={{ fontSize: '11px', color: '#88a6aa', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <GitBranch size={13} style={{ color: '#20d6c7' }} />
@@ -348,18 +348,22 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
             </span>
           </div>
           <div style={{ fontSize: '15px', fontWeight: 700, color: '#f0fdfa', fontFamily: 'monospace' }}>
-            <a
-              href="https://cardapiodigital-gamma.vercel.app"
-              target="_blank"
-              rel="noreferrer"
-              style={{ color: '#20d6c7', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
-            >
-              cardapiodigital-gamma.vercel.app <ExternalLink size={13} />
-            </a>
+            {data?.domain ? (
+              <a
+                href={`https://${data.domain}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: '#20d6c7', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                {data.domain} <ExternalLink size={13} />
+              </a>
+            ) : (
+              <span style={{ color: '#6f8387', fontSize: '13px' }}>Aguardando configuração de domínio</span>
+            )}
           </div>
           <div style={{ fontSize: '11px', color: '#88a6aa', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Globe size={13} style={{ color: '#20d6c7' }} />
-            <span>Edge Network: <b>São Paulo (GRU)</b> / Latência ultrabaixa</span>
+            <span>Edge Network: <b>Global Anycast</b> / Latência ultrabaixa</span>
           </div>
         </div>
 
@@ -370,15 +374,15 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
               Último Commit Compilado
             </span>
             <span style={{ fontSize: '10px', color: '#20d6c7', fontFamily: 'monospace', fontWeight: 700 }}>
-              {latest?.meta?.commitSha ? latest.meta.commitSha.slice(0, 7) : 'v1.0.1'}
+              {latest?.meta?.commitSha ? latest.meta.commitSha.slice(0, 7) : '—'}
             </span>
           </div>
           <div style={{ fontSize: '13px', fontWeight: 600, color: '#f0fdfa', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {latest?.meta?.commitMessage || 'release: v1.0.1 atualizacao do instagram @botecodosivirino e icone svg'}
+            {latest?.meta?.commitMessage || 'Aguardando sincronização de deploy'}
           </div>
           <div style={{ fontSize: '11px', color: '#88a6aa', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <User size={12} style={{ color: '#20d6c7' }} />
-            <span>Autor: <b style={{ color: '#fff' }}>{latest?.meta?.commitAuthor || 'ViniScooper'}</b></span>
+            <span>Autor: <b style={{ color: '#fff' }}>{latest?.meta?.commitAuthor || 'DevOps CI/CD'}</b></span>
           </div>
         </div>
       </div>
@@ -495,7 +499,7 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
               </button>
 
               <a
-                href="https://vercel.com/viniscoopers-projects/cardapio_digital"
+                href="https://vercel.com/dashboard"
                 target="_blank"
                 rel="noreferrer"
                 style={{
@@ -831,7 +835,7 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
                 type="text"
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
-                placeholder="cardapio_digital"
+                placeholder="meu-app-web"
                 style={{
                   width: '100%',
                   padding: '10px 12px',

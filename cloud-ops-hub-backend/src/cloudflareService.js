@@ -15,39 +15,8 @@ function loadDomains() {
     console.error('Erro ao ler cloudflare_domains.json:', err.message);
   }
 
-  // Padrão inicial
-  const defaultDomains = [
-    {
-      id: 'dom-1',
-      domain: 'botecosivirino.com.br',
-      target: 'Vercel Edge Functions (CNAME cname.vercel-dns.com)',
-      port: 'Edge',
-      type: 'Vercel / Cloudflare DNS',
-      status: 'Ativo & Conectado',
-      ssl: "Let's Encrypt / Cloudflare SSL",
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: 'dom-2',
-      domain: 'cardapio.botecosivirino.com.br',
-      target: 'VM Oracle :3002 (boteco_backend)',
-      port: '3002',
-      type: 'Túnel Cloudflare (boteco_tunnel)',
-      status: 'Ativo & Conectado',
-      ssl: 'Cloudflare Full SSL',
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: 'dom-3',
-      domain: 'api.lottus.com.br',
-      target: 'VM Oracle :3001 (lottus-api PM2)',
-      port: '3001',
-      type: 'Nginx Proxy Reverso',
-      status: 'Ativo & Conectado',
-      ssl: "Let's Encrypt Automático",
-      updatedAt: new Date().toISOString()
-    }
-  ];
+  // Padrão inicial limpo
+  const defaultDomains = [];
 
   saveDomains(defaultDomains);
   return defaultDomains;
@@ -73,38 +42,46 @@ let watchdogHistory = [
 ];
 
 // Status em memória
-let lastKnownUrl = 'https://cardapio.botecosivirino.com.br';
-let lastTunnelStatus = 'Active';
+let lastKnownUrl = '';
+let lastTunnelStatus = 'Offline';
 let lastCheckedAt = new Date().toISOString();
 
 // Obtém status real do túnel na VM
 async function getTunnelStatus() {
   lastCheckedAt = new Date().toISOString();
   try {
-    const inspectRes = await deployService.runRemoteSsh(
-      'docker inspect boteco_tunnel --format "{{.State.Status}} | {{.State.StartedAt}}" 2>/dev/null || echo "not_found"'
-    );
-    const out = (inspectRes.stdout || '').trim();
+    // Procura container de túnel dinamicamente
+    const findRes = await deployService.runRemoteSsh('docker ps -a --filter "name=tunnel" --format "{{.Names}}" | head -n 1');
+    const containerName = (findRes.stdout || '').trim();
 
     let isRunning = false;
     let startedAt = '';
 
-    if (out && !out.includes('not_found')) {
-      const parts = out.split('|');
-      const state = (parts[0] || '').trim();
-      startedAt = (parts[1] || '').trim();
-      isRunning = state === 'running';
-      lastTunnelStatus = isRunning ? 'Active' : 'Offline';
+    if (containerName) {
+      const inspectRes = await deployService.runRemoteSsh(
+        `docker inspect ${containerName} --format "{{.State.Status}} | {{.State.StartedAt}}" 2>/dev/null || echo "not_found"`
+      );
+      const out = (inspectRes.stdout || '').trim();
+
+      if (out && !out.includes('not_found')) {
+        const parts = out.split('|');
+        const state = (parts[0] || '').trim();
+        startedAt = (parts[1] || '').trim();
+        isRunning = state === 'running';
+        lastTunnelStatus = isRunning ? 'Active' : 'Offline';
+      } else {
+        lastTunnelStatus = 'Offline';
+      }
+
+      // Busca última URL do trycloudflare nos logs se existir
+      const logsRes = await deployService.runRemoteSsh(`docker logs --tail 40 ${containerName} 2>&1 || echo ""`);
+      const logsText = logsRes.stdout || logsRes.stderr || '';
+      const matchUrl = logsText.match(/https:\/\/[a-zA-Z0-9-]+\.trycloudflare\.com/);
+      if (matchUrl) {
+        lastKnownUrl = matchUrl[0];
+      }
     } else {
       lastTunnelStatus = 'Offline';
-    }
-
-    // Busca última URL do trycloudflare nos logs se existir
-    const logsRes = await deployService.runRemoteSsh('docker logs --tail 40 boteco_tunnel 2>&1 || echo ""');
-    const logsText = logsRes.stdout || logsRes.stderr || '';
-    const matchUrl = logsText.match(/https:\/\/[a-zA-Z0-9-]+\.trycloudflare\.com/);
-    if (matchUrl) {
-      lastKnownUrl = matchUrl[0];
     }
 
     return {
@@ -189,7 +166,7 @@ async function mapOrReplaceDomain({ domain, port = '3002', type = 'Túnel Cloudf
     domain: cleanDomain,
     target: `VM Oracle :${port}`,
     port: String(port),
-    type: type || 'Túnel Cloudflare (boteco_tunnel)',
+    type: type || 'Túnel Cloudflare (Zero Trust)',
     status: 'Ativo & Conectado',
     ssl: ssl || 'Cloudflare Full SSL',
     updatedAt: new Date().toISOString()

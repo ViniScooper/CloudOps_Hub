@@ -358,8 +358,8 @@ export function HelpView({ onNavigate }: HelpViewProps) {
         {selectedRole === 'dba' && (
           <div style={{ background: '#070a0c', padding: '16px', borderRadius: '6px', border: '1px solid #142023', fontSize: '12px', lineHeight: '1.7', color: '#a2b3b6' }}>
             <strong style={{ color: '#20d6c7', display: 'block', marginBottom: '6px' }}>Rotina do Administrador de Banco (DBA):</strong>
-            1. Monitore o container <code>boteco_db</code> (MySQL 8.0) no Dashboard.<br/>
-            2. Utilize a aba <b>Storage</b> para verificar a retenção de dumps no bucket <code>boteco-sivirino-fotos</code>.<br/>
+            1. Monitore containers de banco de dados (MySQL/Postgres/Redis) no Dashboard.<br/>
+            2. Utilize a aba <b>Storage</b> para verificar a retenção de backups e dumps na nuvem.<br/>
             3. O banco opera isolado na rede privada local, acessível apenas internamente ou via túnel SSH autenticado.
           </div>
         )}
@@ -393,7 +393,7 @@ export function HelpView({ onNavigate }: HelpViewProps) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px', marginBottom: '18px' }}>
           <div style={{ background: '#070a0c', padding: '12px', borderRadius: '6px', border: '1px solid #142023', fontSize: '11px' }}>
             <strong style={{ color: '#20d6c7', display: 'block', marginBottom: '4px' }}>🔗 URL do Repositório Git *</strong>
-            <span style={{ color: '#d9e2e1', fontFamily: 'monospace' }}>https://github.com/ViniScooper/meu-novo-app.git</span>
+            <span style={{ color: '#d9e2e1', fontFamily: 'monospace' }}>https://github.com/usuario/meu-novo-app.git</span>
             <small style={{ display: 'block', color: '#6f8387', marginTop: '4px' }}>Link HTTPS ou SSH do repositório no GitHub.</small>
           </div>
 
@@ -543,8 +543,8 @@ export function HelpView({ onNavigate }: HelpViewProps) {
                 <VercelIcon size={16} color="#20d6c7" /> 4. Vercel Frontend & Edge CDN
               </div>
               <p style={{ fontSize: '11.5px', color: '#8fa4a8', lineHeight: 1.6, margin: '0 0 10px 0' }}>
-                <b>O que faz:</b> Monitora o site <code>cardapiodigital-gamma.vercel.app</code> na rede Edge global da Vercel. Mostra o último commit compilado, status (Ready/Building) e botão <b>Forçar Redeploy Vercel</b> via Deploy Hook.<br/>
-                <b>Quando usar:</b> Sempre que atualizar o visual do cardápio, para acompanhar o build em tempo real ou forçar a atualização imediata.
+                <b>O que faz:</b> Monitora o status das suas aplicações na rede Edge global da Vercel. Mostra o último commit compilado, status (Ready/Building) e botão <b>Forçar Redeploy Vercel</b> via Deploy Hook.<br/>
+                <b>Quando usar:</b> Sempre que atualizar seu frontend, para acompanhar o build em tempo real ou forçar a atualização imediata.
               </p>
             </div>
             <button onClick={() => onNavigate('Vercel Frontend')} style={{ background: '#0f1b1e', border: '1px solid #1a2f34', color: '#20d6c7', borderRadius: '4px', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
@@ -591,8 +591,8 @@ export function HelpView({ onNavigate }: HelpViewProps) {
                 <HardDrive size={16} /> 7. Storage & Backups OCI
               </div>
               <p style={{ fontSize: '11.5px', color: '#8fa4a8', lineHeight: 1.6, margin: '0 0 10px 0' }}>
-                <b>O que faz:</b> Controla os buckets de objetos na nuvem (<code>boteco-sivirino-fotos</code>) e os dumps diários do banco MySQL.<br/>
-                <b>Quando usar:</b> Para auditar fotos de itens do cardápio, validar backups de segurança e garantir retenção de dados históricos.
+                <b>O que faz:</b> Controla os buckets de objetos na nuvem e os backups diários dos bancos de dados.<br/>
+                <b>Quando usar:</b> Para auditar arquivos de mídia, validar backups de segurança e garantir retenção de dados históricos.
               </p>
             </div>
             <button onClick={() => onNavigate('Storage')} style={{ background: '#0f1b1e', border: '1px solid #1a2f34', color: '#20d6c7', borderRadius: '4px', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
@@ -607,7 +607,7 @@ export function HelpView({ onNavigate }: HelpViewProps) {
                 <Activity size={16} /> 8. Monitoramento & Telemetria
               </div>
               <p style={{ fontSize: '11.5px', color: '#8fa4a8', lineHeight: 1.6, margin: '0 0 10px 0' }}>
-                <b>O que faz:</b> Intercepta erros HTTP (4xx e 5xx) enfrentados em tempo real por clientes ou administradores no Cardápio Digital ou Painel Admin, exibindo rota, parâmetros e traceback.<br/>
+                <b>O que faz:</b> Intercepta erros HTTP (4xx e 5xx) enfrentados em tempo real por clientes ou administradores nas aplicações conectadas, exibindo rota, parâmetros e traceback.<br/>
                 <b>Quando usar:</b> Para descobrir problemas antes mesmo do cliente reclamar ou após lançar uma nova funcionalidade.
               </p>
             </div>

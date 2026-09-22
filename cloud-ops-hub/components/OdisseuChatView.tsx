@@ -287,7 +287,7 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
       {
         id: 'msg-welcome',
         role: 'assistant',
-        content: `Olá, Vinicius! Eu sou o **Odisseu**, seu copiloto de infraestrutura e guardião autônomo na Oracle Cloud.\n\nEstou conectado à sua VM **${server?.name || 'instance-bytedata'}** (\`${server?.ip || '137.131.185.243'}\`) e conheço todas as diretrizes do seu ambiente: limite físico de 956 MB de RAM, swap ativo de 1GB, containers Docker em execução e mapa de portas reservadas.\n\nEscolha um diagnóstico abaixo ou digite sua dúvida ou comando:`,
+        content: `Olá! Eu sou o **Odisseu**, seu copiloto autônomo de DevOps e engenharia de nuvem.\n\n${server ? `Estou conectado à sua VM **${server.name}** (\`${server.ip}\`). Monitoro métricas de CPU/RAM, limites de memória, swap, containers Docker em execução e mapa de portas.` : 'Nenhum servidor conectado no momento. Conecte sua VM na nuvem para que eu possa inspecionar métricas, gerenciar containers e executar comandos com Zero Trust.'}\n\nEscolha um diagnóstico rápido abaixo ou digite sua pergunta ou comando:`,
         timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
       }
     ])
@@ -583,7 +583,7 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
             </div>
             <p style={{ fontSize: '11px', color: '#68868a', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#20d6c7', display: 'inline-block' }} />
-              VM: <b style={{ color: '#9db4b7' }}>{server?.ip || '137.131.185.243'}</b> • 956 MB RAM • RAG LangChain Ativo
+              VM: <b style={{ color: '#9db4b7' }}>{server?.ip || 'Nenhum servidor conectado'}</b> • {server?.ramTotal ? `${server.ramTotal} MB RAM` : 'Cloud VM'} • RAG LangChain Ativo
             </p>
           </div>
         </div>
@@ -737,14 +737,14 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
                   color: '#fbbf24',
                   title: 'Deploy Zero-Touch via PM2',
                   desc: 'Clona um repositório Git e inicia a API na primeira porta livre sem estourar a RAM.',
-                  prompt: 'Quero subir uma nova API Node do repositório https://github.com/ViniScooper/cardapio_digital.git via PM2 na porta 3004. Como você faz isso?'
+                  prompt: 'Quero subir uma nova API Node a partir de um repositório Git via PM2 na porta 3004. Como você faz isso?'
                 },
                 {
                   icon: Globe,
                   color: '#38bdf8',
                   title: 'Configurar Proxy Reverso Nginx',
                   desc: 'Cria o bloco de host no Nginx e aponta subdomínio com terminação SSL.',
-                  prompt: 'Gere a configuração do Nginx para apontar o subdomínio delivery.botecosivirino.com.br para a porta 3004.'
+                  prompt: 'Gere a configuração do Nginx para apontar o subdomínio api.meudominio.com.br para a porta 3004.'
                 }
               ].map((card, i) => (
                 <div
@@ -1180,7 +1180,7 @@ export function OdisseuChatView({ server, doAction, onNavigate }: OdisseuChatVie
           padding: '0 4px'
         }}>
           <span>Pressione <b>Enter</b> para enviar • <b>Shift + Enter</b> para nova linha</span>
-          <span>Sessão segura com a VM 137.131.185.243 (Zero Trust SSH)</span>
+          <span>Sessão segura {server?.ip ? `com a VM ${server.ip}` : 'Zero Trust'} (SSH)</span>
         </div>
       </footer>
 

@@ -60,8 +60,8 @@ export function DeployView({ server, doAction }: DeployViewProps) {
 
   const triggerDeploy = async (project: string) => {
     setIsDeploying(true)
-    doAction(`Iniciando deploy real via SSH de ${project}...`)
-    setDeployLogs([`[${new Date().toLocaleTimeString('pt-BR')}] Conectando à VM via SSH (${server?.ip || '137.131.185.243'})...`])
+    const targetIp = server?.ip || 'Servidor'
+    setDeployLogs([`[${new Date().toLocaleTimeString('pt-BR')}] Conectando à VM via SSH (${targetIp})...`])
 
     try {
       const res = await fetch(getApiUrl('/api/deploy'), {
@@ -331,15 +331,15 @@ export function DeployView({ server, doAction }: DeployViewProps) {
         </div>
       ) : (
       <div className="overview-grid" style={{ marginBottom: '20px' }}>
-        {/* Card do Cardápio Digital com Rollback */}
+        {/* Card da Aplicação Principal com Rollback */}
         <div className="panel" style={{ padding: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                 <span className="status-dot emerald" />
-                <h3 style={{ margin: 0, fontSize: '15px' }}>Boteco Sivirino (Cardápio Digital)</h3>
+                <h3 style={{ margin: 0, fontSize: '15px' }}>Aplicação Web & Backend API</h3>
               </div>
-              <small style={{ color: '#6f8387' }}>Repositório: cardapio_digital | Host VM: 3002 ➔ 3001</small>
+              <small style={{ color: '#6f8387' }}>Repositório: app_service | Porta 3000</small>
             </div>
             <span className="status-text emerald">Produção Ativa</span>
           </div>
@@ -368,7 +368,7 @@ export function DeployView({ server, doAction }: DeployViewProps) {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
             <span style={{ fontSize: '10px', color: '#52666a' }}>
-              Conexão SSH Real com a Oracle Cloud
+              Conexão SSH Real com o Servidor
             </span>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -376,7 +376,7 @@ export function DeployView({ server, doAction }: DeployViewProps) {
               <button 
                 className="refresh-button"
                 disabled={isDeploying || isMerging || isRollingBack}
-                onClick={() => triggerRollback('cardapio_digital')}
+                onClick={() => triggerRollback('app_service')}
                 title="Desfaz a última alteração e restaura a versão anterior na VM"
                 style={{
                   background: '#161009',
@@ -401,7 +401,7 @@ export function DeployView({ server, doAction }: DeployViewProps) {
               <button 
                 className="primary-button"
                 disabled={isDeploying || isMerging || isRollingBack}
-                onClick={() => triggerDeploy('cardapio_digital')}
+                onClick={() => triggerDeploy('app_service')}
                 style={{ padding: '7px 16px', fontWeight: 600 }}
               >
                 {isDeploying ? (

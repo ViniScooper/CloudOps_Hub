@@ -115,7 +115,7 @@ export function CloneRepoModal({ isOpen, onClose, doAction, onProjectAdded }: Cl
               required
               value={repoUrl}
               onChange={e => handleUrlChange(e.target.value)}
-              placeholder="https://github.com/ViniScooper/meu-novo-app.git"
+              placeholder="https://github.com/usuario/meu-novo-app.git"
               style={{ width: '100%', background: '#0e1618', border: '1px solid #1f3035', color: '#d9e2e1', padding: '8px 10px', borderRadius: '4px', fontSize: '12px' }}
             />
           </div>

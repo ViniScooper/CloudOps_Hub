@@ -302,9 +302,9 @@ export function VmScraper({
               </button>
               <button
                 className="refresh-button"
-                title="Testar envio de notificação para o seu WhatsApp (+558195126839)"
+                title="Testar envio de notificação para o WhatsApp configurado"
                 onClick={async () => {
-                  doAction('Disparando teste de WhatsApp para 558195126839...')
+                  doAction('Disparando teste de WhatsApp...')
                   try {
                     await fetch(getApiUrl('/api/oracle/scraper/test-whatsapp'), {
                       method: 'POST',
@@ -545,7 +545,7 @@ export function VmScraper({
               )}
               <button
                 className="refresh-button"
-                title="Testar envio de notificação para o seu WhatsApp (+558195126839)"
+                title="Testar envio de notificação para o WhatsApp configurado"
                 onClick={async () => {
                   doAction('Disparando mensagem de teste para o WhatsApp...')
                   try {

@@ -3,9 +3,9 @@ const https = require('https');
 const path = require('path');
 const fs = require('fs');
 
-const DEFAULT_REPO_PATH = 'C:\\Users\\vini\\Documents\\AP1_CARDAPIO';
-const DEFAULT_OWNER = 'ViniScooper';
-const DEFAULT_REPO = 'cardapio_digital';
+const DEFAULT_REPO_PATH = process.env.LOCAL_REPO_PATH || process.cwd();
+const DEFAULT_OWNER = process.env.GITHUB_OWNER || '';
+const DEFAULT_REPO = process.env.GITHUB_REPO || '';
 
 function runGitCommand(cmd, cwd = DEFAULT_REPO_PATH) {
   return new Promise((resolve, reject) => {

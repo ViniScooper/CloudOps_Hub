@@ -38,8 +38,7 @@ const navSections = [
   {
     title: 'Infraestrutura & Serviços',
     items: [
-      { label: 'VM Scraper', icon: Zap, badge: 'Nuvem 24/7' },
-      { label: 'Docker', icon: Container, badge: '3' },
+      { label: 'Docker', icon: Container, badge: '0' },
       { label: 'Nginx', icon: Network },
       { label: 'Tunnels', icon: Shield, badge: 'Zero Trust' },
       { label: 'Storage', icon: HardDrive },
@@ -57,66 +56,19 @@ const navSections = [
 
 const nav = navSections.flatMap(s => s.items)
 
-const servers = [
-  { id: 'oracle-prod', name: 'instance-bytedata', provider: 'Oracle Cloud (Always Free)', region: 'sa-saopaulo-1 (GRU)', ip: '137.131.185.243', status: 'Healthy', type: 'AMD EPYC (2 vCPUs)', cpu: '18', ram: '42', ramUsed: '401', ramTotal: '956', cacheUsed: '233', cachePct: '24', disk: '34', diskUsed: '15', diskTotal: '45', color: 'oracle' },
-  { id: 'oracle-micro-02', name: 'cloudops-micro-02', provider: 'Oracle Cloud (Always Free)', region: 'sa-saopaulo-1 (GRU)', ip: '137.131.187.54', status: 'Healthy', type: 'VM.Standard.E2.1.Micro', cpu: '2', ram: '21', ramUsed: '207', ramTotal: '956', cacheUsed: '278', cachePct: '29', disk: '5', diskUsed: '2.4', diskTotal: '49', color: 'oracle' }
-]
+const servers: any[] = []
 
-const containersData = [
-  { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.0%', memory: '33.6 MB', color: 'emerald' },
-  { name: 'boteco_db', image: 'mysql:8.0 (Buffer 64M)', status: 'Running', port: '3306:3306', cpu: '0.5%', memory: '9.2 MB', color: 'emerald' },
-  { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.1%', memory: '31.3 MB', color: 'emerald' },
-  { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.0%', memory: '1.5 MB', color: 'emerald' },
-  { name: 'plataforma_ingles_api', image: 'node:18', status: 'Running', port: '3003:3002', cpu: '0.0%', memory: '23.8 MB', color: 'emerald' },
-  { name: 'lottus-api (PM2)', image: 'node/pm2', status: 'Online', port: '3001', cpu: '0.0%', memory: '35.5 MB', color: 'emerald' },
-]
+const containersData: any[] = []
 
-const DEFAULT_SSH_KEY = `-----BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEA7BwqNT2JwH/UWmQciGL7P2l3giUeaD863MO+lu9NZ+moXJWj
-kwi7gA9u3twv7N4Ab7HCgiDX2m+1NwRuLaGwvotjs5DS6L/iDpXzN8WOuDfGKmYa
-kewNmQH8VG1l1kVJL1hG8Z/3L2fcOpnZu3+Tt9YrIYMrdRJ8vBpUYrTDf3EZwwLP
-+ABcZ1ourr3qdORTT+rBu9UkZbVSJiI+2yUsxkRika6a9jWretMt028d7euyFJQ5
-dtrCTsMTc/R1BwZ+ap4meU+Eb+yK/XqoSGHZFvhAUaqYb+77ZI15OelgdW2tU6/r
-eEIyxnJopTUNqev88Yct4vKKeXrS/Bij3IszmwIDAQABAoIBACSlineRAZx7Or58
-42DX3B9Pg1kT4dBUYBJ7300V/3GtdpBIOYdMx61st8ynaFjfbDnp4ULJTjd9Nyc+
-7MrwWbp5cBQi2ll9ztxssb9qTmiRX5SdHGqhtMqW4E9KW5ASWPWcQgamyXr2J9yA
-nKbZelgCSdd9wHT/VZTskURwwhc5bmmMl90sBq8xq+glYb6rHd8VOQu9kTq2/qBm
-JHNfyCkETtBwsvxahfAnuLNZXpmkfQqbDPse957oQkkg1iD0XsIyVE7vn1YSZLOW
-E2+plT9W0UYTL40yXFRmeu4FmeDdBJnd0IydKpCM1Tnggti3eaQeiIZxp/LYxXuH
-E8VaLkECgYEA/H7GxhWKUTol6W/WnX6FA/GX97SAvu2mjVs/Z3pLhJ+mcYA8Bgix
-nMz7Gs6PiZ1Y+UVBlXW88fi9d/LDG/gpehXu5vsueonMfb/fBtTVxMqm9K0+4xt5
-dUt+fd5SBS8LW7xIDfCWUKZCsEybc8GcXXC4plX/edEAlApqjb5/HXkCgYEA72Mq
-L0nzevAwq0cgOz5UH0tR4UJBcj8soi2FmdTqR2NosTm6K+dwETqjM6i1pvaZMqQ8
-ACl8X4pFmkMAcRKgOGmYop6Lym9kvQ8HeKMJfUWr+3zYsP3WBsiNvYjg8p5Loaal
-g6wrwMLhwgrw3NI0yTCrlNBxccpietWUVTnIWLMCgYB1lrEJpRRyeasYSN5hIH/f
-8057rJNc155+LGWd0kWDMTq5lyfdA4V76bZzqIkOZLn/9LHzYg6pfdb3Gpak2vCu
-C7Lj3UyrAqu6UHYUX2BisqIIRvqHl877wjnZcoUuJteaVFgWLdpDGvrp0fN/eEZS
-+eD0jg5Zc+1aBHPVKUdXuQKBgQCd0K0t0b3fTVt4fwJjrBp/KwOG0kwdCkLdg88w
-8+mjOIj7VUhDy2bZJOQUmWNv9+BVP2qC3NaukZSDNyqiYJoZtpu2kXks8rTh4neV
-cz49ROI1gD/GpwEjJbIzwnox2GOZ5Sf2n1mU0aVNbDMQENBV1m03RReU4cx8mDMa
-4GYQ+wKBgQCb95YgYACRZzYwWM+lGLEwB0ZYO7+2vkcl1goWHDy2o5UTK7vj3+x+
-42VjgEs3HSPBp+jbrgPEmuiZTeso4ADeZlWiWmbE0Bg9wyUzKIhr7qbCSxCjxef1
-gfO651XihVBUIOy6j80ML/ExC9DTGaCBe8FOlFxPC1n7HDc1uZQkCw==
------END RSA PRIVATE KEY-----`.trim()
+const DEFAULT_SSH_KEY = ''
 
-const bucketsData = [
-  { name: 'boteco-sivirino-fotos', visibility: 'Public (ObjectRead)', tier: 'Standard Always Free', region: 'sa-saopaulo-1', count: '142 objetos', size: '1.4 GB', url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/' },
-  { name: 'boteco-db-backups', visibility: 'Private', tier: 'Archive', region: 'sa-saopaulo-1', count: '14 dumps (.sql.gz)', size: '420 MB', url: 'Private Vault' },
-]
+const bucketsData: any[] = []
 
-const proxyHostsData = [
-  { domain: 'cardapio.botecosivirino.com.br', forward: 'http://127.0.0.1:3002', ssl: 'Let\'s Encrypt (Ativo)', status: 'Online' },
-  { domain: 'api.lottus.com.br', forward: 'http://127.0.0.1:3001', ssl: 'Let\'s Encrypt (Ativo)', status: 'Online' },
-  { domain: 'ingles.plataforma.com.br', forward: 'http://127.0.0.1:3003', ssl: 'Auto-Renew', status: 'Warning' },
-]
+const proxyHostsData: any[] = []
 
-const logs = [
-  ['11:02:14', 'info', 'CloudOps Hub connected to instance-bytedata via SSH'],
-  ['11:02:19', 'info', 'Docker daemon response: 5 containers healthy, 1 warning'],
-  ['11:05:32', 'info', 'Terraform state synced: boteco-sivirino-fotos active'],
-  ['11:08:44', 'info', 'MySQL boteco_db healthy on port 3306'],
-  ['11:12:01', 'info', 'Cloudflare tunnel active and routing to Vercel'],
-  ['11:15:30', 'info', 'Memory usage stable: 378 MB of 956 MB used (39%)'],
+const logs: string[][] = [
+  ['00:00:00', 'info', 'CloudOps Hub Zero Trust Terminal inicializado.'],
+  ['00:00:01', 'info', 'Aguardando conexão de servidor SSH...']
 ]
 
 function Metric({ 
@@ -225,8 +177,8 @@ export default function Page() {
   const [notifyDowntime, setNotifyDowntime] = useState(true)
   const [notifySsl, setNotifySsl] = useState(true)
   const [discordWebhookUrl, setDiscordWebhookUrl] = useState('')
-  const [whatsappPhone, setWhatsappPhone] = useState('558195126839')
-  const [whatsappApiKey, setWhatsappApiKey] = useState('7939819')
+  const [whatsappPhone, setWhatsappPhone] = useState('')
+  const [whatsappApiKey, setWhatsappApiKey] = useState('')
   const [notifyWhatsapp, setNotifyWhatsapp] = useState(true)
 
   // Modal de Logs ao Vivo do Container
@@ -312,86 +264,33 @@ export default function Page() {
 
       const savedServers = localStorage.getItem('cloudops_servers')
       if (savedServers) {
-        let parsed = JSON.parse(savedServers)
-        parsed = parsed.map((s: any) => {
-          if (s.ip === '137.131.185.243') {
-            return {
-              ...s,
-              id: 'oracle-prod',
-              name: 'instance-bytedata',
-              type: 'AMD EPYC (2 vCPUs)',
-              provider: 'Oracle Cloud (Always Free)',
-              region: 'sa-saopaulo-1 (GRU)'
-            }
+        try {
+          const parsed = JSON.parse(savedServers)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setServerList(parsed)
+            setServer(parsed[0])
           }
-          if (s.ip === '137.131.187.54') {
-            return {
-              ...s,
-              id: 'oracle-micro-02',
-              name: 'cloudops-micro-02',
-              type: 'VM.Standard.E2.1.Micro',
-              provider: 'Oracle Cloud (Always Free)',
-              region: 'sa-saopaulo-1 (GRU)',
-              cpu: '2',
-              ram: '21',
-              ramUsed: '207',
-              ramTotal: '956',
-              cacheUsed: '278',
-              cachePct: '29',
-              disk: '5',
-              diskUsed: '2.4',
-              diskTotal: '49'
-            }
-          }
-          return s
-        })
-        localStorage.setItem('cloudops_servers', JSON.stringify(parsed))
-        setServerList(parsed)
-        if (parsed.length > 0) setServer(parsed[0])
+        } catch {}
       }
 
       const savedOci = localStorage.getItem('cloudops_oci')
       if (savedOci) {
-        const parsed = JSON.parse(savedOci)
-        setOciCreds(parsed)
+        try { setOciCreds(JSON.parse(savedOci)) } catch {}
       }
 
       const savedBuckets = localStorage.getItem('cloudops_buckets')
       if (savedBuckets) {
-        setBuckets(JSON.parse(savedBuckets))
-      } else if (savedOci) {
-        const parsed = JSON.parse(savedOci)
-        setBuckets([
-          { name: 'boteco-sivirino-fotos', visibility: 'Public (ObjectRead)', tier: 'Standard Always Free', region: parsed.region || 'sa-saopaulo-1', count: '142 objetos', size: '1.4 GB', url: `https://objectstorage.${parsed.region || 'sa-saopaulo-1'}.oraclecloud.com/n/${parsed.tenancy ? 'gr88wz9mdro0' : 'ns'}/b/boteco-sivirino-fotos/o/` }
-        ])
+        try { setBuckets(JSON.parse(savedBuckets)) } catch {}
       }
 
       const savedContainers = localStorage.getItem('cloudops_containers')
-      if (savedContainers && JSON.parse(savedContainers).length > 0) {
-        setContainers(JSON.parse(savedContainers))
-      } else if (savedServers && JSON.parse(savedServers).length > 0) {
-        const defaultContainers = [
-          { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.0%', memory: '33.6 MB', color: 'emerald' },
-          { name: 'boteco_db', image: 'mysql:8.0 (Buffer 64M)', status: 'Running', port: '3306:3306', cpu: '0.5%', memory: '9.2 MB', color: 'emerald' },
-          { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.1%', memory: '31.3 MB', color: 'emerald' },
-          { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.0%', memory: '1.5 MB', color: 'emerald' },
-          { name: 'plataforma_ingles_api', image: 'node:18', status: 'Running', port: '3003:3002', cpu: '0.0%', memory: '23.8 MB', color: 'emerald' },
-          { name: 'lottus-api (PM2)', image: 'node/pm2', status: 'Online', port: '3001', cpu: '0.0%', memory: '35.5 MB', color: 'emerald' },
-        ]
-        setContainers(defaultContainers)
-        localStorage.setItem('cloudops_containers', JSON.stringify(defaultContainers))
+      if (savedContainers) {
+        try { setContainers(JSON.parse(savedContainers)) } catch {}
       }
 
       const savedProxies = localStorage.getItem('cloudops_proxies')
-      if (savedProxies && JSON.parse(savedProxies).length > 0) {
-        setProxyHosts(JSON.parse(savedProxies))
-      } else if (savedServers && JSON.parse(savedServers).length > 0) {
-        const defaultProxies = [
-          { domain: 'cardapio.botecosivirino.com.br', forward: 'http://127.0.0.1:3002', ssl: 'Let\'s Encrypt (Ativo)', status: 'Online' },
-          { domain: 'api.lottus.com.br', forward: 'http://127.0.0.1:3001', ssl: 'Let\'s Encrypt (Ativo)', status: 'Online' }
-        ]
-        setProxyHosts(defaultProxies)
-        localStorage.setItem('cloudops_proxies', JSON.stringify(defaultProxies))
+      if (savedProxies) {
+        try { setProxyHosts(JSON.parse(savedProxies)) } catch {}
       }
     } catch (e) {
       console.error('Erro ao ler localStorage', e)
@@ -2076,7 +1975,7 @@ terraform -version
                             type="text" 
                             value={whatsappPhone} 
                             onChange={e => setWhatsappPhone(e.target.value)}
-                            placeholder="558195126839"
+                            placeholder="5511999999999"
                             style={{ width: '100%', height: '36px', background: '#101719', border: '1px solid #1e2c30', borderRadius: '6px', padding: '0 12px', color: '#d9e2e1', fontSize: '11px', outline: 'none' }}
                           />
                         </div>
@@ -2086,7 +1985,7 @@ terraform -version
                             type="text" 
                             value={whatsappApiKey} 
                             onChange={e => setWhatsappApiKey(e.target.value)}
-                            placeholder="7939819"
+                            placeholder="1234567"
                             style={{ width: '100%', height: '36px', background: '#101719', border: '1px solid #1e2c30', borderRadius: '6px', padding: '0 12px', color: '#d9e2e1', fontSize: '11px', outline: 'none' }}
                           />
                         </div>

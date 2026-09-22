@@ -16,10 +16,10 @@ function getVercelConfig() {
 
   return {
     token: process.env.VERCEL_TOKEN || '',
-    projectName: process.env.VERCEL_PROJECT_NAME || 'cardapio_digital',
+    projectName: process.env.VERCEL_PROJECT_NAME || '',
     teamId: process.env.VERCEL_TEAM_ID || '',
     deployHookUrl: process.env.VERCEL_DEPLOY_HOOK_URL || '',
-    productionDomain: 'cardapiodigital-gamma.vercel.app'
+    productionDomain: process.env.VERCEL_DOMAIN || ''
   };
 }
 
@@ -123,14 +123,14 @@ async function getDeployments(limit = 10, userToken = '') {
       buildingAt: d.buildingAt,
       readyAt: d.ready,
       creator: {
-        username: d.creator?.username || 'ViniScooper',
+        username: d.creator?.username || 'DevOps',
         email: d.creator?.email || ''
       },
       meta: {
         branch: d.meta?.githubCommitRef || d.meta?.branch || 'main',
         commitMessage: d.meta?.githubCommitMessage || 'Atualização no repositório',
         commitSha: d.meta?.githubCommitSha || d.meta?.commit || '',
-        commitAuthor: d.meta?.githubCommitAuthorName || 'ViniScooper'
+        commitAuthor: d.meta?.githubCommitAuthorName || 'DevOps'
       }
     }));
 

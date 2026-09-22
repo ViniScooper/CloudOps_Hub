@@ -53,14 +53,7 @@ function parseServerOutput(output, ip, user) {
     }
   }
 
-  const finalContainers = containers.length > 0 ? containers : [
-    { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.0%', memory: '33.6 MB', color: 'emerald' },
-    { name: 'boteco_db', image: 'mysql:8.0 (Buffer 64M)', status: 'Running', port: '3306:3306', cpu: '0.5%', memory: '9.2 MB', color: 'emerald' },
-    { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.1%', memory: '31.3 MB', color: 'emerald' },
-    { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.0%', memory: '1.5 MB', color: 'emerald' },
-    { name: 'plataforma_ingles_api', image: 'node:18', status: 'Running', port: '3003:3002', cpu: '0.0%', memory: '23.8 MB', color: 'emerald' },
-    { name: 'lottus-api (PM2)', image: 'node/pm2', status: 'Online', port: '3001', cpu: '0.0%', memory: '35.5 MB', color: 'emerald' },
-  ];
+  const finalContainers = containers;
 
   return {
     success: true,
@@ -178,54 +171,46 @@ Error: 500-InternalError, Out of host capacity.
 [2026-09-14T20:25:27.316Z] [HINT]  [plataforma_ingles_api] Verifique se a variável SUPABASE_URL e SUPABASE_ANON_KEY / SERVICE_KEY estão preenchidas no arquivo .env do container.
 [2026-09-14T20:25:35.002Z] [FATAL] [plataforma_ingles_api] Docker Healthcheck probe: GET http://localhost:3002/health returned 503 Service Unavailable (Supabase disconnected)
 [2026-09-14T20:25:35.005Z] [INFO]  Container status marked as (unhealthy) by Docker daemon.`;
-      } else if (command.includes('boteco_backend')) {
-        mockOutput = `[2026-09-14T19:40:12.010Z] [INFO]  Boteco Sivirino API Node.js v20.12.0 inicializado
-[2026-09-14T19:40:12.450Z] [INFO]  Conectado com sucesso ao MySQL: boteco_db:3306
-[2026-09-14T19:40:12.455Z] [INFO]  Rotas do Cardápio Digital carregadas (42 itens em cache)
-[2026-09-14T19:40:12.500Z] [INFO]  Listening at http://0.0.0.0:3001 (host port 3002)
-[2026-09-14T20:24:18.120Z] [INFO]  GET /api/cardapio/itens 200 4.2ms - 42 items
-[2026-09-14T20:26:02.304Z] [INFO]  GET /health 200 0.8ms - OK`;
-      } else if (command.includes('boteco_db')) {
-        mockOutput = `2026-09-14T15:30:00.124510Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.0.36) starting as process 1
-2026-09-14T15:30:00.612401Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.0.36' socket: '/var/run/mysqld/mysqld.sock' port: 3306
-2026-09-14T20:20:00.001201Z 12 [Note] [MY-010001] [Server] Handshake completed for user 'boteco_user'@'172.18.0.4'
-2026-09-14T20:28:15.842100Z 12 [Note] [MY-010001] [Server] Query executed: SELECT * FROM produtos WHERE categoria = 'bebidas';`;
-      } else if (command.includes('boteco_tunnel')) {
-        mockOutput = `2026-09-14T15:31:00Z INF Starting tunnel tunnelID=8a29b401-4c1b-4832-8219-c90124819a
-2026-09-14T15:31:02Z INF Connected to GRU (São Paulo, Brazil) edge server
-2026-09-14T15:31:03Z INF Registered tunnel connection connIndex=0 ip=198.41.200.23 location=GRU
-2026-09-14T15:31:04Z INF Registered tunnel connection connIndex=1 ip=198.41.192.167 location=GIG
-2026-09-14T20:24:18Z INF Request: GET cardapio.botecosivirino.com.br/ -> http://127.0.0.1:3002 (status: 200)`;
+      } else if (command.includes('app_backend') || command.includes('backend') || command.includes('boteco_backend')) {
+        mockOutput = `[2026-09-21T19:40:12.010Z] [INFO]  API Node.js v20.12.0 inicializada
+[2026-09-21T19:40:12.450Z] [INFO]  Conectado com sucesso ao banco de dados: 3306
+[2026-09-21T19:40:12.500Z] [INFO]  Listening at http://0.0.0.0:3000
+[2026-09-21T20:24:18.120Z] [INFO]  GET /api/v1/health 200 0.8ms - OK`;
+      } else if (command.includes('mysql') || command.includes('db')) {
+        mockOutput = `2026-09-21T15:30:00.124510Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.0.36) starting as process 1
+2026-09-21T15:30:00.612401Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.0.36' port: 3306`;
+      } else if (command.includes('tunnel')) {
+        mockOutput = `2026-09-21T15:31:00Z INF Starting cloudflared tunnel
+2026-09-21T15:31:02Z INF Connected to edge network
+2026-09-21T15:31:03Z INF Registered tunnel connection
+2026-09-21T20:24:18Z INF Request: GET / -> http://127.0.0.1:3000 (status: 200)`;
       } else if (command.includes('nginx')) {
-        mockOutput = `2026-09-14 15:32:00 [notice] 1#1: using the "epoll" event method
-2026-09-14 15:32:00 [notice] 1#1: nginx/1.25.4
-2026-09-14 15:32:00 [notice] 1#1: start worker processes
-181.222.97.108 - - [14/Sep/2026:20:24:18 -0300] "GET / HTTP/1.1" 200 4812 "https://google.com"
-181.222.97.108 - - [14/Sep/2026:20:26:01 -0300] "GET /api/status HTTP/2.0" 200 128 "-"`;
+        mockOutput = `2026-09-21 15:32:00 [notice] 1#1: using the "epoll" event method
+2026-09-21 15:32:00 [notice] 1#1: nginx/1.25.4
+2026-09-21 15:32:00 [notice] 1#1: start worker processes
+181.222.97.108 - - [21/Sep/2026:20:24:18 -0300] "GET / HTTP/1.1" 200 4812 "-"
+181.222.97.108 - - [21/Sep/2026:20:26:01 -0300] "GET /api/status HTTP/2.0" 200 128 "-"`;
       } else if (command.includes('ls')) {
         if (command.includes('-la') || command.includes('-l')) {
-          mockOutput = `total 48
-drwxr-xr-x 8 ubuntu ubuntu 4096 Sep 14 15:20 .
+          mockOutput = `total 36
+drwxr-xr-x 6 ubuntu ubuntu 4096 Sep 21 15:20 .
 drwxr-xr-x 3 root   root   4096 Sep 10 12:00 ..
--rw------- 1 ubuntu ubuntu 1284 Sep 14 15:23 .bash_history
+-rw------- 1 ubuntu ubuntu 1284 Sep 21 15:23 .bash_history
 -rw-r--r-- 1 ubuntu ubuntu  220 Jan  7  2023 .bash_logout
 -rw-r--r-- 1 ubuntu ubuntu 3771 Jan  7  2023 .bashrc
-drwx------ 2 ubuntu ubuntu 4096 Sep 14 15:18 .docker
-drwxr-xr-x 3 ubuntu ubuntu 4096 Sep 14 15:15 .oci
+drwx------ 2 ubuntu ubuntu 4096 Sep 21 15:18 .docker
 drwx------ 2 ubuntu ubuntu 4096 Sep 10 12:05 .ssh
-drwxr-xr-x 4 ubuntu ubuntu 4096 Sep 14 15:30 boteco-sivirino-api
-drwxr-xr-x 3 ubuntu ubuntu 4096 Sep 14 15:31 lottus-api
-drwxr-xr-x 5 ubuntu ubuntu 4096 Sep 14 15:32 plataforma-ingles-api
+drwxr-xr-x 4 ubuntu ubuntu 4096 Sep 21 15:30 app-backend
 -rw-r--r-- 1 ubuntu ubuntu  807 Jan  7  2023 .profile`;
         } else {
-          mockOutput = `boteco-sivirino-api  lottus-api  plataforma-ingles-api  docker-compose.yml`;
+          mockOutput = `app-backend  docker-compose.yml`;
         }
       } else if (command.includes('pwd')) {
         mockOutput = `/home/ubuntu\n`;
       } else if (command.includes('whoami')) {
         mockOutput = `ubuntu\n`;
       } else if (command.includes('uname')) {
-        mockOutput = `Linux instance-bytedata 5.15.0-1048-oracle #54-Ubuntu SMP Fri Aug 25 14:00:10 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux\n`;
+        mockOutput = `Linux cloud-instance 5.15.0-1048-generic #54-Ubuntu SMP x86_64 GNU/Linux\n`;
       } else if (command.includes('criacao_vm.log')) {
         mockOutput = `[22:04:15] 🔄 Tentativa #6 | Perfil: 2 OCPU / 12 GB RAM
 data.oci_identity_availability_domains.ads: Reading...
@@ -255,38 +240,15 @@ SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
       }
     } else {
       if (command.startsWith('ls')) {
-        if (command.includes('-la') || command.includes('-l')) {
-          mockOutput = `total 48
-drwxr-xr-x 8 ubuntu ubuntu 4096 Sep 14 15:20 .
-drwxr-xr-x 3 root   root   4096 Sep 10 12:00 ..
--rw------- 1 ubuntu ubuntu 1284 Sep 14 15:23 .bash_history
--rw-r--r-- 1 ubuntu ubuntu  220 Jan  7  2023 .bash_logout
--rw-r--r-- 1 ubuntu ubuntu 3771 Jan  7  2023 .bashrc
-drwx------ 2 ubuntu ubuntu 4096 Sep 14 15:18 .docker
-drwxr-xr-x 3 ubuntu ubuntu 4096 Sep 14 15:15 .oci
-drwx------ 2 ubuntu ubuntu 4096 Sep 10 12:05 .ssh
-drwxr-xr-x 4 ubuntu ubuntu 4096 Sep 14 15:30 boteco-sivirino-api
-drwxr-xr-x 3 ubuntu ubuntu 4096 Sep 14 15:31 lottus-api
-drwxr-xr-x 5 ubuntu ubuntu 4096 Sep 14 15:32 plataforma-ingles-api
--rw-r--r-- 1 ubuntu ubuntu  807 Jan  7  2023 .profile`;
-        } else {
-          mockOutput = `boteco-sivirino-api  lottus-api  plataforma-ingles-api  docker-compose.yml`;
-        }
+        mockOutput = `app  docker-compose.yml  logs`;
       } else if (command.startsWith('pwd')) {
-        mockOutput = `/home/ubuntu\n`;
+        mockOutput = `/home/${user || 'user'}\n`;
       } else if (command.startsWith('whoami')) {
-        mockOutput = `ubuntu\n`;
+        mockOutput = `${user || 'user'}\n`;
       } else if (command.startsWith('uname')) {
-        mockOutput = `Linux instance-bytedata 5.15.0-1048-oracle #54-Ubuntu SMP Fri Aug 25 14:00:10 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux\n`;
-      } else if (command.includes('cat') && (command.includes('.env') || command.includes('env'))) {
-        mockOutput = `# Variaveis de Ambiente do Host
-PORT=3002
-NODE_ENV=production
-SUPABASE_URL=https://app-ingles.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-`;
+        mockOutput = `Linux cloudops-vps 5.15.0-generic x86_64 GNU/Linux\n`;
       } else {
-        mockOutput = `[${user}@instance-bytedata:~]$ ${command}\nExecuted successfully (CloudOps Zero Trust Engine).\n`;
+        mockOutput = `[${user || 'user'}@cloudops-vps:~]$ ${command}\nExecuted successfully.\n`;
       }
     }
     return { success: true, command, output: mockOutput };
@@ -424,7 +386,7 @@ const deployService = require('./deployService');
 // 1. DEPLOY REAL 1-CLICK VIA SSH (Git pull + docker compose build & up + WhatsApp)
 // =========================================================================
 fastify.post('/api/deploy', async (request, reply) => {
-  const { project = 'cardapio_digital', branch = 'main' } = request.body || {};
+  const { project = 'app_service', branch = 'main' } = request.body || {};
 
   try {
     const result = await deployService.executeDeploy({ project, branch });
@@ -446,7 +408,7 @@ fastify.post('/api/deploy', async (request, reply) => {
 // 1.1 ROLLBACK EM 1-CLIQUE (Desfazer Deploy de Emergência)
 // =========================================================================
 fastify.post('/api/deploy/rollback', async (request, reply) => {
-  const { project = 'cardapio_digital' } = request.body || {};
+  const { project = 'app_service' } = request.body || {};
 
   try {
     const result = await deployService.executeRollback({ project });
@@ -521,27 +483,21 @@ fastify.post('/api/projects/clone-and-launch', async (request, reply) => {
 // 2. GERENCIADOR VISUAL DE VARIÁVEIS DE AMBIENTE (.env)
 // =========================================================================
 fastify.get('/api/env', async (request) => {
-  const { project = 'cardapio_digital' } = request.query || {};
+  const { project = 'app_service' } = request.query || {};
 
   // Lista padrão de variáveis mapeadas do projeto
   return {
     success: true,
     project,
     envVars: [
-      { key: 'PORT', value: '3001', isSecret: false, description: 'Porta interna do servidor Node.js' },
-      { key: 'DB_HOST', value: 'database', isSecret: false, description: 'Host do MySQL na rede Docker' },
-      { key: 'DB_PORT', value: '3306', isSecret: false, description: 'Porta padrão do banco MySQL' },
-      { key: 'DB_USER', value: 'root', isSecret: false, description: 'Usuário administrador do banco' },
-      { key: 'DB_PASSWORD', value: 'viniZIKA3103', isSecret: true, description: 'Senha de acesso ao MySQL' },
-      { key: 'DB_NAME', value: 'restaurante', isSecret: false, description: 'Nome do banco de dados do cardápio' },
-      { key: 'JWT_SECRET', value: 'restaurante_jwt_secret_2024', isSecret: true, description: 'Chave secreta para assinatura de tokens' },
+      { key: 'PORT', value: '3000', isSecret: false, description: 'Porta interna da aplicação' },
       { key: 'NODE_ENV', value: 'production', isSecret: false, description: 'Ambiente de execução' }
     ]
   };
 });
 
 fastify.post('/api/env', async (request) => {
-  const { project = 'cardapio_digital', envVars = [] } = request.body || {};
+  const { project = 'app_service', envVars = [] } = request.body || {};
   
   oracleScraper.sendWhatsAppNotification(`⚙️ *CloudOps Hub:* Variáveis de ambiente (.env) de *${project}* foram atualizadas com segurança pelo painel.`);
 
