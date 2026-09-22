@@ -370,7 +370,7 @@ export function MigrationWorkspaceView({ doAction }: { doAction: (msg: string) =
       </div>
 
       {/* 2. FLUXO COMPARATIVO VISUAL: ORIGEM ➔ DESTINO */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '16px' }}>
         {/* CARD ORIGEM COM SELETOR DE PROJETO */}
         <div style={{ background: '#0e1518', border: '1px solid #1f2d30', borderRadius: '16px', padding: '22px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>

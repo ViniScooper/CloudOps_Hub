@@ -1417,7 +1417,7 @@ terraform -version
                 <button className="modal-close" onClick={() => setConnectModalOpen(false)} aria-label="Fechar modal"><X size={18} /></button>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '10px', marginBottom: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: '10px', marginBottom: '14px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '10px', color: '#6f8387', marginBottom: '4px' }}>IP Público ou Host</label>
                   <input 
