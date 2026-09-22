@@ -467,6 +467,45 @@ export function DeployView({ server, doAction }: DeployViewProps) {
           </div>
         </div>
 
+        {/* Card da Plataforma de Inglês API */}
+        <div className="panel" style={{ padding: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <span className="status-dot emerald" />
+                <h3 style={{ margin: 0, fontSize: '15px' }}>Plataforma de Idiomas (Inglês API)</h3>
+              </div>
+              <small style={{ color: '#6f8387' }}>Container: plataforma_ingles_api | Porta: 3003 ➔ 3002</small>
+            </div>
+            <span className="status-text emerald">Docker Ativo</span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', background: '#070a0c', padding: '12px', borderRadius: '6px', border: '1px solid #142023', marginBottom: '16px', fontSize: '11px' }}>
+            <div>
+              <span style={{ color: '#6f8387', display: 'block', fontSize: '9px', textTransform: 'uppercase' }}>Proxy Nginx</span>
+              <strong style={{ color: '#d9e2e1', display: 'block', marginTop: '4px' }}>ingles.plataforma.com.br</strong>
+            </div>
+            <div>
+              <span style={{ color: '#6f8387', display: 'block', fontSize: '9px', textTransform: 'uppercase' }}>Stack</span>
+              <strong style={{ color: '#d9e2e1', display: 'block', marginTop: '4px' }}>Node.js 18 • Supabase / Postgres</strong>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '10px', color: '#52666a' }}>
+              Porta: 0.0.0.0:3003 (Up 2 months)
+            </span>
+            <button 
+              className="refresh-button"
+              disabled={isDeploying || isMerging || isRollingBack}
+              onClick={() => triggerDeploy('plataforma_ingles')}
+              style={{ padding: '7px 14px' }}
+            >
+              <RefreshCw size={13} /> Reiniciar / Deploy Inglês API
+            </button>
+          </div>
+        </div>
+
         {/* Cards de Novos Projetos Clonados Dinamicamente */}
         {customProjects.map((proj, idx) => (
           <div key={idx} className="panel" style={{ padding: '20px' }}>

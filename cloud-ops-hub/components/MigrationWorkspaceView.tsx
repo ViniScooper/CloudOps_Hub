@@ -50,6 +50,25 @@ export const BOTECO_PROJECTS = [
     healthPath: '/health'
   },
   {
+    id: 'ingles',
+    name: 'Plataforma de Idiomas (Inglês API)',
+    shortName: 'Plataforma Inglês',
+    tag: 'Docker • Node.js 18 • Supabase / Postgres',
+    icon: '🎓',
+    db: 'Supabase Remoto / Postgres (Auth & Users)',
+    dbName: 'supabase_ingles_db',
+    dbSize: '~4.5 MB',
+    storage: 'Storage de Conteúdo & Aulas (/uploads)',
+    storageDetails: 'Mídias e PDFs de exercícios (~18 MB)',
+    backend: 'Docker plataforma_ingles_api (Porta 3003)',
+    backendDetails: 'Node.js 18 / Express Container',
+    frontend: 'ingles.plataforma.com.br (Nginx Proxy)',
+    repo: 'plataforma_ingles (branch main)',
+    dockerContainers: ['plataforma_ingles_api'],
+    port: '3003',
+    healthPath: '/health'
+  },
+  {
     id: 'lottus',
     name: 'Plataforma Web & API Corporativa (Lottus)',
     shortName: 'Lottus API',
@@ -74,17 +93,17 @@ export const BOTECO_PROJECTS = [
     shortName: 'Servidor Completo',
     tag: 'Multi-Stack Completo (Docker + PM2)',
     icon: '☁️',
-    db: 'Todos os Bancos (boteco_db + schemas PM2)',
-    dbName: 'boteco_db, auth_db',
-    dbSize: '~15 MB',
+    db: 'Todos os Bancos (boteco_db + schemas PM2 + Supabase)',
+    dbName: 'boteco_db, auth_db, supabase',
+    dbSize: '~19.5 MB',
     storage: 'Todos os Buckets Cloud + Pastas /uploads',
     storageDetails: 'Backup integral da VM',
     backend: 'Todos os Containers Docker + Processos PM2 + Nginx',
     backendDetails: 'Migração integral de ambiente',
-    frontend: 'Todas as rotas e domínios DNS Cloudflare',
+    frontend: 'Todas as rotas e domínios DNS Cloudflare/Nginx',
     repo: 'Ambiente completo',
     dockerContainers: ['boteco_backend', 'boteco_db', 'boteco_tunnel', 'nginx-manager-nginx-1', 'plataforma_ingles_api'],
-    port: '3002, 3001',
+    port: '3002, 3003, 3001',
     healthPath: '/'
   }
 ]
