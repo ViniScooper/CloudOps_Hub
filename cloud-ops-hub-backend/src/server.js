@@ -675,6 +675,10 @@ fastify.post('/api/telemetry/simulate', async (request) => {
 // =========================================================================
 const migrationService = require('./migrationService');
 
+fastify.get('/api/migration/projects', async () => {
+  return migrationService.getDetectedVmProjects();
+});
+
 fastify.get('/api/migration/estimate', async (request) => {
   const { project } = request.query || {};
   return migrationService.getMigrationEstimate(project);

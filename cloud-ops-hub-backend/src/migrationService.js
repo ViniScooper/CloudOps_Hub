@@ -10,6 +10,7 @@
 const { Client } = require('ssh2');
 const fs = require('fs');
 const path = require('path');
+const deployService = require('./deployService');
 
 const TARGETS_FILE = path.join(__dirname, '..', 'database', 'migration_targets.json');
 
@@ -298,10 +299,129 @@ resource "null_resource" "provision_vps" {
   }
 }
 
-output "status_migracao" {
-  value = "Infraestrutura de ${projectName} na ${provider} provisionada com sucesso pelo CloudOps Hub!"
-}
-`;
+async function getDetectedVmProjects() {
+  try {
+    const res = await deployService.runRemoteSsh(
+      'docker ps --format "{{.Names}}|{{.Image}}|{{.Status}}|{{.Ports}}" 2>/dev/null; echo "---PM2---"; (source ~/.nvm/nvm.sh 2>/dev/null; pm2 jlist 2>/dev/null || echo "[]")'
+    );
+
+    if (!res || (!res.stdout && !res.stderr)) {
+      return { connected: false, cleanVm: true, projects: [] };
+    }
+
+    const parts = (res.stdout || '').split('---PM2---');
+    const dockerPart = parts[0] || '';
+    const pm2Part = parts[1] || '[]';
+    const projects = [];
+
+    // Parse Docker
+    const dockerLines = dockerPart.trim().split('\n').filter(Boolean);
+    const dockerContainers = dockerLines.map(line => {
+      const [name, image, status, ports] = line.split('|');
+      return { name: name?.trim(), image: image?.trim(), status: status?.trim(), ports: ports?.trim() };
+    }).filter(c => c.name);
+
+    const appContainers = dockerContainers.filter(c => !c.name.includes('tunnel') && !c.name.includes('nginx'));
+    const dbContainer = dockerContainers.find(c => c.name.includes('db') || c.name.includes('mysql') || c.name.includes('postgres'));
+
+    appContainers.forEach(container => {
+      const isDb = container.name.includes('db') || container.name.includes('mysql');
+      if (isDb) return;
+
+      let cleanName = container.name.replace(/_/g, ' ').replace(/-/g, ' ');
+      cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+
+      projects.push({
+        id: `docker-${container.name}`,
+        name: cleanName,
+        shortName: container.name,
+        tag: `Docker • ${container.image || 'Container'}`,
+        icon: '🐳',
+        db: dbContainer ? `${dbContainer.name} (${dbContainer.image})` : 'Sem banco detectado',
+        dbName: dbContainer ? dbContainer.name : '',
+        dbSize: 'Dump sob demanda',
+        storage: 'Volumes Docker e Uploads',
+        storageDetails: 'Volumes persistentes',
+        backend: `Docker ${container.name} (${container.ports || 'Ativo'})`,
+        backendDetails: container.image,
+        frontend: 'Rotas expostas',
+        repo: container.name,
+        dockerContainers: [container.name, ...(dbContainer ? [dbContainer.name] : [])],
+        port: container.ports ? (container.ports.match(/:(\d+)->/)?.[1] || '3000') : '3000',
+        healthPath: '/'
+      });
+    });
+
+    // Parse PM2
+    let pm2List = [];
+    try {
+      pm2List = JSON.parse(pm2Part.trim());
+    } catch (e) {
+      pm2List = [];
+    }
+
+    pm2List.forEach(proc => {
+      if (proc.name !== 'cloudops-hub') {
+        let cleanName = proc.name.replace(/_/g, ' ').replace(/-/g, ' ');
+        cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+
+        projects.push({
+          id: `pm2-${proc.name}`,
+          name: cleanName,
+          shortName: proc.name,
+          tag: `PM2 • Node.js (PID ${proc.pid})`,
+          icon: '⚡',
+          db: 'Conexão configurada na app',
+          dbName: proc.name,
+          dbSize: 'Banco da Aplicação',
+          storage: 'Diretório da Aplicação',
+          storageDetails: proc.pm2_env?.pm_cwd || '/home/ubuntu',
+          backend: `PM2 Process (${proc.name})`,
+          backendDetails: `Node.js / Modo ${proc.pm2_env?.exec_mode || 'fork'}`,
+          frontend: 'API / Serviço',
+          repo: proc.pm2_env?.pm_cwd ? path.basename(proc.pm2_env.pm_cwd) : proc.name,
+          dockerContainers: [],
+          port: proc.pm2_env?.PORT || '3001',
+          healthPath: '/'
+        });
+      }
+    });
+
+    if (projects.length > 1) {
+      projects.push({
+        id: 'all',
+        name: 'Todos os Projetos da VM',
+        shortName: 'Servidor Completo',
+        tag: `Consolidação (${projects.length} projetos)`,
+        icon: '☁️',
+        db: dbContainer ? `${dbContainer.name} + Schemas Locais` : 'Todos os Bancos',
+        dbName: 'all_dbs',
+        dbSize: 'Consolidado',
+        storage: 'Todos os Volumes e Diretórios',
+        storageDetails: 'Backup completo da VM',
+        backend: 'Todos os Containers e Processos',
+        backendDetails: 'Migração integral de ambiente',
+        frontend: 'Todas as rotas Nginx',
+        repo: 'Ambiente completo',
+        dockerContainers: dockerContainers.map(c => c.name),
+        port: 'Múltiplas',
+        healthPath: '/'
+      });
+    }
+
+    return {
+      connected: true,
+      cleanVm: projects.length === 0,
+      projects
+    };
+  } catch (err) {
+    return {
+      connected: false,
+      cleanVm: true,
+      error: err.message,
+      projects: []
+    };
+  }
 }
 
 module.exports = {
@@ -310,5 +430,6 @@ module.exports = {
   addOrUpdateTarget,
   testTargetSsh,
   getMigrationEstimate,
-  generateTerraformScript
+  generateTerraformScript,
+  getDetectedVmProjects
 };
