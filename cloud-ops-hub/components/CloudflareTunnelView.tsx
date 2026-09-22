@@ -499,8 +499,8 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
           <div style={{ background: '#070c0e', padding: '10px 14px', borderRadius: '8px', border: '1px solid #142226' }}>
             <span style={{ fontSize: '9.5px', color: '#68868a', textTransform: 'uppercase', display: 'block' }}>Daemon Docker</span>
-            <strong style={{ fontSize: '11.5px', color: isVirginVM ? '#889e9d' : '#20d6c7' }}>
-              {isVirginVM ? 'Inativo (0 containers)' : 'boteco_tunnel (Up 12 dias)'}
+            <strong style={{ fontSize: '11.5px', color: '#20d6c7' }}>
+              {isVirginVM ? 'Docker Ativo (nginx-proxy)' : 'boteco_tunnel (Up 12 dias)'}
             </strong>
           </div>
 
