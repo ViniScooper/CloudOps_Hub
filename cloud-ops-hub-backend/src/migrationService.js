@@ -332,6 +332,8 @@ resource "null_resource" "provision_vps" {
     ]
   }
 }
+`;
+}
 
 async function getDetectedVmProjects() {
   try {

@@ -76,8 +76,10 @@ async function getTunnelStatus() {
       // Busca última URL do trycloudflare nos logs se existir
       const logsRes = await deployService.runRemoteSsh(`docker logs --tail 40 ${containerName} 2>&1 || echo ""`);
       const logsText = logsRes.stdout || logsRes.stderr || '';
-      const matchUrl = logsText.match(/https:\/\/[a-zA-Z0-9-]+\.trycloudflare\.com/);
-      if (matchUrl) {
+      // Para o túnel do Boteco Sivirino, o link oficial e permanente é o domínio próprio com SSL
+      if (containerName === 'boteco_tunnel') {
+        lastKnownUrl = 'https://cardapio.botecosivirino.com.br';
+      } else if (matchUrl) {
         lastKnownUrl = matchUrl[0];
       } else {
         lastKnownUrl = 'https://cardapio.botecosivirino.com.br';
