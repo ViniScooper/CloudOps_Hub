@@ -177,13 +177,13 @@ export default function Page() {
   const [authName, setAuthName] = useState('')
   const [authLoading, setAuthLoading] = useState(false)
 
-  const [serverList, setServerList] = useState<any[]>(servers)
-  const [server, setServer] = useState<any>(servers[0])
+  const [serverList, setServerList] = useState<any[]>([])
+  const [server, setServer] = useState<any>(null)
   const [ociCreds, setOciCreds] = useState<any>(null)
-  const [containers, setContainers] = useState<any[]>(containersData)
-  const [buckets, setBuckets] = useState<any[]>(bucketsData)
-  const [proxyHosts, setProxyHosts] = useState<any[]>(proxyHostsData)
-  const [terminalLogs, setTerminalLogs] = useState<string[][]>(logs)
+  const [containers, setContainers] = useState<any[]>([])
+  const [buckets, setBuckets] = useState<any[]>([])
+  const [proxyHosts, setProxyHosts] = useState<any[]>([])
+  const [terminalLogs, setTerminalLogs] = useState<string[][]>([])
   const [refreshed, setRefreshed] = useState(false)
   const [serverMenu, setServerMenu] = useState(false)
   const [action, setAction] = useState('')
@@ -309,35 +309,85 @@ export default function Page() {
         if (n.notifyWhatsapp !== undefined) setNotifyWhatsapp(n.notifyWhatsapp)
       }
 
-      const savedServers = localStorage.getItem('cloudops_servers')
-      if (savedServers) {
-        try {
-          const parsed = JSON.parse(savedServers)
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setServerList(parsed)
-            setServer(parsed[0])
+      const isLocalhost = typeof window !== 'undefined' && 
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '0.0.0.0')
+
+      if (isLocalhost) {
+        // AMBIENTE LOCAL (Seu PC): Restaura as VMs reais e os containers locais
+        const savedServers = localStorage.getItem('cloudops_servers')
+        if (savedServers) {
+          try {
+            const parsed = JSON.parse(savedServers)
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setServerList(parsed)
+              setServer(parsed[0])
+            } else {
+              setServerList(servers)
+              setServer(servers[0])
+            }
+          } catch {
+            setServerList(servers)
+            setServer(servers[0])
           }
-        } catch {}
+        } else {
+          setServerList(servers)
+          setServer(servers[0])
+        }
+
+        const savedContainers = localStorage.getItem('cloudops_containers')
+        if (savedContainers) {
+          try { setContainers(JSON.parse(savedContainers)) } catch { setContainers(containersData) }
+        } else {
+          setContainers(containersData)
+        }
+
+        const savedBuckets = localStorage.getItem('cloudops_buckets')
+        if (savedBuckets) {
+          try { setBuckets(JSON.parse(savedBuckets)) } catch { setBuckets(bucketsData) }
+        } else {
+          setBuckets(bucketsData)
+        }
+
+        const savedProxies = localStorage.getItem('cloudops_proxies')
+        if (savedProxies) {
+          try { setProxyHosts(JSON.parse(savedProxies)) } catch { setProxyHosts(proxyHostsData) }
+        } else {
+          setProxyHosts(proxyHostsData)
+        }
+
+        setTerminalLogs(logs)
+      } else {
+        // AMBIENTE WEB / VERCEL: 100% limpo sem nenhuma VM vinculada por padrão
+        const savedServers = localStorage.getItem('cloudops_servers')
+        if (savedServers) {
+          try {
+            const parsed = JSON.parse(savedServers)
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setServerList(parsed)
+              setServer(parsed[0])
+            }
+          } catch {}
+        }
+
+        const savedContainers = localStorage.getItem('cloudops_containers')
+        if (savedContainers) {
+          try { setContainers(JSON.parse(savedContainers)) } catch {}
+        }
+
+        const savedBuckets = localStorage.getItem('cloudops_buckets')
+        if (savedBuckets) {
+          try { setBuckets(JSON.parse(savedBuckets)) } catch {}
+        }
+
+        const savedProxies = localStorage.getItem('cloudops_proxies')
+        if (savedProxies) {
+          try { setProxyHosts(JSON.parse(savedProxies)) } catch {}
+        }
       }
 
       const savedOci = localStorage.getItem('cloudops_oci')
       if (savedOci) {
         try { setOciCreds(JSON.parse(savedOci)) } catch {}
-      }
-
-      const savedBuckets = localStorage.getItem('cloudops_buckets')
-      if (savedBuckets) {
-        try { setBuckets(JSON.parse(savedBuckets)) } catch {}
-      }
-
-      const savedContainers = localStorage.getItem('cloudops_containers')
-      if (savedContainers) {
-        try { setContainers(JSON.parse(savedContainers)) } catch {}
-      }
-
-      const savedProxies = localStorage.getItem('cloudops_proxies')
-      if (savedProxies) {
-        try { setProxyHosts(JSON.parse(savedProxies)) } catch {}
       }
     } catch (e) {
       console.error('Erro ao ler localStorage', e)

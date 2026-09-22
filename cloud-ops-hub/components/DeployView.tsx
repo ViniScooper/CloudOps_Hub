@@ -322,7 +322,17 @@ export function DeployView({ server, doAction }: DeployViewProps) {
         </button>
       </div>
 
-      {server?.ip === '137.131.187.54' || server?.id === 'oracle-micro-02' ? (
+      {!server ? (
+        <div className="panel" style={{ padding: '40px 20px', textAlign: 'center', marginBottom: '20px' }}>
+          <div style={{ display: 'inline-flex', padding: '14px', borderRadius: '50%', background: 'rgba(32, 214, 199, 0.08)', marginBottom: '14px', color: '#20d6c7' }}>
+            <Rocket size={32} />
+          </div>
+          <h3 style={{ margin: '0 0 6px', fontSize: '16px', color: '#d9e2e1' }}>Nenhuma VM Conectada</h3>
+          <p style={{ margin: '0 0 18px', fontSize: '12px', color: '#6f8387', maxWidth: '460px', marginInline: 'auto' }}>
+            Conecte sua máquina virtual para gerenciar pipelines de CI/CD, deploys contínuos e rollbacks de emergência.
+          </p>
+        </div>
+      ) : server?.ip === '137.131.187.54' || server?.id === 'oracle-micro-02' ? (
         <div className="panel" style={{ padding: '36px 20px', textAlign: 'center', marginBottom: '20px' }}>
           <div style={{ display: 'inline-flex', padding: '12px', borderRadius: '50%', background: 'rgba(32, 214, 199, 0.08)', marginBottom: '12px', color: '#20d6c7' }}>
             <Rocket size={28} />
