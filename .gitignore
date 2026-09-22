@@ -1,5 +1,5 @@
 # ==========================================
-# SEGURANÇA MÁXIMA & ARQUIVOS SENSÍVEIS
+# SEGURANÇA MÁXIMA & ARQUIVOS CONFIDENCIAIS
 # ==========================================
 .env
 .env*.local
@@ -8,12 +8,41 @@
 *.pem
 *.pub
 *.ppk
+*.sso
+*.p12
+*.jks
+*.ora
+*.zip
+
+# Documentos com Credenciais e Chaves
 VM_DADPS*.TXT
 INFOS_VM*.TXT
+DADOS_BANCO*.md
+*DADOS_BANCO*
 AI_CONTEXT.md
 documentacoes/07_AGENTE_ODISSEU_RAG_LANGCHAIN.md
 vercel_config.json
+nova_vm_micro.json
 apresentacao_vendas_prints/
+
+# Wallets e Certificados Oracle Cloud
+*wallet*
+wallet/
+**/wallet/
+wallet_cloudopshub/
+wallet_cloudopshub.zip
+
+# ==========================================
+# TERRAFORM (INFRAESTRUTURA & SEGREDOS)
+# ==========================================
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+.terraform/
+.terraform.lock.hcl
+terraform.rc
+terraform_autonomous_db/
 
 # ==========================================
 # DEPENDÊNCIAS & COMPILAÇÃO
