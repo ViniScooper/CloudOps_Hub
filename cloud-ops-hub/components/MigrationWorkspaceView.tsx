@@ -811,7 +811,7 @@ export function MigrationWorkspaceView({ doAction, server }: { doAction: (msg: s
 
             <button
               onClick={() => {
-                fetchTargets(false)
+                fetchTargets()
                 doAction('Consultando servidores cadastrados no Hub...')
               }}
               style={{

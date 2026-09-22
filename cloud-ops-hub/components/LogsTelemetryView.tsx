@@ -17,7 +17,9 @@ import {
   Zap,
   Clock,
   Layers,
-  ChevronDown
+  ChevronDown,
+  Eye,
+  X
 } from 'lucide-react'
 import { getApiUrl } from '../lib/api'
 

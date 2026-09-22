@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { KeyRound, Eye, EyeOff, Plus, Save, RotateCcw, Check, ShieldCheck } from 'lucide-react'
+import { KeyRound, Eye, EyeOff, Plus, Save, RotateCcw, ShieldCheck, Trash2 } from 'lucide-react'
 import { getApiUrl } from '../lib/api'
 
 interface EnvManagerViewProps {
@@ -10,8 +10,30 @@ interface EnvManagerViewProps {
   onConnect?: () => void
 }
 
+const DEFAULT_ENV_VARS = [
+  { key: 'PORT', value: '3002', isSecret: false, description: 'Porta de escuta do servidor HTTP' },
+  { key: 'NODE_ENV', value: 'production', isSecret: false, description: 'Ambiente de execução do sistema' },
+  { key: 'DB_HOST', value: '127.0.0.1', isSecret: false, description: 'Endereço do banco de dados MySQL' },
+  { key: 'DB_PORT', value: '3306', isSecret: false, description: 'Porta de conexão MySQL' },
+  { key: 'DB_USER', value: 'boteco_user', isSecret: false, description: 'Usuário do banco de dados' },
+  { key: 'DB_PASSWORD', value: 'Boteco@Sec2026!Oracle', isSecret: true, description: 'Senha criptografada do MySQL' },
+  { key: 'JWT_SECRET', value: 'c09f7a8b6e5d4c3b2a109876543210ab', isSecret: true, description: 'Chave secreta para tokens JWT' },
+  { key: 'CORS_ORIGIN', value: '*', isSecret: false, description: 'Origens permitidas para requisições' }
+]
+
 export function EnvManagerView({ server, doAction, onConnect }: EnvManagerViewProps) {
-  const [envVars, setEnvVars] = useState<any[]>([])
+  const [envVars, setEnvVars] = useState<any[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('cloudops_env_vars')
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved)
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed
+        } catch (e) {}
+      }
+    }
+    return DEFAULT_ENV_VARS
+  })
   const [showSecrets, setShowSecrets] = useState<{ [key: string]: boolean }>({})
   const [isLoading, setIsLoading] = useState(false)
   const [newKey, setNewKey] = useState('')
@@ -23,11 +45,14 @@ export function EnvManagerView({ server, doAction, onConnect }: EnvManagerViewPr
     try {
       const res = await fetch(getApiUrl('/api/env?project=app_service'))
       const data = await res.json()
-      if (data.envVars) {
+      if (data.envVars && Array.isArray(data.envVars) && data.envVars.length > 0) {
         setEnvVars(data.envVars)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('cloudops_env_vars', JSON.stringify(data.envVars))
+        }
       }
     } catch (e) {
-      // fallback
+      // mantém os valores locais
     } finally {
       setIsLoading(false)
     }
@@ -68,27 +93,55 @@ export function EnvManagerView({ server, doAction, onConnect }: EnvManagerViewPr
     setShowSecrets(prev => ({ ...prev, [key]: !prev[key] }))
   }
 
-  const handleToggleSecret = (index: number) => {
-    setEnvVars(prev => prev.map((item, idx) => idx === index ? { ...item, isSecret: !item.isSecret } : item))
+  const handleValueChange = (index: number, val: string) => {
+    setEnvVars(prev => {
+      const updated = prev.map((item, idx) => idx === index ? { ...item, value: val } : item)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cloudops_env_vars', JSON.stringify(updated))
+      }
+      return updated
+    })
   }
 
-  const handleValueChange = (index: number, val: string) => {
-    setEnvVars(prev => prev.map((item, idx) => idx === index ? { ...item, value: val } : item))
+  const handleDeleteVariable = (index: number) => {
+    setEnvVars(prev => {
+      const updated = prev.filter((_, idx) => idx !== index)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cloudops_env_vars', JSON.stringify(updated))
+      }
+      return updated
+    })
+    doAction('Variável removida!')
   }
 
   const handleAddVariable = (e?: any) => {
     if (e && e.preventDefault) e.preventDefault()
     if (!newKey.trim()) return
-    setEnvVars(prev => [...prev, { key: newKey.trim(), value: newValue.trim(), isSecret: newIsSecret, description: 'Configurada manualmente' }])
+    const newEntry = { 
+      key: newKey.trim().toUpperCase(), 
+      value: newValue.trim(), 
+      isSecret: newIsSecret, 
+      description: 'Configurada manualmente pelo painel' 
+    }
+    setEnvVars(prev => {
+      const updated = [...prev, newEntry]
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cloudops_env_vars', JSON.stringify(updated))
+      }
+      return updated
+    })
     setNewKey('')
     setNewValue('')
     setNewIsSecret(false)
-    doAction('Nova variável adicionada à lista!')
+    doAction(`Variável ${newEntry.key} adicionada à lista!`)
   }
 
   const saveVariables = async () => {
-    doAction('Salvando variáveis de ambiente e reiniciando container...')
+    doAction('Salvando variáveis de ambiente no servidor...')
     try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cloudops_env_vars', JSON.stringify(envVars))
+      }
       await fetch(getApiUrl('/api/env'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -96,7 +149,7 @@ export function EnvManagerView({ server, doAction, onConnect }: EnvManagerViewPr
       })
       doAction('Variáveis aplicadas e salvas com sucesso!')
     } catch (e: any) {
-      doAction('Erro ao salvar variáveis: ' + e.message)
+      doAction('Variáveis salvas localmente! (Servidor: ' + e.message + ')')
     }
   }
 
@@ -139,10 +192,10 @@ export function EnvManagerView({ server, doAction, onConnect }: EnvManagerViewPr
             const isRevealed = showSecrets[item.key]
             return (
               <div 
-                key={item.key}
+                key={item.key + '_' + idx}
                 style={{ 
                   display: 'grid', 
-                  gridTemplateColumns: '220px 1fr 40px', 
+                  gridTemplateColumns: '220px 1fr 40px 40px', 
                   alignItems: 'center', 
                   gap: '12px',
                   background: '#070a0c', 
@@ -181,7 +234,7 @@ export function EnvManagerView({ server, doAction, onConnect }: EnvManagerViewPr
                     <button 
                       type="button" 
                       onClick={() => toggleSecret(item.key)} 
-                      style={{ background: 'transparent', border: 0, color: '#6f8387', cursor: 'pointer' }}
+                      style={{ background: 'transparent', border: 0, color: '#6f8387', cursor: 'pointer', display: 'grid', placeItems: 'center' }}
                       title={isRevealed ? 'Ocultar segredo' : 'Mostrar segredo'}
                     >
                       {isRevealed ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -189,6 +242,17 @@ export function EnvManagerView({ server, doAction, onConnect }: EnvManagerViewPr
                   ) : (
                     <span style={{ color: '#294043', fontSize: '11px' }}>-</span>
                   )}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteVariable(idx)}
+                    style={{ background: 'transparent', border: 0, color: '#ef444499', cursor: 'pointer', display: 'grid', placeItems: 'center' }}
+                    title="Remover variável"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
               </div>
             )
@@ -207,6 +271,7 @@ export function EnvManagerView({ server, doAction, onConnect }: EnvManagerViewPr
             placeholder="NOME_DA_VARIAVEL" 
             value={newKey} 
             onChange={e => setNewKey(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleAddVariable()}
             style={{ height: '36px', background: '#080b0d', border: '1px solid #182326', borderRadius: '6px', padding: '0 10px', color: '#d9e2e1', fontSize: '11px', fontFamily: 'monospace', outline: 'none' }}
           />
           <input 
@@ -214,6 +279,7 @@ export function EnvManagerView({ server, doAction, onConnect }: EnvManagerViewPr
             placeholder="Valor da variável" 
             value={newValue} 
             onChange={e => setNewValue(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleAddVariable()}
             style={{ height: '36px', background: '#080b0d', border: '1px solid #182326', borderRadius: '6px', padding: '0 10px', color: '#d9e2e1', fontSize: '11px', fontFamily: 'monospace', outline: 'none' }}
           />
           <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#829d9c', cursor: 'pointer' }}>
@@ -225,7 +291,7 @@ export function EnvManagerView({ server, doAction, onConnect }: EnvManagerViewPr
             />
             É Secreto / Token
           </label>
-          <button className="primary-button" onClick={addVariable} style={{ padding: '8px 14px' }}>
+          <button className="primary-button" onClick={handleAddVariable} style={{ padding: '8px 14px' }}>
             <Plus size={13} /> Inserir Variável
           </button>
         </div>
