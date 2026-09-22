@@ -38,7 +38,7 @@ const navSections = [
   {
     title: 'Infraestrutura & Serviços',
     items: [
-      { label: 'Docker', icon: Container, badge: '0' },
+      { label: 'Docker', icon: Container },
       { label: 'Nginx', icon: Network },
       { label: 'Tunnels', icon: Shield, badge: 'Zero Trust' },
       { label: 'Storage', icon: HardDrive },
@@ -604,7 +604,8 @@ terraform -version
               >
                 <Icon size={16} />
                 <span>{label}</span>
-                {badge && <span className="nav-badge">{badge}</span>}
+                {label === 'Docker' && server && containers.length > 0 && <span className="nav-badge">{containers.length}</span>}
+                {label !== 'Docker' && badge && <span className="nav-badge">{badge}</span>}
               </button>
             ))}
           </div>
@@ -875,8 +876,8 @@ terraform -version
         {/* ========================================================================= */}
         {/* ABA: GERENCIADOR VISUAL DE .ENV */}
         {/* ========================================================================= */}
-        {server && active === 'Variáveis (.env)' && (
-          <EnvManagerView server={server} doAction={doAction} />
+        {active === 'Variáveis (.env)' && (
+          <EnvManagerView server={server} doAction={doAction} onConnect={() => setConnectModalOpen(true)} />
         )}
 
         {/* ========================================================================= */}
@@ -886,202 +887,342 @@ terraform -version
           <HelpView onNavigate={(target) => setActive(target)} />
         )}
 
-        {server && active === 'Docker' && <>
-          <div className="section-heading">
-            <div>
-              <h2>Gerenciador Visual de Docker</h2>
-              <p>Controle de containers, logs e portas na VM {server.name}.</p>
-            </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button 
-                className="secondary-button" 
-                style={{ background: '#0c1013', border: '1px solid #182326', color: '#20d6c7', display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
-                title="Configura rotação de logs no daemon.json (max-size 10m) e limpa logs antigos para liberar disco"
-                onClick={async () => {
-                  doAction('Configurando rotação de logs Docker e liberando disco...')
-                  try {
-                    const res = await fetch(getApiUrl('/api/docker/optimize-logs'), {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ ip: server?.ip || '137.131.185.243', user: 'ubuntu' })
-                    })
-                    const data = await res.json()
-                    if (data.ok) {
-                      doAction('✅ Logs Docker otimizados! Rotação ativa (max-size: 10m) sem risco de encher o disco.')
-                    } else {
-                      doAction(`Erro ao otimizar: ${data.error}`)
-                    }
-                  } catch (e: any) {
-                    doAction(`Falha: ${e.message}`)
-                  }
-                }}
-              >
-                <Zap size={13} /> Otimizar Logs Docker
-              </button>
-              <button className="primary-button" title="Criar e rodar um novo container Docker nesta VM" onClick={() => setContainerModalOpen(true)}>
-                <Plus size={14} /> Novo Container
-              </button>
-            </div>
-          </div>
-          <section className="panel">
-            <div className="panel-header">
-              <div>
-                <h3>Containers em Execução na VM ({containers.length})</h3>
-                <p>Integração direta com o Docker Engine da VM Oracle</p>
-              </div>
-            </div>
-            <div className="container-list">
-              {containers.length === 0 ? (
-                <div style={{ padding: '24px', textAlign: 'center', color: '#6f8387', fontSize: '11px' }}>
-                  Nenhum container Docker encontrado na máquina.
+        {/* ========================================================================= */}
+        {/* ABA: GERENCIADOR VISUAL DE DOCKER */}
+        {/* ========================================================================= */}
+        {active === 'Docker' && (
+          server ? (
+            <>
+              <div className="section-heading">
+                <div>
+                  <h2>Gerenciador Visual de Docker</h2>
+                  <p>Controle de containers, logs e portas na VM {server.name}.</p>
                 </div>
-              ) : containers.map((item, idx) => (
-                <div className="container-row" key={item.name}>
-                  <span className={`status-dot ${item.color || 'emerald'}`} />
-                  <div className="container-info">
-                    <strong>{item.name}</strong>
-                    <small>{item.image} | Mapeamento de Portas: {item.port}</small>
-                  </div>
-                  <span className={`status-text ${item.color || 'emerald'}`}>{item.status}</span>
-                  <div className="container-stats">
-                    <span><b>{item.cpu || '0%'}</b><small>CPU</small></span>
-                    <span><b>{item.memory || '0 MB'}</b><small>RAM</small></span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
-                    <button 
-                      className="row-menu" 
-                      title={`Ver logs ao vivo do container ${item.name}`} 
-                      onClick={async () => {
-                        setActiveLogContainer(item.name)
-                        setLogsModalOpen(true)
-                        setIsLoadingLogs(true)
-                        setContainerLogsText('Carregando logs via Docker Engine SSH...')
-                        try {
-                          const res = await fetch(getApiUrl('/api/servers/exec'), {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ ip: server?.ip || '137.131.185.243', user: 'ubuntu', command: `docker logs --tail 60 ${item.name}` })
-                          })
-                          const data = await res.json()
-                          if (data.output && data.output.trim()) {
-                            setContainerLogsText(data.output)
-                          } else {
-                            // Fallback caso container nao tenha gerado logs recentes
-                            if (item.name.includes('ingles')) {
-                              setContainerLogsText(`[2026-09-14 20:30:11] [INFO] [plataforma_ingles_api] Initializing Supabase client...\n[2026-09-14 20:30:18] [ERROR] Supabase authentication error: Invalid API key or missing SUPABASE_SERVICE_ROLE_KEY\n[2026-09-14 20:30:25] [FATAL] Healthcheck probe failed: HTTP 503 Service Unavailable (Supabase unreachable)\n[2026-09-14 20:30:30] [INFO] Process container status marked as UNHEALTHY by Docker daemon.\n[2026-09-14 20:35:00] [HINT] Configure SUPABASE_URL e SUPABASE_ANON_KEY no arquivo .env do container.`)
-                            } else {
-                              setContainerLogsText(`[2026-09-14 16:35:01] [INFO] ${item.name} daemon running in production mode\n[2026-09-14 16:35:02] [INFO] Healthcheck probe passed: 200 OK\n[2026-09-14 16:35:10] [INFO] Ready to accept requests on port ${item.port}`)
-                            }
-                          }
-                        } catch (err: any) {
-                          setContainerLogsText(`Erro ao consultar logs de ${item.name}: ${err.message}`)
-                        } finally {
-                          setIsLoadingLogs(false)
-                        }
-                      }}
-                    >
-                      <Search size={14} />
-                    </button>
-                    <button className="row-menu" title={`Reiniciar container ${item.name}`} onClick={() => doAction(`Container ${item.name} reiniciado com sucesso!`)}>
-                      <RotateCcw size={14} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        </>}
-
-        {server && active === 'Nginx' && <>
-          <div className="section-heading">
-            <div>
-              <h2>Nginx Proxy Reverso & API Gateway</h2>
-              <p>Roteamento de domínios públicos para portas e containers locais na VM.</p>
-            </div>
-            <button className="primary-button" title="Criar novo mapeamento de domínio para porta local" onClick={() => {
-              setEditingProxyIndex(null)
-              setProxyDomain('')
-              setProxyForward('http://127.0.0.1:3000')
-              setProxySsl("Let's Encrypt (Ativo)")
-              setEditProxyOpen(true)
-            }}>
-              <Plus size={14} /> Adicionar Host
-            </button>
-          </div>
-          
-          <div className="step-box" style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <div style={{ fontSize: '11px', fontWeight: 600, color: '#d9e2e1' }}>
-                <span className="live-dot" /> Container Nginx: <b>{server.ip === '137.131.187.54' || server.id === 'oracle-micro-02' ? 'Nenhum' : 'nginx-manager-nginx-1'}</b>
-              </div>
-              <div style={{ fontSize: '10px', color: '#6f8387', marginTop: '3px' }}>
-                {server.ip === '137.131.187.54' || server.id === 'oracle-micro-02' ? 'Nginx ainda não instalado nesta VM virgem.' : 'Porta 80/443 exposta e roteando requisições diretamente para as portas internas dos containers.'}
-              </div>
-            </div>
-            <span className="healthy-label">
-              <span className={`status-dot ${server.ip === '137.131.187.54' || server.id === 'oracle-micro-02' ? 'amber' : 'emerald'}`} /> 
-              {server.ip === '137.131.187.54' || server.id === 'oracle-micro-02' ? 'Não Instalado' : 'Roteador Ativo'}
-            </span>
-          </div>
-
-          <section className="panel">
-            <div className="panel-header">
-              <div>
-                <h3>Hosts Configurados ({proxyHosts.length})</h3>
-                <p>Roteamento ativo com SSL Let's Encrypt e Cloudflare Tunnel</p>
-              </div>
-            </div>
-            <div className="container-list">
-              {proxyHosts.length === 0 ? (
-                <div style={{ padding: '24px', textAlign: 'center', color: '#6f8387', fontSize: '11px' }}>
-                  Nenhum Proxy Host configurado ainda. Clique em "Adicionar Host" para mapear um domínio para uma porta.
-                </div>
-              ) : proxyHosts.map((item, idx) => (
-                <div className="container-row" key={item.domain}>
-                  <span className="status-dot emerald" />
-                  <div className="container-info">
-                    <strong>{item.domain}</strong>
-                    <small>Encaminha tráfego externo para ➔ <b>{item.forward}</b></small>
-                  </div>
-                  <span className="status-text emerald">{item.ssl}</span>
+                <div style={{ display: 'flex', gap: '8px' }}>
                   <button 
-                    className="text-action" 
-                    title={`Editar apontamento e certificado SSL de ${item.domain}`} 
-                    style={{ marginLeft: 'auto' }} 
-                    onClick={() => {
-                      setEditingProxyIndex(idx)
-                      setProxyDomain(item.domain)
-                      setProxyForward(item.forward)
-                      setProxySsl(item.ssl)
-                      setEditProxyOpen(true)
+                    className="secondary-button" 
+                    style={{ background: '#0c1013', border: '1px solid #182326', color: '#20d6c7', display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
+                    title="Configura rotação de logs no daemon.json (max-size 10m) e limpa logs antigos para liberar disco"
+                    onClick={async () => {
+                      doAction('Configurando rotação de logs Docker e liberando disco...')
+                      try {
+                        const res = await fetch(getApiUrl('/api/docker/optimize-logs'), {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ ip: server?.ip || '137.131.185.243', user: 'ubuntu' })
+                        })
+                        const data = await res.json()
+                        if (data.ok) {
+                          doAction('✅ Logs Docker otimizados! Rotação ativa (max-size: 10m) sem risco de encher o disco.')
+                        } else {
+                          doAction(`Erro ao otimizar: ${data.error}`)
+                        }
+                      } catch (e: any) {
+                        doAction(`Falha: ${e.message}`)
+                      }
                     }}
                   >
-                    Editar
+                    <Zap size={13} /> Otimizar Logs Docker
+                  </button>
+                  <button className="primary-button" title="Criar e rodar um novo container Docker nesta VM" onClick={() => setContainerModalOpen(true)}>
+                    <Plus size={14} /> Novo Container
                   </button>
                 </div>
-              ))}
+              </div>
+              <section className="panel">
+                <div className="panel-header">
+                  <div>
+                    <h3>Containers em Execução na VM ({containers.length})</h3>
+                    <p>Integração direta com o Docker Engine da VM {server.name}</p>
+                  </div>
+                </div>
+                <div className="container-list">
+                  {containers.length === 0 ? (
+                    <div style={{ padding: '24px', textAlign: 'center', color: '#6f8387', fontSize: '11px' }}>
+                      Nenhum container Docker encontrado na máquina.
+                    </div>
+                  ) : containers.map((item, idx) => (
+                    <div className="container-row" key={item.name}>
+                      <span className={`status-dot ${item.color || 'emerald'}`} />
+                      <div className="container-info">
+                        <strong>{item.name}</strong>
+                        <small>{item.image} | Mapeamento de Portas: {item.port}</small>
+                      </div>
+                      <span className={`status-text ${item.color || 'emerald'}`}>{item.status}</span>
+                      <div className="container-stats">
+                        <span><b>{item.cpu || '0%'}</b><small>CPU</small></span>
+                        <span><b>{item.memory || '0 MB'}</b><small>RAM</small></span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
+                        <button 
+                          className="row-menu" 
+                          title={`Ver logs ao vivo do container ${item.name}`} 
+                          onClick={async () => {
+                            setActiveLogContainer(item.name)
+                            setLogsModalOpen(true)
+                            setIsLoadingLogs(true)
+                            setContainerLogsText('Carregando logs via Docker Engine SSH...')
+                            try {
+                              const res = await fetch(getApiUrl('/api/servers/exec'), {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ ip: server?.ip || '137.131.185.243', user: 'ubuntu', command: `docker logs --tail 60 ${item.name}` })
+                              })
+                              const data = await res.json()
+                              if (data.output && data.output.trim()) {
+                                setContainerLogsText(data.output)
+                              } else {
+                                if (item.name.includes('ingles')) {
+                                  setContainerLogsText(`[2026-09-14 20:30:11] [INFO] [plataforma_ingles_api] Initializing Supabase client...\n[2026-09-14 20:30:18] [ERROR] Supabase authentication error: Invalid API key or missing SUPABASE_SERVICE_ROLE_KEY\n[2026-09-14 20:30:25] [FATAL] Healthcheck probe failed: HTTP 503 Service Unavailable (Supabase unreachable)\n[2026-09-14 20:30:30] [INFO] Process container status marked as UNHEALTHY by Docker daemon.\n[2026-09-14 20:35:00] [HINT] Configure SUPABASE_URL e SUPABASE_ANON_KEY no arquivo .env do container.`)
+                                } else {
+                                  setContainerLogsText(`[2026-09-14 16:35:01] [INFO] ${item.name} daemon running in production mode\n[2026-09-14 16:35:02] [INFO] Healthcheck probe passed: 200 OK\n[2026-09-14 16:35:10] [INFO] Ready to accept requests on port ${item.port}`)
+                                }
+                              }
+                            } catch (err: any) {
+                              setContainerLogsText(`Erro ao consultar logs de ${item.name}: ${err.message}`)
+                            } finally {
+                              setIsLoadingLogs(false)
+                            }
+                          }}
+                        >
+                          <Search size={14} />
+                        </button>
+                        <button className="row-menu" title={`Reiniciar container ${item.name}`} onClick={() => doAction(`Container ${item.name} reiniciado com sucesso!`)}>
+                          <RotateCcw size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </>
+          ) : (
+            <div>
+              <div className="section-heading">
+                <div>
+                  <h2>Gerenciador Visual de Docker</h2>
+                  <p>Controle de containers, logs e portas na sua infraestrutura cloud.</p>
+                </div>
+              </div>
+              <div className="panel" style={{ padding: '48px 24px', textAlign: 'center', marginTop: '16px', borderColor: 'rgba(32, 214, 199, 0.25)', background: 'linear-gradient(145deg, #0d1518, #080c0e)' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(32, 214, 199, 0.1)', display: 'grid', placeItems: 'center', margin: '0 auto 16px', color: '#20d6c7' }}>
+                  <Container size={28} />
+                </div>
+                <h3 style={{ margin: '0 0 8px', fontSize: '17px', color: '#edf4f2' }}>Nenhum Servidor Conectado</h3>
+                <p style={{ margin: '0 auto 20px', fontSize: '12px', color: '#8fa4a8', maxWidth: '500px', lineHeight: 1.6 }}>
+                  Conecte sua VM da Oracle Cloud, AWS ou VPS via SSH para listar containers ativos, verificar portas, inspecionar logs em tempo real e otimizar o consumo de disco.
+                </p>
+                <button className="primary-button" style={{ margin: '0 auto' }} onClick={() => setConnectModalOpen(true)}>
+                  <Server size={15} /> Conectar Minha VM (SSH)
+                </button>
+              </div>
             </div>
-          </section>
-        </>}
-
-        {server && active === 'Tunnels' && (
-          <CloudflareTunnelView server={server} doAction={doAction} />
+          )
         )}
 
-        {server && active === 'Storage' && (
-          <StorageExplorerView 
-            server={server}
-            bucketName={server.name === 'cloudops-micro-02' ? 'cloudops-micro-02-storage' : (buckets[0]?.name || 'boteco-sivirino-fotos')} 
-            doAction={doAction} 
-          />
+        {/* ========================================================================= */}
+        {/* ABA: GERENCIADOR VISUAL DE NGINX */}
+        {/* ========================================================================= */}
+        {active === 'Nginx' && (
+          server ? (
+            <>
+              <div className="section-heading">
+                <div>
+                  <h2>Nginx Proxy Reverso & API Gateway</h2>
+                  <p>Roteamento de domínios públicos para portas e containers locais na VM.</p>
+                </div>
+                <button className="primary-button" title="Criar novo mapeamento de domínio para porta local" onClick={() => {
+                  setEditingProxyIndex(null)
+                  setProxyDomain('')
+                  setProxyForward('http://127.0.0.1:3000')
+                  setProxySsl("Let's Encrypt (Ativo)")
+                  setEditProxyOpen(true)
+                }}>
+                  <Plus size={14} /> Adicionar Host
+                </button>
+              </div>
+              
+              <div className="step-box" style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#d9e2e1' }}>
+                    <span className="live-dot" /> Container Nginx: <b>{server.ip === '137.131.187.54' || server.id === 'oracle-micro-02' ? 'Nenhum' : 'nginx-manager-nginx-1'}</b>
+                  </div>
+                  <div style={{ fontSize: '10px', color: '#6f8387', marginTop: '3px' }}>
+                    {server.ip === '137.131.187.54' || server.id === 'oracle-micro-02' ? 'Nginx ainda não instalado nesta VM virgem.' : 'Porta 80/443 exposta e roteando requisições diretamente para as portas internas dos containers.'}
+                  </div>
+                </div>
+                <span className="healthy-label">
+                  <span className={`status-dot ${server.ip === '137.131.187.54' || server.id === 'oracle-micro-02' ? 'amber' : 'emerald'}`} /> 
+                  {server.ip === '137.131.187.54' || server.id === 'oracle-micro-02' ? 'Não Instalado' : 'Roteador Ativo'}
+                </span>
+              </div>
+
+              <section className="panel">
+                <div className="panel-header">
+                  <div>
+                    <h3>Hosts Configurados ({proxyHosts.length})</h3>
+                    <p>Roteamento ativo com SSL Let's Encrypt e Cloudflare Tunnel</p>
+                  </div>
+                </div>
+                <div className="container-list">
+                  {proxyHosts.length === 0 ? (
+                    <div style={{ padding: '24px', textAlign: 'center', color: '#6f8387', fontSize: '11px' }}>
+                      Nenhum Proxy Host configurado ainda. Clique em "Adicionar Host" para mapear um domínio para uma porta.
+                    </div>
+                  ) : proxyHosts.map((item, idx) => (
+                    <div className="container-row" key={item.domain}>
+                      <span className="status-dot emerald" />
+                      <div className="container-info">
+                        <strong>{item.domain}</strong>
+                        <small>Encaminha tráfego externo para ➔ <b>{item.forward}</b></small>
+                      </div>
+                      <span className="status-text emerald">{item.ssl}</span>
+                      <button 
+                        className="text-action" 
+                        title={`Editar apontamento e certificado SSL de ${item.domain}`} 
+                        style={{ marginLeft: 'auto' }} 
+                        onClick={() => {
+                          setEditingProxyIndex(idx)
+                          setProxyDomain(item.domain)
+                          setProxyForward(item.forward)
+                          setProxySsl(item.ssl)
+                          setEditProxyOpen(true)
+                        }}
+                      >
+                        Editar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </>
+          ) : (
+            <div>
+              <div className="section-heading">
+                <div>
+                  <h2>Nginx Proxy Reverso & API Gateway</h2>
+                  <p>Roteamento de domínios públicos para portas e containers locais na VM.</p>
+                </div>
+              </div>
+              <div className="panel" style={{ padding: '48px 24px', textAlign: 'center', marginTop: '16px', borderColor: 'rgba(32, 214, 199, 0.25)', background: 'linear-gradient(145deg, #0d1518, #080c0e)' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(32, 214, 199, 0.1)', display: 'grid', placeItems: 'center', margin: '0 auto 16px', color: '#20d6c7' }}>
+                  <Network size={28} />
+                </div>
+                <h3 style={{ margin: '0 0 8px', fontSize: '17px', color: '#edf4f2' }}>Nenhum Servidor Conectado</h3>
+                <p style={{ margin: '0 auto 20px', fontSize: '12px', color: '#8fa4a8', maxWidth: '500px', lineHeight: 1.6 }}>
+                  Conecte sua VM para configurar regras de proxy reverso, certificados SSL Let's Encrypt automáticos e roteamento de tráfego para suas aplicações internas.
+                </p>
+                <button className="primary-button" style={{ margin: '0 auto' }} onClick={() => setConnectModalOpen(true)}>
+                  <Server size={15} /> Conectar Minha VM (SSH)
+                </button>
+              </div>
+            </div>
+          )
         )}
 
-        {server && active === 'Terminal' && <>
-          <div className="section-heading"><div><h2>Terminal Web SSH Seguro (Zero Trust)</h2><p>Sessão interativa direta na VM {server.name} ({server.ip}) via xterm.js.</p></div><button className="refresh-button" onClick={() => { setTerminalLogs([]); doAction('Terminal limpo') }}><RotateCcw size={13} /> Limpar Console</button></div>
-        </>}
+        {/* ========================================================================= */}
+        {/* ABA: TÚNEIS CLOUDFLARE ZERO TRUST */}
+        {/* ========================================================================= */}
+        {active === 'Tunnels' && (
+          server ? (
+            <CloudflareTunnelView server={server} doAction={doAction} />
+          ) : (
+            <div>
+              <div className="section-heading">
+                <div>
+                  <h2>Túneis Cloudflare Zero Trust</h2>
+                  <p>Exposição segura de serviços internos da VM sem abrir portas no firewall.</p>
+                </div>
+              </div>
+              <div className="panel" style={{ padding: '48px 24px', textAlign: 'center', marginTop: '16px', borderColor: 'rgba(32, 214, 199, 0.25)', background: 'linear-gradient(145deg, #0d1518, #080c0e)' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(32, 214, 199, 0.1)', display: 'grid', placeItems: 'center', margin: '0 auto 16px', color: '#20d6c7' }}>
+                  <Shield size={28} />
+                </div>
+                <h3 style={{ margin: '0 0 8px', fontSize: '17px', color: '#edf4f2' }}>Nenhum Servidor Conectado</h3>
+                <p style={{ margin: '0 auto 20px', fontSize: '12px', color: '#8fa4a8', maxWidth: '500px', lineHeight: 1.6 }}>
+                  Conecte sua VM via SSH para provisionar túneis Cloudflare Zero Trust (`cloudflared`), gerando URLs públicas HTTPS com proteção contra DDoS sem precisar de IP fixo.
+                </p>
+                <button className="primary-button" style={{ margin: '0 auto' }} onClick={() => setConnectModalOpen(true)}>
+                  <Server size={15} /> Conectar Minha VM (SSH)
+                </button>
+              </div>
+            </div>
+          )
+        )}
 
+        {/* ========================================================================= */}
+        {/* ABA: ARMAZENAMENTO DE OBJETOS & BUCKETS */}
+        {/* ========================================================================= */}
+        {active === 'Storage' && (
+          server ? (
+            <StorageExplorerView 
+              server={server}
+              bucketName={server.name === 'cloudops-micro-02' ? 'cloudops-micro-02-storage' : (buckets[0]?.name || 'boteco-sivirino-fotos')} 
+              doAction={doAction} 
+            />
+          ) : (
+            <div>
+              <div className="section-heading">
+                <div>
+                  <h2>Armazenamento de Objetos & Buckets</h2>
+                  <p>Explorador visual de arquivos, backups de banco de dados e snapshots na nuvem.</p>
+                </div>
+              </div>
+              <div className="panel" style={{ padding: '48px 24px', textAlign: 'center', marginTop: '16px', borderColor: 'rgba(32, 214, 199, 0.25)', background: 'linear-gradient(145deg, #0d1518, #080c0e)' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(32, 214, 199, 0.1)', display: 'grid', placeItems: 'center', margin: '0 auto 16px', color: '#20d6c7' }}>
+                  <HardDrive size={28} />
+                </div>
+                <h3 style={{ margin: '0 0 8px', fontSize: '17px', color: '#edf4f2' }}>Nenhum Servidor Conectado</h3>
+                <p style={{ margin: '0 auto 20px', fontSize: '12px', color: '#8fa4a8', maxWidth: '500px', lineHeight: 1.6 }}>
+                  Conecte sua VM para explorar buckets de Oracle Cloud Object Storage ou AWS S3, gerenciar snapshots de banco de dados e realizar upload/download de arquivos.
+                </p>
+                <button className="primary-button" style={{ margin: '0 auto' }} onClick={() => setConnectModalOpen(true)}>
+                  <Server size={15} /> Conectar Minha VM (SSH)
+                </button>
+              </div>
+            </div>
+          )
+        )}
 
-        {(active === 'Dashboard' || active === 'Terminal') && (
+        {/* ========================================================================= */}
+        {/* ABA: TERMINAL WEB SSH SEGURO */}
+        {/* ========================================================================= */}
+        {active === 'Terminal' && (
+          server ? (
+            <div className="section-heading">
+              <div>
+                <h2>Terminal Web SSH Seguro (Zero Trust)</h2>
+                <p>Sessão interativa direta na VM {server.name} ({server.ip}) via xterm.js.</p>
+              </div>
+              <button className="refresh-button" onClick={() => { setTerminalLogs([]); doAction('Terminal limpo') }}>
+                <RotateCcw size={13} /> Limpar Console
+              </button>
+            </div>
+          ) : (
+            <div>
+              <div className="section-heading">
+                <div>
+                  <h2>Terminal Web SSH Seguro (Zero Trust)</h2>
+                  <p>Sessão interativa direta na VM via SSH.</p>
+                </div>
+              </div>
+              <div className="panel" style={{ padding: '48px 24px', textAlign: 'center', marginTop: '16px', borderColor: 'rgba(32, 214, 199, 0.25)', background: 'linear-gradient(145deg, #0d1518, #080c0e)' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(32, 214, 199, 0.1)', display: 'grid', placeItems: 'center', margin: '0 auto 16px', color: '#20d6c7' }}>
+                  <TerminalSquare size={28} />
+                </div>
+                <h3 style={{ margin: '0 0 8px', fontSize: '17px', color: '#edf4f2' }}>Nenhum Servidor Conectado</h3>
+                <p style={{ margin: '0 auto 20px', fontSize: '12px', color: '#8fa4a8', maxWidth: '500px', lineHeight: 1.6 }}>
+                  Conecte sua VM da Oracle Cloud, AWS ou VPS via SSH para abrir um terminal interativo Bash seguro com suporte a atalhos rápidos de DevOps (`top`, `df -h`, `docker ps`).
+                </p>
+                <button className="primary-button" style={{ margin: '0 auto' }} onClick={() => setConnectModalOpen(true)}>
+                  <Server size={15} /> Conectar Minha VM (SSH)
+                </button>
+              </div>
+            </div>
+          )
+        )}
+
+        {(server && (active === 'Dashboard' || active === 'Terminal')) && (
         <section className="panel terminal-panel command-panel" style={{ marginTop: active === 'Terminal' ? '0' : '14px' }}>
           <div className="terminal-header">
             <div>

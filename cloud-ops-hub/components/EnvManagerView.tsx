@@ -7,9 +7,10 @@ import { getApiUrl } from '../lib/api'
 interface EnvManagerViewProps {
   server: any
   doAction: (msg: string) => void
+  onConnect?: () => void
 }
 
-export function EnvManagerView({ server, doAction }: EnvManagerViewProps) {
+export function EnvManagerView({ server, doAction, onConnect }: EnvManagerViewProps) {
   const [envVars, setEnvVars] = useState<any[]>([])
   const [showSecrets, setShowSecrets] = useState<{ [key: string]: boolean }>({})
   const [isLoading, setIsLoading] = useState(false)
@@ -33,19 +34,32 @@ export function EnvManagerView({ server, doAction }: EnvManagerViewProps) {
   }
 
   useEffect(() => {
-    fetchEnv()
+    if (server?.ip) {
+      fetchEnv()
+    }
   }, [server?.ip])
 
   if (!server) {
     return (
-      <div className="panel" style={{ padding: '40px 20px', textAlign: 'center', marginTop: '20px' }}>
-        <div style={{ display: 'inline-flex', padding: '12px', borderRadius: '50%', background: 'rgba(32, 214, 199, 0.08)', marginBottom: '12px', color: '#20d6c7' }}>
-          <KeyRound size={28} />
+      <div>
+        <div className="section-heading">
+          <div>
+            <h2>Gerenciador Visual de Variáveis (.env)</h2>
+            <p>Gerenciamento de segredos, chaves de API e variáveis de ambiente com injeção segura.</p>
+          </div>
         </div>
-        <h3 style={{ margin: '0 0 6px', fontSize: '16px', color: '#d9e2e1' }}>Nenhum Servidor Conectado</h3>
-        <p style={{ margin: '0 auto', fontSize: '12px', color: '#6f8387', maxWidth: '480px' }}>
-          Conecte um servidor para visualizar e gerenciar variáveis de ambiente (.env) com segurança e injeção automática.
-        </p>
+        <div className="panel" style={{ padding: '48px 24px', textAlign: 'center', marginTop: '16px', borderColor: 'rgba(32, 214, 199, 0.25)', background: 'linear-gradient(145deg, #0d1518, #080c0e)' }}>
+          <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(32, 214, 199, 0.1)', display: 'grid', placeItems: 'center', margin: '0 auto 16px', color: '#20d6c7' }}>
+            <KeyRound size={28} />
+          </div>
+          <h3 style={{ margin: '0 0 8px', fontSize: '17px', color: '#edf4f2' }}>Nenhum Servidor Conectado</h3>
+          <p style={{ margin: '0 auto 20px', fontSize: '12px', color: '#8fa4a8', maxWidth: '500px', lineHeight: 1.6 }}>
+            Conecte sua VM da Oracle Cloud, AWS ou VPS via SSH para visualizar, editar e injetar variáveis de ambiente (.env) nos seus containers e microserviços com segurança AES-256.
+          </p>
+          <button className="primary-button" style={{ margin: '0 auto' }} onClick={() => onConnect ? onConnect() : doAction('Conectar VM')}>
+            Conectar Minha VM (SSH)
+          </button>
+        </div>
       </div>
     )
   }
