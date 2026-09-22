@@ -4,19 +4,32 @@ Este documento detalha as especificações da máquina virtual na **Oracle Cloud
 
 ---
 
-## 1. Dados da Máquina Virtual
+## 1. Dados do Cluster e Nós da Infraestrutura (Always Free)
 
-* **Provedor:** Oracle Cloud Infrastructure (OCI)
+### Nó Primário: `instance-bytedata`
+* **Provedor:** Oracle Cloud Infrastructure (OCI) - Always Free
 * **Região:** `sa-saopaulo-1` (São Paulo, Brasil - Datacenter GRU)
-* **Nome da Instância:** `instance-bytedata`
-* **IP Público:** `137.131.185.243`
-* **IP Privado:** `10.0.0.224`
+* **IP Público:** `137.131.185.243` | **IP Privado:** `10.0.0.224`
 * **Sistema Operacional:** Ubuntu 22.04.5 LTS (Jammy Jellyfish)
 * **Arquitetura de CPU:** x86_64 (AMD EPYC 7551 32-Core, 2 vCPUs)
-* **Memória RAM Física:** 956 MB
-* **Memória Swap:** 2.0 GB (prevenção contra estouro de memória OOM)
+* **Memória RAM Física:** 956 MB (+ 2.0 GB Swap NVMe)
 * **Disco:** 45 GB NVMe (`/dev/sda1`)
-* **Usuário SSH:** `ubuntu` (porta 22)
+* **Papel:** Host do Backend CloudOps Hub (PM2 porta 3005), Túnel Cloudflare, Nginx e Containers Docker (`boteco_backend`, `boteco_db`).
+
+### Nó Secundário: `cloudops-micro-02`
+* **Provedor:** Oracle Cloud Infrastructure (OCI) - Always Free
+* **Região:** `sa-saopaulo-1` (São Paulo, Brasil - Datacenter GRU)
+* **IP Público:** `137.131.187.54` | **IP Privado:** `10.0.0.125`
+* **Especificações:** 1 OCPU · 956 MB RAM (+ 1.0 GB Swap montado) · 50 GB NVMe
+* **Papel:** Nó de redundância e borda com Nginx Proxy ativo nas portas 80 e 443.
+
+### Banco de Dados Gerenciado: Oracle Autonomous Database (ATP)
+* **Nome do Banco:** `CLOUDOPSHUB`
+* **Tipo:** Autonomous Transaction Processing (ATP) - Exadata PDB
+* **Especificações:** 1 OCPU · 20 GB Armazenamento NVMe Autônomo · Always Free
+* **Segurança:** mTLS criptografado na porta 1522 com Wallet Oracle
+* **Console Web:** Oracle SQL Developer Web Console integrado
+* **Status:** `AVAILABLE` (Ativo na nuvem OCI)
 
 ---
 

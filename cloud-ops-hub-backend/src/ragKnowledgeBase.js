@@ -30,7 +30,12 @@ const TERM_SYNONYMS = {
   'nginx': ['proxy', 'reverso', 'sites-available', 'subdominio', 'ssl', 'certbot', 'letsencrypt'],
   'scraper': ['robo', 'oracle', 'sem custos', 'sem capacidade', 'out of host capacity', 'a1.flex', 'ampere', 'e2.1.micro'],
   'deploy': ['git', 'pull', 'branch', 'main', 'develop', 'rollback', 'ci/cd', 'zero downtime'],
-  'vercel': ['frontend', 'edge', 'deploy vercel', 'redeploy', 'build vercel', 'nextjs']
+  'vercel': ['frontend', 'edge', 'deploy vercel', 'redeploy', 'build vercel', 'nextjs'],
+  'watchdog': ['saude', 'vigilia', 'alerta', 'queda', 'oom', 'whatsapp', 'callmebot', 'auto-cura', '3minutos', 'monitoramento'],
+  'backup': ['dump', 'mysqldump', 'gzip', 'sql.gz', 'rotacao', '7dias', 'snapshot', 'restaurante', 'mysql'],
+  'auth': ['login', 'master', 'vinicius', 'aprovacao', 'jwt', 'bcrypt', 'solicitacao', 'cadastrar', 'usuario', 'senha', 'multi-tenant'],
+  'security': ['aes-256', 'criptografia', 'gcm', 'chave', 'user_servers', 'isolamento', 'zero trust'],
+  'atp': ['oracle atp', 'autonomous', 'exadata', 'cloudopshub', 'wallet', '1522', 'sql developer', 'banco']
 };
 
 class RagKnowledgeBase {
