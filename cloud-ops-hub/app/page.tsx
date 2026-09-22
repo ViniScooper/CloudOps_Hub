@@ -819,18 +819,18 @@ terraform -version
       </div>
     </aside>
     <section className="main-content">
-      <header className="topbar">
-        <div className="breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ color: '#526e72', fontSize: '12px' }}>Workspace</span>
-            <span style={{ color: '#2a3d40', fontSize: '12px' }}>/</span>
-            <strong style={{ color: '#e2edeb', fontSize: '13px', fontWeight: 600 }}>{active}</strong>
+      <header className="topbar" style={{ position: 'relative', zIndex: 1000 }}>
+        <div className="breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'nowrap', whiteSpace: 'nowrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}>
+            <span style={{ color: '#526e72', fontSize: '11.5px' }}>Workspace</span>
+            <span style={{ color: '#2a3d40', fontSize: '11.5px' }}>/</span>
+            <strong style={{ color: '#e2edeb', fontSize: '12.5px', fontWeight: 600 }}>{active}</strong>
           </div>
 
-          <div style={{ width: '1px', height: '16px', background: 'rgba(255, 255, 255, 0.08)', margin: '0 2px' }} />
+          <div style={{ width: '1px', height: '15px', background: 'rgba(255, 255, 255, 0.1)', margin: '0 4px', flexShrink: 0 }} />
 
-          {/* Indicador Global da VM Ativa com Design Ultra Premium */}
-          <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+          {/* Indicador Global da VM Ativa com Design Ultra Compacto e Flutuante */}
+          <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
             {server ? (
               <button
                 type="button"
@@ -839,66 +839,70 @@ terraform -version
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  padding: '4px 10px 4px 6px',
-                  borderRadius: '8px',
-                  background: 'linear-gradient(135deg, rgba(14, 25, 28, 0.95), rgba(7, 14, 16, 0.98))',
-                  border: '1px solid rgba(32, 214, 199, 0.3)',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+                  gap: '7px',
+                  height: '28px',
+                  padding: '0 9px 0 5px',
+                  borderRadius: '6px',
+                  background: 'linear-gradient(135deg, rgba(16, 28, 30, 0.98), rgba(7, 14, 16, 0.98))',
+                  border: '1px solid rgba(32, 214, 199, 0.35)',
+                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.45)',
                   cursor: 'pointer',
                   color: '#e2edeb',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
                   transition: 'all 0.15s ease'
                 }}
               >
                 {/* Cloud Pill */}
                 <span 
                   style={{ 
-                    padding: '2px 6px', 
+                    padding: '1px 5px', 
                     borderRadius: '4px', 
-                    fontSize: '8.5px', 
+                    fontSize: '8px', 
                     fontWeight: 800, 
+                    lineHeight: '13px',
                     letterSpacing: '0.4px',
                     background: server.provider?.toLowerCase().includes('aws') ? '#f4b942' : 'linear-gradient(135deg, #ef9b55, #c25f39)', 
                     color: '#fff',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                    flexShrink: 0
                   }}
                 >
                   {server.provider?.toLowerCase().includes('aws') ? 'AWS' : 'OCI'}
                 </span>
 
                 {/* Radar pulse green dot */}
-                <div style={{ position: 'relative', display: 'flex', width: '8px', height: '8px', flexShrink: 0 }}>
+                <div style={{ position: 'relative', display: 'flex', width: '7px', height: '7px', flexShrink: 0 }}>
                   <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: '#10b981', opacity: 0.6, animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite' }} />
-                  <span style={{ position: 'relative', width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px #10b981' }} />
+                  <span style={{ position: 'relative', width: '7px', height: '7px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px #10b981' }} />
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '9px', fontWeight: 700, color: '#20d6c7', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-                    NÓ ATIVO:
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  <span style={{ fontSize: '8.5px', fontWeight: 700, color: '#20d6c7', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    NÓ:
                   </span>
-                  <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#f0fdfa' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: '#f0fdfa' }}>
                     {server.name}
                   </span>
                   <span style={{ 
-                    fontSize: '10.5px', 
+                    fontSize: '9.5px', 
                     fontFamily: 'monospace', 
                     color: '#38bdf8', 
-                    background: 'rgba(0, 0, 0, 0.45)', 
-                    padding: '1px 6px', 
-                    borderRadius: '4px',
-                    border: '1px solid rgba(56, 189, 248, 0.2)'
+                    background: 'rgba(0, 0, 0, 0.5)', 
+                    padding: '1px 5px', 
+                    borderRadius: '3px',
+                    border: '1px solid rgba(56, 189, 248, 0.25)'
                   }}>
                     {server.ip}
                   </span>
                 </div>
 
                 <ChevronDown 
-                  size={12} 
+                  size={11} 
                   style={{ 
                     color: '#8ca6a5', 
                     transform: topbarServerMenu ? 'rotate(180deg)' : 'none', 
                     transition: 'transform 0.2s ease',
-                    marginLeft: '2px'
+                    flexShrink: 0
                   }} 
                 />
               </button>
@@ -910,46 +914,49 @@ terraform -version
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  padding: '4px 10px',
-                  borderRadius: '8px',
+                  gap: '5px',
+                  height: '28px',
+                  padding: '0 9px',
+                  borderRadius: '6px',
                   background: 'rgba(245, 158, 11, 0.1)',
                   border: '1px solid rgba(245, 158, 11, 0.3)',
                   cursor: 'pointer',
-                  fontSize: '11px',
-                  color: '#f59e0b'
+                  fontSize: '10px',
+                  color: '#f59e0b',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0
                 }}
               >
-                <span className="status-dot amber" style={{ width: '6px', height: '6px' }} />
-                <Server size={12} />
-                <span style={{ fontWeight: 600 }}>Nenhum Nó Ativo</span>
-                <span style={{ fontSize: '9.5px', color: '#9ca3af' }}>(Conectar SSH)</span>
+                <span className="status-dot amber" style={{ width: '5px', height: '5px' }} />
+                <Server size={11} />
+                <span style={{ fontWeight: 600 }}>Sem Nó Ativo</span>
+                <span style={{ fontSize: '9px', color: '#9ca3af' }}>(Conectar SSH)</span>
               </button>
             )}
 
             {/* Backdrop invisível para fechar menu ao clicar fora */}
             {topbarServerMenu && (
               <div 
-                style={{ position: 'fixed', inset: 0, zIndex: 9998 }} 
+                style={{ position: 'fixed', inset: 0, zIndex: 999998 }} 
                 onClick={() => setTopbarServerMenu(false)} 
               />
             )}
 
-            {/* Menu Popover Flutuante com Design Premium */}
+            {/* Menu Popover Flutuante com Z-Index Máximo e renderizado ACIMA de tudo */}
             {topbarServerMenu && (
               <div 
                 style={{ 
                   position: 'absolute', 
-                  top: 'calc(100% + 8px)', 
+                  top: 'calc(100% + 6px)', 
                   left: 0, 
-                  zIndex: 9999,
-                  width: '340px',
-                  background: 'linear-gradient(180deg, #0c1518 0%, #070d0f 100%)',
-                  border: '1px solid rgba(32, 214, 199, 0.3)',
-                  boxShadow: '0 20px 45px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-                  borderRadius: '12px',
-                  padding: '10px',
-                  backdropFilter: 'blur(20px)'
+                  zIndex: 999999,
+                  width: '320px',
+                  background: '#090f11',
+                  border: '1px solid rgba(32, 214, 199, 0.4)',
+                  boxShadow: '0 25px 60px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 0, 0, 0.85)',
+                  borderRadius: '10px',
+                  padding: '8px',
+                  backdropFilter: 'blur(24px)'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px 10px', borderBottom: '1px solid #162426', marginBottom: '8px' }}>
