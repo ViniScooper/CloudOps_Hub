@@ -13,6 +13,7 @@ INFOS_VM*.TXT
 AI_CONTEXT.md
 documentacoes/07_AGENTE_ODISSEU_RAG_LANGCHAIN.md
 vercel_config.json
+apresentacao_vendas_prints/
 
 # ==========================================
 # DEPENDÊNCIAS & COMPILAÇÃO
