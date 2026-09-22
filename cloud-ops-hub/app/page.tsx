@@ -560,12 +560,33 @@ terraform -version
     const isVirgin = item.id === 'oracle-micro-02' || item.ip === '137.131.187.54' || item.name === 'cloudops-micro-02'
 
     if (isVirgin) {
-      setContainers([])
-      setProxyHosts([])
+      const microContainers = [
+        {
+          name: 'nginx-proxy',
+          image: 'nginx:alpine',
+          port: '80:80, 443:443',
+          status: 'Running',
+          cpu: '0.1%',
+          ram: '6.5 MB',
+          uptime: 'Ativo'
+        }
+      ]
+      const microProxies = [
+        {
+          id: 'px-micro-01',
+          domain: '137.131.187.54',
+          forward: '127.0.0.1:80',
+          ssl: 'Nginx Edge Proxy',
+          status: 'Active',
+          type: 'HTTP/HTTPS'
+        }
+      ]
+      setContainers(microContainers)
+      setProxyHosts(microProxies)
       setBuckets([])
       setTerminalHistory([
         { time: nowTime, type: 'info', text: `Conectado em ${item.name} (${item.ip}) via SSH seguro (Zero Trust).` },
-        { time: nowTime, type: 'info', text: `Ambiente virgem pronto (0 containers, 46.5 GB livres). Experimente: uptime, free -m, df -h, docker ps` }
+        { time: nowTime, type: 'info', text: `Nó operacional: Docker Engine 29.8 ativo, 1GB Swap NVMe montado e Nginx Edge Proxy rodando na porta 80/443.` }
       ])
     } else {
       const savedContainers = localStorage.getItem(`cloudops_containers_${item.id}`) || localStorage.getItem('cloudops_containers')
