@@ -79,6 +79,8 @@ async function getTunnelStatus() {
       const matchUrl = logsText.match(/https:\/\/[a-zA-Z0-9-]+\.trycloudflare\.com/);
       if (matchUrl) {
         lastKnownUrl = matchUrl[0];
+      } else {
+        lastKnownUrl = 'https://cardapio.botecosivirino.com.br';
       }
     } else {
       lastTunnelStatus = 'Offline';
