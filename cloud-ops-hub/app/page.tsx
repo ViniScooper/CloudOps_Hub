@@ -125,9 +125,9 @@ export default function Page() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
-  const [authEmail, setAuthEmail] = useState('admin@cloudops.io')
-  const [authPassword, setAuthPassword] = useState('123456')
-  const [authName, setAuthName] = useState('Administrador')
+  const [authEmail, setAuthEmail] = useState('')
+  const [authPassword, setAuthPassword] = useState('')
+  const [authName, setAuthName] = useState('')
   const [authLoading, setAuthLoading] = useState(false)
 
   const [serverList, setServerList] = useState<any[]>([])
@@ -497,11 +497,12 @@ terraform -version
             e.preventDefault()
             setAuthLoading(true)
             setTimeout(() => {
-              const u = { name: authName, email: authEmail, role: 'admin' }
+              const displayName = (authName && authName.trim()) ? authName.trim() : (authEmail.split('@')[0] || 'Usuário')
+              const u = { name: displayName, email: authEmail, role: 'admin' }
               setCurrentUser(u)
               localStorage.setItem('cloudops_user', JSON.stringify(u))
               setAuthLoading(false)
-              doAction(`Bem-vindo ao CloudOps Hub, ${authName}! 🚀`)
+              doAction(`Bem-vindo ao CloudOps Hub, ${displayName}! 🚀`)
             }, 500)
           }}>
             {authMode === 'register' && (
