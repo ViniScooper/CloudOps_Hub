@@ -10,6 +10,44 @@ fastify.register(cors, {
 
 fastify.get('/api/health', async () => ({ status: 'ok', time: new Date() }));
 
+// Proxy transparente para o microsserviço de Controle Financeiro (porta 3006 na VM)
+fastify.all('/api/finance/*', async (request, reply) => {
+  const http = require('http');
+  const targetPath = request.url;
+  return new Promise((resolve) => {
+    const postBody = request.body ? JSON.stringify(request.body) : null;
+    const req = http.request({
+      hostname: '127.0.0.1',
+      port: 3006,
+      path: targetPath,
+      method: request.method,
+      headers: {
+        'content-type': 'application/json',
+        ...(postBody ? { 'content-length': Buffer.byteLength(postBody) } : {})
+      }
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        reply.code(res.statusCode);
+        try {
+          resolve(JSON.parse(data));
+        } catch {
+          resolve(data);
+        }
+      });
+    });
+    req.on('error', (err) => {
+      reply.code(502);
+      resolve({ success: false, error: 'Falha ao contatar backend financeiro (porta 3006): ' + err.message });
+    });
+    if (postBody) {
+      req.write(postBody);
+    }
+    req.end();
+  });
+});
+
 const authService = require('./authService');
 const emailService = require('./emailService');
 
