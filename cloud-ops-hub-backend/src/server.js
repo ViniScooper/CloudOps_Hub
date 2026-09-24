@@ -627,6 +627,9 @@ fastify.get('/api/env', async (request) => {
       { key: 'PORT', value: '3005', isSecret: false, description: 'Porta HTTP do servidor Fastify' },
       { key: 'FASTIFY_ADDRESS', value: '0.0.0.0', isSecret: false, description: 'Interface de escuta na VM' },
       { key: 'NODE_ENV', value: 'production', isSecret: false, description: 'Ambiente de execução' },
+      { key: 'ORDS_HOST', value: 'https://g442b32fb1cf117-bancodedadosfinancas.adb.sa-saopaulo-1.oraclecloudapps.com', isSecret: false, description: 'Endpoint REST do Oracle Autonomous Database' },
+      { key: 'ORDS_PATH', value: '/ords/admin/_/sql', isSecret: false, description: 'Caminho REST SQL no Oracle Cloud' },
+      { key: 'ORDS_ENABLED', value: 'true', isSecret: false, description: 'Persistência no Oracle Cloud (Zero consumo RAM na VM)' },
       { key: 'WHATSAPP_PHONE', value: '558195126839', isSecret: false, description: 'WhatsApp do Admin para Alertas' },
       { key: 'WHATSAPP_APIKEY', value: '7939819', isSecret: true, description: 'API Key CallMeBot WhatsApp' },
       { key: 'JWT_SECRET', value: 'cloudops_jwt_secret_key_prod_master_2026', isSecret: true, description: 'Chave secreta para autenticação JWT Master' }
