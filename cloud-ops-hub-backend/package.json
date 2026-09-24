@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1139.0",
     "@fastify/cors": "^11.3.0",
     "@fastify/rate-limit": "^11.2.0",
     "@fastify/websocket": "^11.3.1",
@@ -22,6 +23,7 @@
     "mysql2": "^3.24.4",
     "nodemailer": "^10.0.10",
     "oci-sdk": "^2.140.1",
+    "sharp": "^0.35.4",
     "ssh2": "^1.17.0"
   }
 }
