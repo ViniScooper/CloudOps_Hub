@@ -72,6 +72,8 @@ const servers = [
 ]
 
 const containersData = [
+  { name: 'financeiro_backend', image: 'node:20-alpine', status: 'Running', port: '3006:3006', cpu: '0.1%', memory: '42.5 MB', color: 'emerald' },
+  { name: 'financeiro_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel (FinControl)', cpu: '0.1%', memory: '30.1 MB', color: 'emerald' },
   { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.0%', memory: '33.6 MB', color: 'emerald' },
   { name: 'boteco_db', image: 'mysql:8.0 (Buffer 64M)', status: 'Running', port: '3306:3306', cpu: '0.5%', memory: '9.2 MB', color: 'emerald' },
   { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.1%', memory: '31.3 MB', color: 'emerald' },
@@ -625,8 +627,35 @@ terraform -version
         { time: nowTime, type: 'info', text: `Sessão SSH ativa e autenticada na porta 22.` },
         { time: nowTime, type: 'info', text: `Sessão pronta. Experimente: uptime, free -m, df -h, docker ps` }
       ])
+      fetchLiveContainers(item)
     }
   }
+
+  // Sincronização Dinâmica em Tempo Real dos Containers via SSH
+  const fetchLiveContainers = async (targetServer?: any) => {
+    const s = targetServer || server
+    const isProd = s?.id === 'oracle-prod' || s?.ip === '137.131.185.243'
+    if (!isProd) return
+
+    try {
+      const res = await fetch(getApiUrl('/api/docker/containers'))
+      if (res.ok) {
+        const data = await res.json()
+        if (data.success && Array.isArray(data.containers) && data.containers.length > 0) {
+          setContainers(data.containers)
+          if (typeof window !== 'undefined' && s?.id) {
+            localStorage.setItem(`cloudops_containers_${s.id}`, JSON.stringify(data.containers))
+          }
+        }
+      }
+    } catch (e) {}
+  }
+
+  useEffect(() => {
+    if (active === 'Docker' && server) {
+      fetchLiveContainers(server)
+    }
+  }, [active, server?.id])
 
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0)
 
@@ -1285,7 +1314,7 @@ terraform -version
         {/* ABA: VERCEL FRONTEND & EDGE CI/CD DEPLOYMENTS */}
         {/* ========================================================================= */}
         {active === 'Vercel Frontend' && (
-          <VercelDeploymentsView doAction={doAction} />
+          <VercelDeploymentsView server={server} doAction={doAction} onSwitchServer={() => switchServer(servers[0])} />
         )}
 
         {/* ========================================================================= */}
@@ -1335,6 +1364,17 @@ terraform -version
                   <p>Controle de containers, logs e portas na VM {server.name}.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
+                  <button 
+                    className="secondary-button" 
+                    style={{ background: '#0c1013', border: '1px solid #182326', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
+                    title="Consulta o Docker Engine em tempo real na VM via SSH"
+                    onClick={() => {
+                      doAction('Sincronizando containers em tempo real com a VM...')
+                      fetchLiveContainers(server)
+                    }}
+                  >
+                    <RefreshCw size={13} /> Atualizar Containers
+                  </button>
                   <button 
                     className="secondary-button" 
                     style={{ background: '#0c1013', border: '1px solid #182326', color: '#20d6c7', display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}

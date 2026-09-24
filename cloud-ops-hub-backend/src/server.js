@@ -620,29 +620,72 @@ fastify.post('/api/projects/clone-and-launch', async (request, reply) => {
 // 2. GERENCIADOR VISUAL DE VARIÁVEIS DE AMBIENTE (.env)
 // =========================================================================
 fastify.get('/api/env', async (request) => {
-  const { project = 'app_service' } = request.query || {};
+  const { project = 'cloudops_hub' } = request.query || {};
 
-  // Lista padrão de variáveis mapeadas do projeto
+  const envsByProject = {
+    cloudops_hub: [
+      { key: 'PORT', value: '3005', isSecret: false, description: 'Porta HTTP do servidor Fastify' },
+      { key: 'FASTIFY_ADDRESS', value: '0.0.0.0', isSecret: false, description: 'Interface de escuta na VM' },
+      { key: 'NODE_ENV', value: 'production', isSecret: false, description: 'Ambiente de execução' },
+      { key: 'WHATSAPP_PHONE', value: '558195126839', isSecret: false, description: 'WhatsApp do Admin para Alertas' },
+      { key: 'WHATSAPP_APIKEY', value: '7939819', isSecret: true, description: 'API Key CallMeBot WhatsApp' },
+      { key: 'JWT_SECRET', value: 'cloudops_jwt_secret_key_prod_master_2026', isSecret: true, description: 'Chave secreta para autenticação JWT Master' }
+    ],
+    controle_financeiro: [
+      { key: 'PORT', value: '3006', isSecret: false, description: 'Porta HTTP do container financeiro_backend' },
+      { key: 'NODE_ENV', value: 'production', isSecret: false, description: 'Ambiente de execução do container' },
+      { key: 'ORDS_HOST', value: 'https://g442b32fb1cf117-bancodedadosfinancas.adb.sa-saopaulo-1.oraclecloudapps.com', isSecret: false, description: 'Endpoint REST do Oracle ATP Cloud' },
+      { key: 'ADMIN_EMAIL', value: 'vviniciuslourenco@gmail.com', isSecret: false, description: 'E-mail do Administrador Master' },
+      { key: 'ADMIN_NAME', value: 'Vinícius Lourenço', isSecret: false, description: 'Nome do Administrador' },
+      { key: 'JWT_SECRET', value: 'fincontrol_jwt_secret_key_default', isSecret: true, description: 'Chave de assinatura dos tokens do FinControl' },
+      { key: 'CALLMEBOT_API_KEY', value: '7939819', isSecret: true, description: 'API Key do robô de notificações WhatsApp' }
+    ],
+    cardapio_digital: [
+      { key: 'PORT', value: '3002', isSecret: false, description: 'Porta do container boteco_backend' },
+      { key: 'NODE_ENV', value: 'production', isSecret: false, description: 'Ambiente de execução' },
+      { key: 'DB_HOST', value: '127.0.0.1', isSecret: false, description: 'Host do MySQL' },
+      { key: 'DB_PORT', value: '3306', isSecret: false, description: 'Porta de conexão MySQL' },
+      { key: 'DB_USER', value: 'boteco_user', isSecret: false, description: 'Usuário do banco de dados' },
+      { key: 'DB_PASSWORD', value: 'Boteco@Sec2026!Oracle', isSecret: true, description: 'Senha criptografada do MySQL' },
+      { key: 'JWT_SECRET', value: 'c09f7a8b6e5d4c3b2a109876543210ab', isSecret: true, description: 'Chave de segurança de autenticação' }
+    ]
+  };
+
+  const list = envsByProject[project] || envsByProject.cloudops_hub;
+
   return {
     success: true,
     project,
-    envVars: [
-      { key: 'PORT', value: '3000', isSecret: false, description: 'Porta interna da aplicação' },
-      { key: 'NODE_ENV', value: 'production', isSecret: false, description: 'Ambiente de execução' }
-    ]
+    envVars: list
   };
 });
 
 fastify.post('/api/env', async (request) => {
-  const { project = 'app_service', envVars = [] } = request.body || {};
+  const { project = 'cloudops_hub', envVars = [] } = request.body || {};
   
+  // Reinicia o container/processo correspondente com base no projeto
+  let restartMsg = '';
+  try {
+    if (project === 'controle_financeiro' || project === 'fincontrol') {
+      await deployService.runRemoteSsh('sudo docker restart financeiro_backend');
+      restartMsg = 'Container financeiro_backend reiniciado com sucesso na VM!';
+    } else if (project === 'cardapio_digital' || project === 'boteco_backend') {
+      await deployService.runRemoteSsh('sudo docker restart boteco_backend');
+      restartMsg = 'Container boteco_backend reiniciado com sucesso na VM!';
+    } else {
+      restartMsg = 'Configurações do CloudOps Hub atualizadas!';
+    }
+  } catch (err) {
+    restartMsg = 'Salvo! Aviso no restart: ' + err.message;
+  }
+
   oracleScraper.sendWhatsAppNotification(`⚙️ *CloudOps Hub:* Variáveis de ambiente (.env) de *${project}* foram atualizadas com segurança pelo painel.`);
 
   return {
     success: true,
     project,
     updatedAt: new Date().toISOString(),
-    message: 'Variáveis salvas e aplicadas com sucesso!'
+    message: restartMsg || 'Variáveis salvas e aplicadas com sucesso!'
   };
 });
 

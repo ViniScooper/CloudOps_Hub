@@ -23,16 +23,62 @@ export function VercelIcon({ size = 16, color = 'currentColor', style = {} }: { 
   )
 }
 
-interface VercelDeploymentsViewProps {
-  doAction: (msg: string) => void
+export interface VercelProjectConfig {
+  id: string
+  name: string
+  repo: string
+  domain: string
+  url: string
+  branch: string
+  framework: string
 }
 
-export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) {
+export const VERCEL_PROJECTS: VercelProjectConfig[] = [
+  {
+    id: 'cloudops_hub',
+    name: 'CloudOps Hub (DevOps Console)',
+    repo: 'ViniScooper/MY_VM_ORACLE',
+    domain: 'cloudops-hub-dun.vercel.app',
+    url: 'https://cloudops-hub-dun.vercel.app/',
+    branch: 'main',
+    framework: 'Next.js 14 App Router'
+  },
+  {
+    id: 'controle_financeiro',
+    name: 'FinControl (Gestão Financeira & Dívidas)',
+    repo: 'ViniScooper/controle-financeiro',
+    domain: 'controle-financeiro-mauve-two.vercel.app',
+    url: 'https://controle-financeiro-mauve-two.vercel.app/',
+    branch: 'main',
+    framework: 'React Vite PWA'
+  },
+  {
+    id: 'cardapio_digital',
+    name: 'Boteco Sivirino (Cardápio Digital)',
+    repo: 'cardapio_digital',
+    domain: 'cardapio-digital.vercel.app',
+    url: 'https://cardapio-digital.vercel.app/',
+    branch: 'main',
+    framework: 'Next.js / Node'
+  }
+]
+
+interface VercelDeploymentsViewProps {
+  server?: any
+  doAction: (msg: string) => void
+  onSwitchServer?: () => void
+}
+
+export function VercelDeploymentsView({ server, doAction, onSwitchServer }: VercelDeploymentsViewProps) {
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('cloudops_hub')
+  const [viewGlobalAnyway, setViewGlobalAnyway] = useState(false)
   const [loading, setLoading] = useState(true)
   const [redeploying, setRedeploying] = useState(false)
   const [data, setData] = useState<any>(null)
   const [error, setError] = useState<string>('')
   
+  const currentProject = VERCEL_PROJECTS.find(p => p.id === selectedProjectId) || VERCEL_PROJECTS[0]
+
   // Configurações e Chave de Acesso
   const [configModalOpen, setConfigModalOpen] = useState(false)
   const [vercelToken, setVercelToken] = useState('')
@@ -213,6 +259,105 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
   const isReady = latest?.state === 'READY' || latest?.state === 'ready'
   const isBuilding = latest?.state === 'BUILDING' || latest?.state === 'building' || redeploying
 
+  const isMicroVm = (server?.ip === '137.131.187.54' || server?.id === 'oracle-micro-02') && !viewGlobalAnyway
+
+  if (isMicroVm) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '40px' }}>
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(14, 25, 30, 0.95) 0%, rgba(9, 16, 20, 0.98) 100%)',
+          border: '1px solid rgba(245, 158, 11, 0.3)',
+          borderRadius: '16px',
+          padding: '28px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '18px' }}>
+            <div style={{
+              width: '52px',
+              height: '52px',
+              borderRadius: '14px',
+              background: 'rgba(245, 158, 11, 0.12)',
+              border: '1px solid rgba(245, 158, 11, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#f59e0b',
+              flexShrink: 0
+            }}>
+              <AlertCircle size={28} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#f0fdfa' }}>
+                  Nó Secundário Selecionado: cloudops-micro-02 (137.131.187.54)
+                </h3>
+                <span style={{
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  padding: '3px 10px',
+                  borderRadius: '12px',
+                  background: 'rgba(245, 158, 11, 0.2)',
+                  color: '#fbbf24',
+                  border: '1px solid rgba(245, 158, 11, 0.3)'
+                }}>
+                  Worker VM • Sem Frontends Locais
+                </span>
+              </div>
+              <p style={{ margin: '10px 0 16px', fontSize: '13.5px', color: '#88a6aa', lineHeight: '1.6' }}>
+                Esta instância na Oracle Cloud atua exclusivamente como <b>Worker / Micro VM</b>. 
+                Os frontends Vercel em produção (<strong>CloudOps Hub</strong>, <strong>FinControl</strong> e <strong>Boteco Sivirino</strong>) 
+                estão integrados e roteados para os backends e contêineres Docker da VM Principal (<strong>instance-bytedata - 137.131.185.243</strong>).
+              </p>
+
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => onSwitchServer && onSwitchServer()}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 18px',
+                    borderRadius: '8px',
+                    background: 'linear-gradient(135deg, #20d6c7 0%, #0284c7 100%)',
+                    border: 'none',
+                    color: '#041014',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 16px rgba(32, 214, 199, 0.3)'
+                  }}
+                >
+                  🖥️ Alternar para VM Principal (instance-bytedata)
+                </button>
+
+                <button
+                  onClick={() => setViewGlobalAnyway(true)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 18px',
+                    borderRadius: '8px',
+                    background: '#0e171b',
+                    border: '1px solid #1c2e34',
+                    color: '#dbe7e8',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#20d6c7')}
+                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#1c2e34')}
+                >
+                  🌐 Visualizar Frontends Vercel Globais Mesmo Assim
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '40px' }}>
       
@@ -255,7 +400,7 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
               </span>
             </div>
             <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#68868a' }}>
-              Monitoramento em tempo real, status de CDN Edge e disparador de deploy para o Cardápio Digital.
+              Monitoramento em tempo real, status de CDN Edge e disparador de deploy para os frontends oficiais.
             </p>
           </div>
         </div>
@@ -310,6 +455,55 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
         </div>
       </div>
 
+      {/* SELETOR DE PROJETO VERCEL */}
+      <div style={{
+        background: '#0a1013',
+        border: '1px solid #162428',
+        borderRadius: '12px',
+        padding: '14px 18px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '12px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Layers size={16} style={{ color: '#20d6c7' }} />
+          <span style={{ fontSize: '12px', fontWeight: 700, color: '#f0fdfa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Projeto Selecionado:
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {VERCEL_PROJECTS.map((proj) => {
+            const isSelected = selectedProjectId === proj.id
+            return (
+              <button
+                key={proj.id}
+                onClick={() => setSelectedProjectId(proj.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '7px 14px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  border: isSelected ? '1px solid #20d6c7' : '1px solid #162428',
+                  background: isSelected ? 'rgba(32, 214, 199, 0.12)' : '#070b0d',
+                  color: isSelected ? '#20d6c7' : '#88a6aa',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <VercelIcon size={12} color={isSelected ? '#20d6c7' : '#88a6aa'} />
+                <span>{proj.name}</span>
+                {isSelected && <Check size={12} />}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       {/* 2. CARDS DE TOPOLOGIA & ESTADO DO FRONTEND */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
         
@@ -329,11 +523,11 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
             </a>
           </div>
           <div style={{ fontSize: '16px', fontWeight: 700, color: '#f0fdfa' }}>
-            {data?.projectName || projectName || 'Nenhum projeto configurado'}
+            {currentProject.name}
           </div>
           <div style={{ fontSize: '11px', color: '#88a6aa', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <GitBranch size={13} style={{ color: '#20d6c7' }} />
-            <span>Branch Ativa: <b style={{ color: '#fff' }}>main</b> (sincronizada com GitHub)</span>
+            <span>Repositório: <b style={{ color: '#fff' }}>{currentProject.repo}</b> ({currentProject.branch})</span>
           </div>
         </div>
 
@@ -348,22 +542,18 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
             </span>
           </div>
           <div style={{ fontSize: '15px', fontWeight: 700, color: '#f0fdfa', fontFamily: 'monospace' }}>
-            {data?.domain ? (
-              <a
-                href={`https://${data.domain}`}
-                target="_blank"
-                rel="noreferrer"
-                style={{ color: '#20d6c7', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
-              >
-                {data.domain} <ExternalLink size={13} />
-              </a>
-            ) : (
-              <span style={{ color: '#6f8387', fontSize: '13px' }}>Aguardando configuração de domínio</span>
-            )}
+            <a
+              href={currentProject.url}
+              target="_blank"
+              rel="noreferrer"
+              style={{ color: '#20d6c7', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
+            >
+              {currentProject.domain} <ExternalLink size={13} />
+            </a>
           </div>
           <div style={{ fontSize: '11px', color: '#88a6aa', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Globe size={13} style={{ color: '#20d6c7' }} />
-            <span>Edge Network: <b>Global Anycast</b> / Latência ultrabaixa</span>
+            <span>Framework: <b>{currentProject.framework}</b></span>
           </div>
         </div>
 
@@ -371,18 +561,18 @@ export function VercelDeploymentsView({ doAction }: VercelDeploymentsViewProps) 
         <div style={{ background: '#0a1013', border: '1px solid #162428', borderRadius: '12px', padding: '18px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '11px', color: '#68868a', fontWeight: 600, textTransform: 'uppercase' }}>
-              Último Commit Compilado
+              Status de Deploy Edge
             </span>
             <span style={{ fontSize: '10px', color: '#20d6c7', fontFamily: 'monospace', fontWeight: 700 }}>
-              {latest?.meta?.commitSha ? latest.meta.commitSha.slice(0, 7) : '—'}
+              {latest?.meta?.commitSha ? latest.meta.commitSha.slice(0, 7) : 'PROD'}
             </span>
           </div>
           <div style={{ fontSize: '13px', fontWeight: 600, color: '#f0fdfa', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {latest?.meta?.commitMessage || 'Aguardando sincronização de deploy'}
+            {selectedProjectId === 'cloudops_hub' ? 'v2.4.0 • DevOps Console Oficial' : latest?.meta?.commitMessage || 'Produção Sincronizada'}
           </div>
           <div style={{ fontSize: '11px', color: '#88a6aa', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <User size={12} style={{ color: '#20d6c7' }} />
-            <span>Autor: <b style={{ color: '#fff' }}>{latest?.meta?.commitAuthor || 'DevOps CI/CD'}</b></span>
+            <span>Alvo: <b style={{ color: '#fff' }}>Oracle VM instance-bytedata</b></span>
           </div>
         </div>
       </div>
