@@ -96,6 +96,22 @@ export function StorageExplorerView({
     })
   }, [files, searchQuery, selectedCategory])
 
+  const totalBytes = useMemo(() => {
+    return files.reduce((acc, f) => acc + (f.bytes || 0), 0)
+  }, [files])
+
+  const formatStorageSize = (bytes: number) => {
+    if (bytes === 0) return '0.0 MB'
+    if (bytes < 1024 * 1024 * 1024) {
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+    }
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`
+  }
+
+  const quotaTotalBytes = 20 * 1024 * 1024 * 1024 // 20 GB Always Free
+  const usagePercentage = isVirginVM ? 0 : Math.min(100, Math.max(0.01, (totalBytes / quotaTotalBytes) * 100))
+  const freeGB = isVirginVM ? '20.0' : Math.max(0, (quotaTotalBytes - totalBytes) / (1024 * 1024 * 1024)).toFixed(1)
+
   const copyUrl = (file: StorageFile) => {
     navigator.clipboard.writeText(file.url)
     setCopiedId(file.id)
@@ -212,13 +228,13 @@ export function StorageExplorerView({
         <div style={{ background: '#0e1518', border: '1px solid #1a272a', borderRadius: '8px', padding: '14px' }}>
           <span style={{ fontSize: '10px', color: '#6f8387', textTransform: 'uppercase', fontWeight: 600 }}>Cota Always Free</span>
           <div style={{ fontSize: '18px', fontWeight: 700, color: '#d9e2e1', margin: '4px 0' }}>
-            {isVirginVM ? '0.0 GB' : '1.4 GB'} <span style={{ fontSize: '12px', color: '#6f8387', fontWeight: 400 }}>/ 20 GB</span>
+            {isVirginVM ? '0.0 MB' : formatStorageSize(totalBytes)} <span style={{ fontSize: '12px', color: '#6f8387', fontWeight: 400 }}>/ 20 GB</span>
           </div>
           <div style={{ height: '6px', background: '#182427', borderRadius: '3px', overflow: 'hidden', marginTop: '8px' }}>
-            <div style={{ width: isVirginVM ? '0%' : '7%', height: '100%', background: '#20d6c7', borderRadius: '3px' }} />
+            <div style={{ width: isVirginVM ? '0%' : `${Math.max(0.5, Math.min(100, usagePercentage))}%`, height: '100%', background: '#20d6c7', borderRadius: '3px' }} />
           </div>
           <small style={{ fontSize: '10px', color: '#20d6c7', marginTop: '6px', display: 'block' }}>
-            {isVirginVM ? '0% utilizado · 20.0 GB livres' : '7% utilizado · 18.6 GB livres para fotos'}
+            {isVirginVM ? '0% utilizado · 20.0 GB livres' : `${usagePercentage < 0.1 ? '< 0.1%' : usagePercentage.toFixed(1) + '%'} utilizado · ${freeGB} GB livres para fotos`}
           </small>
         </div>
 
