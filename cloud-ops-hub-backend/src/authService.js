@@ -17,7 +17,20 @@ async function login(email, password) {
   // 1. Tenta buscar no banco de dados MySQL
   let user = await db.getUserByEmail(cleanEmail);
 
-  // 2. Se banco estiver offline ou usuário não encontrado, verifica fallback master
+  // 2. Se não encontrar no MySQL, busca no users.json local
+  if (!user) {
+    const fs = require('fs');
+    const path = require('path');
+    const USERS_FILE = path.join(__dirname, '..', 'database', 'users.json');
+    if (fs.existsSync(USERS_FILE)) {
+      try {
+        const jsonList = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+        user = jsonList.find(u => (u.email || '').toLowerCase() === cleanEmail);
+      } catch {}
+    }
+  }
+
+  // 3. Fallback master para o proprietário da infraestrutura
   if (!user && cleanEmail === MASTER_EMAIL) {
     user = {
       id: 'usr-master-01',
