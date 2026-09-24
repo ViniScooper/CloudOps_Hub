@@ -392,6 +392,13 @@ export default function Page() {
           }
         }
         setTerminalLogs(logs)
+        const isProdTarget = targetServer?.id === 'oracle-prod' || targetServer?.ip === '137.131.185.243'
+        if (isProdTarget) {
+          fetchLiveSystemMetrics(targetServer)
+          fetchLiveContainers(targetServer)
+          fetchLiveNginxHosts(targetServer)
+          fetchLiveSystemLogs(targetServer)
+        }
       } else {
         // Base limpa para novos usuários
         setServer(null)
@@ -628,11 +635,14 @@ terraform -version
         { time: nowTime, type: 'info', text: `Sessão pronta. Experimente: uptime, free -m, df -h, docker ps` }
       ])
       fetchLiveContainers(item)
+      fetchLiveSystemMetrics(item)
+      fetchLiveNginxHosts(item)
+      fetchLiveSystemLogs(item)
     }
   }
 
   // Sincronização Dinâmica em Tempo Real dos Containers via SSH
-  const fetchLiveContainers = async (targetServer?: any) => {
+  async function fetchLiveContainers(targetServer?: any) {
     const s = targetServer || server
     const isProd = s?.id === 'oracle-prod' || s?.ip === '137.131.185.243'
     if (!isProd) return
@@ -651,9 +661,129 @@ terraform -version
     } catch (e) {}
   }
 
+  // Sincronização Dinâmica da Telemetria (CPU, RAM, Disco, Uptime)
+  async function fetchLiveSystemMetrics(targetServer?: any) {
+    const s = targetServer || server
+    const isProd = s?.id === 'oracle-prod' || s?.ip === '137.131.185.243'
+    if (!isProd) return
+
+    try {
+      const res = await fetch(getApiUrl('/api/system/metrics'))
+      if (res.ok) {
+        const data = await res.json()
+        if (data.success && data.metrics) {
+          const m = data.metrics
+          setServer((prev: any) => {
+            if (!prev) return prev
+            return {
+              ...prev,
+              cpu: m.cpu,
+              ram: m.ram,
+              ramUsed: m.ramUsed,
+              ramTotal: m.ramTotal,
+              cacheUsed: m.cacheUsed,
+              cachePct: m.cachePct,
+              disk: m.disk,
+              diskUsed: m.diskUsed,
+              diskTotal: m.diskTotal,
+              uptime: m.uptime || prev.uptime,
+              status: m.status || prev.status
+            }
+          })
+          setServerList((prevList: any[]) =>
+            prevList.map(srv => {
+              if (srv.id === 'oracle-prod' || srv.ip === '137.131.185.243') {
+                return {
+                  ...srv,
+                  cpu: m.cpu,
+                  ram: m.ram,
+                  ramUsed: m.ramUsed,
+                  ramTotal: m.ramTotal,
+                  cacheUsed: m.cacheUsed,
+                  cachePct: m.cachePct,
+                  disk: m.disk,
+                  diskUsed: m.diskUsed,
+                  diskTotal: m.diskTotal,
+                  uptime: m.uptime || srv.uptime,
+                  status: m.status || srv.status
+                }
+              }
+              return srv
+            })
+          )
+        }
+      }
+    } catch (e) {}
+  }
+
+  // Sincronização Dinâmica dos Hosts Nginx
+  async function fetchLiveNginxHosts(targetServer?: any) {
+    const s = targetServer || server
+    const isProd = s?.id === 'oracle-prod' || s?.ip === '137.131.185.243'
+    if (!isProd) return
+
+    try {
+      const res = await fetch(getApiUrl('/api/nginx/hosts'))
+      if (res.ok) {
+        const data = await res.json()
+        if (data.success && Array.isArray(data.proxies) && data.proxies.length > 0) {
+          setProxyHosts(data.proxies)
+          if (typeof window !== 'undefined' && s?.id) {
+            localStorage.setItem(`cloudops_proxies_${s.id}`, JSON.stringify(data.proxies))
+          }
+        }
+      }
+    } catch (e) {}
+  }
+
+  // Sincronização Dinâmica dos Logs do Sistema no Terminal
+  async function fetchLiveSystemLogs(targetServer?: any) {
+    const s = targetServer || server
+    const isProd = s?.id === 'oracle-prod' || s?.ip === '137.131.185.243'
+    if (!isProd) return
+
+    try {
+      const res = await fetch(getApiUrl('/api/system/logs'))
+      if (res.ok) {
+        const data = await res.json()
+        if (data.success && Array.isArray(data.logs) && data.logs.length > 0) {
+          setTerminalLogs(data.logs)
+          const formatted = data.logs.map((item: any) => ({
+            time: item[0] || new Date().toLocaleTimeString('pt-BR'),
+            type: item[1] || 'info',
+            text: item[2] || String(item)
+          }))
+          setTerminalHistory(prev => {
+            const userExecuted = prev.filter(p => p.text.startsWith('$ ') || p.type === 'log')
+            if (userExecuted.length > 0) {
+              return [...formatted, ...userExecuted]
+            }
+            return formatted
+          })
+        }
+      }
+    } catch (e) {}
+  }
+
   useEffect(() => {
-    if (active === 'Docker' && server) {
+    if (!server) return
+    const isProd = server?.id === 'oracle-prod' || server?.ip === '137.131.185.243'
+    if (!isProd) return
+
+    if (active === 'Dashboard') {
+      fetchLiveSystemMetrics(server)
       fetchLiveContainers(server)
+      fetchLiveSystemLogs(server)
+      const interval = setInterval(() => {
+        fetchLiveSystemMetrics(server)
+      }, 15000)
+      return () => clearInterval(interval)
+    } else if (active === 'Docker') {
+      fetchLiveContainers(server)
+    } else if (active === 'Nginx') {
+      fetchLiveNginxHosts(server)
+    } else if (active === 'Terminal') {
+      fetchLiveSystemLogs(server)
     }
   }, [active, server?.id])
 
