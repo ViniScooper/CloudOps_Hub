@@ -333,23 +333,45 @@ export function StorageExplorerView({
         </div>
       </div>
 
+      {/* LOADING STATE */}
+      {isLoading && files.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '60px 20px', background: '#0a1012', border: '1px dashed rgba(32, 214, 199, 0.3)', borderRadius: '8px' }}>
+          <RefreshCw size={32} className="spinning" style={{ color: '#20d6c7', margin: '0 auto 14px auto' }} />
+          <h3 style={{ color: '#d9e2e1', fontSize: '15px', fontWeight: 600, marginBottom: '6px' }}>
+            Carregando Fotos Reais do Cliente...
+          </h3>
+          <p style={{ color: '#6f8387', fontSize: '12px', maxWidth: '440px', margin: '0 auto', lineHeight: '1.5' }}>
+            Consultando o bucket Oracle Object Storage e o banco de dados em tempo real.
+          </p>
+        </div>
+      )}
+
       {/* EMPTY STATE QUANDO NÃO HÁ ARQUIVOS */}
-      {filteredFiles.length === 0 && (
+      {!isLoading && filteredFiles.length === 0 && (
         <div style={{ textAlign: 'center', padding: '60px 20px', background: '#0a1012', border: '1px dashed #1c2b2f', borderRadius: '8px' }}>
           <HardDrive size={38} style={{ color: '#3d5256', margin: '0 auto 14px auto' }} />
           <h3 style={{ color: '#d9e2e1', fontSize: '15px', fontWeight: 600, marginBottom: '6px' }}>
             Nenhum Arquivo Encontrado
           </h3>
           <p style={{ color: '#6f8387', fontSize: '12px', maxWidth: '440px', margin: '0 auto 16px auto', lineHeight: '1.5' }}>
-            Nenhum arquivo encontrado neste bucket com os filtros aplicados. Faça upload de arquivos ou execute um backup para começar.
+            Nenhum arquivo encontrado neste bucket com os filtros aplicados. Faça upload de arquivos ou clique em Sincronizar.
           </p>
-          <button 
-            className="primary-button"
-            onClick={() => setUploadModalOpen(true)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', margin: '0 auto' }}
-          >
-            <UploadCloud size={14} /> Fazer Primeiro Upload
-          </button>
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+            <button 
+              className="secondary-button"
+              onClick={fetchRealStorageFiles}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}
+            >
+              <RefreshCw size={13} /> Sincronizar Agora
+            </button>
+            <button 
+              className="primary-button"
+              onClick={() => setUploadModalOpen(true)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}
+            >
+              <UploadCloud size={14} /> Fazer Upload
+            </button>
+          </div>
         </div>
       )}
 
@@ -359,6 +381,9 @@ export function StorageExplorerView({
           {filteredFiles.map(file => {
             const isImage = file.type === 'image'
             const isCopied = copiedId === file.id
+            const displayUrl = file.previewUrl?.startsWith('http') 
+              ? file.previewUrl 
+              : `https://cardapio.botecosivirino.com.br${file.previewUrl}`
 
             return (
               <div
@@ -390,8 +415,8 @@ export function StorageExplorerView({
                 >
                   {isImage ? (
                     <img
-                      src={file.previewUrl}
-                      alt={file.name}
+                      src={displayUrl}
+                      alt={file.label || file.name}
                       style={{
                         width: '100%',
                         height: '100%',
