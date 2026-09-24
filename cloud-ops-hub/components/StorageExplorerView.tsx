@@ -1,16 +1,18 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import {
   HardDrive, Search, Plus, ExternalLink, Copy, Check, Eye, Download,
   Trash2, Filter, UploadCloud, X, ArrowLeft, Image as ImageIcon,
   FileText, Database, ShieldCheck, Sparkles, FolderOpen, RefreshCw
 } from 'lucide-react'
+import { getApiUrl } from '../lib/api'
 
 interface StorageFile {
   id: string
   name: string
-  category: 'Pratos' | 'Bebidas' | 'Sobremesas' | 'Backups' | 'Banners'
+  label?: string
+  category: 'Pratos' | 'Bebidas' | 'Sobremesas' | 'Backups' | 'Banners' | string
   size: string
   bytes: number
   uploadedAt: string
@@ -18,118 +20,8 @@ interface StorageFile {
   url: string
   previewUrl: string
   type: 'image' | 'archive' | 'doc'
+  price?: string
 }
-
-const INITIAL_FILES: StorageFile[] = [
-  {
-    id: 'f-1',
-    name: 'picanha-chapa-alho-torrado.jpg',
-    category: 'Pratos',
-    size: '420 KB',
-    bytes: 430080,
-    uploadedAt: 'Hoje, 19:40',
-    dimensions: '1200 x 800',
-    url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/picanha-chapa-alho-torrado.jpg',
-    previewUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80',
-    type: 'image'
-  },
-  {
-    id: 'f-2',
-    name: 'heineken-longneck-gelada.webp',
-    category: 'Bebidas',
-    size: '185 KB',
-    bytes: 189440,
-    uploadedAt: 'Ontem, 21:15',
-    dimensions: '800 x 1000',
-    url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/heineken-longneck-gelada.webp',
-    previewUrl: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=600&auto=format&fit=crop&q=80',
-    type: 'image'
-  },
-  {
-    id: 'f-3',
-    name: 'costela-barbecue-defumada.jpg',
-    category: 'Pratos',
-    size: '560 KB',
-    bytes: 573440,
-    uploadedAt: 'Ontem, 18:02',
-    dimensions: '1400 x 900',
-    url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/costela-barbecue-defumada.jpg',
-    previewUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80',
-    type: 'image'
-  },
-  {
-    id: 'f-4',
-    name: 'chopp-brahma-artesanal-500ml.webp',
-    category: 'Bebidas',
-    size: '210 KB',
-    bytes: 215040,
-    uploadedAt: '14 Set, 15:30',
-    dimensions: '900 x 1200',
-    url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/chopp-brahma-artesanal-500ml.webp',
-    previewUrl: 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=600&auto=format&fit=crop&q=80',
-    type: 'image'
-  },
-  {
-    id: 'f-5',
-    name: 'torresmo-de-rolo-crocante.jpg',
-    category: 'Pratos',
-    size: '390 KB',
-    bytes: 399360,
-    uploadedAt: '14 Set, 14:10',
-    dimensions: '1080 x 1080',
-    url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/torresmo-de-rolo-crocante.jpg',
-    previewUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80',
-    type: 'image'
-  },
-  {
-    id: 'f-6',
-    name: 'banner-topo-cardapio-digital.png',
-    category: 'Banners',
-    size: '890 KB',
-    bytes: 911360,
-    uploadedAt: '12 Set, 11:00',
-    dimensions: '1920 x 600',
-    url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/banner-topo-cardapio-digital.png',
-    previewUrl: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600&auto=format&fit=crop&q=80',
-    type: 'image'
-  },
-  {
-    id: 'f-7',
-    name: 'pudim-leite-condensado-artesanal.jpg',
-    category: 'Sobremesas',
-    size: '310 KB',
-    bytes: 317440,
-    uploadedAt: '11 Set, 17:25',
-    dimensions: '800 x 800',
-    url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/pudim-leite-condensado-artesanal.jpg',
-    previewUrl: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop&q=80',
-    type: 'image'
-  },
-  {
-    id: 'f-8',
-    name: 'backup_mysql_boteco_db_2026_09_16.sql.gz',
-    category: 'Backups',
-    size: '14.2 MB',
-    bytes: 14889779,
-    uploadedAt: 'Hoje, 03:00 (Rotina Diária)',
-    dimensions: '—',
-    url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/backup_mysql_boteco_db_2026_09_16.sql.gz',
-    previewUrl: '',
-    type: 'archive'
-  },
-  {
-    id: 'f-9',
-    name: 'caipirinha-limao-cachaca-artesanal.webp',
-    category: 'Bebidas',
-    size: '240 KB',
-    bytes: 245760,
-    uploadedAt: '10 Set, 20:45',
-    dimensions: '900 x 1200',
-    url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/caipirinha-limao-cachaca-artesanal.webp',
-    previewUrl: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop&q=80',
-    type: 'image'
-  }
-]
 
 export function StorageExplorerView({ 
   bucketName = 'boteco-sivirino-fotos',
@@ -151,8 +43,36 @@ export function StorageExplorerView({
         try { return JSON.parse(saved) } catch (e) {}
       }
     }
-    return isVirginVM ? [] : INITIAL_FILES
+    return []
   })
+
+  const [isLoading, setIsLoading] = useState(false)
+
+  const fetchRealStorageFiles = async () => {
+    setIsLoading(true)
+    try {
+      const res = await fetch(getApiUrl('/api/storage/objects'))
+      if (res.ok) {
+        const data = await res.json()
+        if (data.success && Array.isArray(data.files)) {
+          setFiles(data.files)
+          if (typeof window !== 'undefined') {
+            const storageKey = isVirginVM ? 'cloudops_storage_files_micro02' : 'cloudops_storage_files'
+            localStorage.setItem(storageKey, JSON.stringify(data.files))
+          }
+          doAction(`Fotos reais do bucket ${currentBucket} carregadas! (${data.files.length} arquivos)`)
+        }
+      }
+    } catch (err: any) {
+      console.error('Erro ao buscar fotos do storage:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchRealStorageFiles()
+  }, [])
 
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos')
@@ -251,10 +171,14 @@ export function StorageExplorerView({
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button
             className="secondary-button"
-            onClick={() => doAction('Sincronizando metadados com a API do Oracle Object Storage...')}
+            onClick={() => {
+              doAction('Sincronizando fotos reais com o Oracle Object Storage...')
+              fetchRealStorageFiles()
+            }}
+            disabled={isLoading}
             style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            <RefreshCw size={14} /> Sincronizar
+            <RefreshCw size={14} className={isLoading ? 'spinning' : ''} /> {isLoading ? 'Sincronizando...' : 'Sincronizar'}
           </button>
 
           <button
@@ -530,20 +454,30 @@ export function StorageExplorerView({
                 {/* Informações do Arquivo */}
                 <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                   <div>
-                    <strong
-                      title={file.name}
-                      style={{
-                        display: 'block',
-                        fontSize: '11px',
-                        color: '#e2eceb',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        marginBottom: '4px'
-                      }}
-                    >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginBottom: '4px' }}>
+                      <strong
+                        title={file.label || file.name}
+                        style={{
+                          fontSize: '12px',
+                          color: '#e2eceb',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          flex: 1
+                        }}
+                      >
+                        {file.label || file.name}
+                      </strong>
+                      {file.price && (
+                        <span style={{ fontSize: '10px', color: '#a3e635', fontWeight: 700, background: 'rgba(163, 230, 53, 0.1)', padding: '1px 5px', borderRadius: '4px', border: '1px solid rgba(163, 230, 53, 0.25)' }}>
+                          {file.price}
+                        </span>
+                      )}
+                    </div>
+
+                    <div style={{ fontSize: '9.5px', color: '#566f73', fontFamily: 'monospace', marginBottom: '8px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {file.name}
-                    </strong>
+                    </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#6f8387', marginBottom: '10px' }}>
                       <span>{file.size}</span>
