@@ -1,23 +1,28 @@
 # 🚀 CloudOps Hub — Self-Hosted Multi-Cloud DevOps Control Plane
 
 <p align="center">
-  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-20d6c7.svg?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License: MIT" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-BSL_1.1_%7C_Commercial_Protection-e11d48.svg?style=for-the-badge&logo=shield&logoColor=white" alt="License: BSL 1.1 / Commercial Protection" /></a>
   <img src="https://img.shields.io/badge/Next.js-16.3-black?style=for-the-badge&logo=next.js" alt="Next.js" />
   <img src="https://img.shields.io/badge/React-19.0-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
   <img src="https://img.shields.io/badge/Node.js-20_LTS-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
   <img src="https://img.shields.io/badge/Docker-Zero_Downtime-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/Multi--Cloud-Oracle_%7C_AWS_%7C_Hostinger-orange?style=for-the-badge" alt="Multi-Cloud" />
   <img src="https://img.shields.io/badge/AI_Copilot-Odisseu_RAG-8b5cf6?style=for-the-badge&logo=openai&logoColor=white" alt="Odisseu AI" />
-  <img src="https://img.shields.io/badge/Open_Source-PRs_Welcome-20d6c7?style=for-the-badge" alt="Open Source" />
+  <img src="https://img.shields.io/badge/Access-Request_Only-blue?style=for-the-badge" alt="Access: Request Only" />
 </p>
 
 <p align="center">
-  <b>A lightweight, high-performance, open-source web console for multi-cloud infrastructure orchestration, real-time Docker management, automated CI/CD deployments, AI-driven DevOps assistance (Odisseu AI), and telemetry error tracking without vendor lock-in.</b>
+  <b>A lightweight, high-performance web console for multi-cloud infrastructure orchestration, real-time Docker management, automated CI/CD deployments, AI-driven DevOps assistance (Odisseu AI), and telemetry error tracking without vendor lock-in.</b>
 </p>
 
 <p align="center">
   🌐 <b>Production Web Console:</b> <a href="https://cloudops-hub-dun.vercel.app/" target="_blank">https://cloudops-hub-dun.vercel.app/</a>
 </p>
+
+> ### 🔒 Solicitação de Acesso & Ajuda com Instalação
+> **Quer testar ou instalar o CloudOps Hub na sua infraestrutura (Oracle Cloud, Hostinger, AWS ou VPS própria)?**  
+> Para garantir estabilidade, segurança e evitar conflitos em máquinas de baixa memória (1 GB RAM), o acesso e instalação assistida são liberados diretamente pelo autor:  
+> 📩 **Solicite seu acesso / Agende auxílio de instalação:** Envie um e-mail para **[vviniciuslourenco@gmail.com](mailto:vviniciuslourenco@gmail.com)** com o assunto `[CloudOps Hub] Solicitação de Acesso` ou mande mensagem direta no [GitHub](https://github.com/ViniScooper).
 
 ---
 

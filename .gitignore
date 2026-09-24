@@ -24,7 +24,26 @@ ACESSO_MASTER*.md
 AI_CONTEXT.md
 documentacoes/07_AGENTE_ODISSEU_RAG_LANGCHAIN.md
 vercel_config.json
+**/vercel_config.json
 nova_vm_micro.json
+**/nova_vm_micro.json
+
+# Scripts de Máquina, Scrapers e Serviços Internos
+cloud-ops-scraper-cloud.js
+cloudops-scraper.service
+check_vm.js
+**/check_vm.js
+test_suite_e2e.js
+capture_screens.js
+audit_trail.log
+**/audit_trail.log
+
+# Bancos de Dados Locais e Históricos JSON
+cloud-ops-hub-backend/database/*.json
+database/*.json
+!cloud-ops-hub-backend/database/schema.sql
+!database/schema.sql
+
 apresentacao_vendas_prints/
 
 # Wallets e Certificados Oracle Cloud

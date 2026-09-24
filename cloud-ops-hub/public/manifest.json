@@ -1,0 +1,29 @@
+{
+  "name": "CloudOps Hub — DevOps Control Plane",
+  "short_name": "CloudOps",
+  "description": "Plano de controle DevOps em tempo real, monitoramento e deploys contínuos.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0f1d",
+  "theme_color": "#0a0f1d",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-dark-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1444,7 +1444,7 @@ terraform -version
         {/* ABA: VERCEL FRONTEND & EDGE CI/CD DEPLOYMENTS */}
         {/* ========================================================================= */}
         {active === 'Vercel Frontend' && (
-          <VercelDeploymentsView server={server} doAction={doAction} onSwitchServer={() => switchServer(servers[0])} />
+          <VercelDeploymentsView server={server} doAction={doAction} onSwitchServer={() => handleSwitchServer(servers[0])} />
         )}
 
         {/* ========================================================================= */}
