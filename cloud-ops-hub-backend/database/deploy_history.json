@@ -1,5 +1,17 @@
 [
   {
+    "id": "dep-1788",
+    "timestamp": "23/09/2026, 21:23:31",
+    "project": "FinControl (Gestão Financeira)",
+    "type": "DEPLOY",
+    "branch": "main",
+    "commitHash": "b44b842",
+    "commitMessage": "feat(deploy): adicionar docker-compose.yml para orquestracao via CloudOps Hub na VM",
+    "author": "Vinicius Lourenco",
+    "duration": "108.9s",
+    "status": "Sucesso"
+  },
+  {
     "id": "dep-9753",
     "timestamp": "18/09/2026, 11:55:19",
     "project": "Boteco Sivirino",
