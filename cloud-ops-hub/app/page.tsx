@@ -6,7 +6,7 @@ import {
   HardDrive, LayoutDashboard, Menu, MoreHorizontal, Network, Plus, RefreshCw,
   Search, Server, Settings, TerminalSquare, X, Zap, Globe2, ArrowUpRight,
   Copy, RotateCcw, Archive, ExternalLink, Layers3, Shield, User, Lock, LogOut,
-  Play, Square, FileText, Users, ShieldCheck
+  Play, Square, FileText, Users, ShieldCheck, Mail, Smartphone
 } from 'lucide-react'
 import { VmScraper } from '../components/VmScraper'
 import { DashboardView } from '../components/DashboardView'
@@ -2570,49 +2570,84 @@ terraform -version
           </div>
         )}
 
-        {/* Modal Settings */}
+        {/* Modal Settings - Design Moderno & Polido */}
         {settingsOpen && (
-          <div className="modal-overlay" onClick={() => setSettingsOpen(false)}>
-            <div className="modal-card" style={{ maxWidth: '680px', width: '92%' }} onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Settings size={18} style={{ color: '#20d6c7' }} />
-                    <h2 style={{ margin: 0 }}>Configurações & Perfil</h2>
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200" 
+            onClick={() => setSettingsOpen(false)}
+          >
+            <div 
+              className="w-full max-w-2xl bg-[#0b1013] border border-teal-500/25 rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_30px_rgba(32,214,199,0.15)] overflow-hidden flex flex-col max-h-[90vh]" 
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Top Header do Modal */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-slate-800/80 bg-[#080d0f]/90">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400 shadow-[0_0_15px_rgba(32,214,199,0.2)]">
+                    <Settings size={20} />
                   </div>
-                  <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#6f8387' }}>
-                    Altere seus dados de acesso, senha, alertas e preferências do CloudOps Hub.
-                  </p>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-base font-bold text-slate-100 tracking-tight">Configurações & Perfil</h2>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-300 border border-teal-500/30">
+                        v2.0 • Master
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Gerencie seus dados de acesso, senha, alertas em tempo real e cofre do CloudOps Hub.
+                    </p>
+                  </div>
                 </div>
-                <button className="modal-close" onClick={() => setSettingsOpen(false)} aria-label="Fechar modal"><X size={18} /></button>
-              </div>
-
-              {/* Tabs de navegação dentro do modal */}
-              <div style={{ display: 'flex', gap: '8px', padding: '0 20px 14px', borderBottom: '1px solid #142023' }}>
                 <button 
-                  className={settingsTab === 'profile' ? 'primary-button' : 'refresh-button'} 
-                  style={{ fontSize: '11px', padding: '6px 14px' }}
-                  onClick={() => setSettingsTab('profile')}
+                  onClick={() => setSettingsOpen(false)} 
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 transition-colors"
+                  aria-label="Fechar modal"
                 >
-                  <User size={13} /> Meu Perfil & Senha
-                </button>
-                <button 
-                  className={settingsTab === 'notifications' ? 'primary-button' : 'refresh-button'} 
-                  style={{ fontSize: '11px', padding: '6px 14px' }}
-                  onClick={() => setSettingsTab('notifications')}
-                >
-                  <Bell size={13} /> Notificações & Webhooks
-                </button>
-                <button 
-                  className={settingsTab === 'security' ? 'primary-button' : 'refresh-button'} 
-                  style={{ fontSize: '11px', padding: '6px 14px' }}
-                  onClick={() => setSettingsTab('security')}
-                >
-                  <Shield size={13} /> Cofre & Segurança
+                  <X size={18} />
                 </button>
               </div>
 
-              <div style={{ padding: '20px', maxHeight: '420px', overflowY: 'auto' }}>
+              {/* Segmented Control Tabs */}
+              <div className="px-6 pt-4 pb-2 bg-[#090e11] border-b border-slate-800/60">
+                <div className="grid grid-cols-3 gap-1.5 p-1 bg-[#060a0c] border border-slate-800/80 rounded-xl">
+                  <button 
+                    type="button"
+                    onClick={() => setSettingsTab('profile')}
+                    className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-medium transition-all ${
+                      settingsTab === 'profile' 
+                        ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40 shadow-[0_0_12px_rgba(32,214,199,0.2)]' 
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                    }`}
+                  >
+                    <User size={14} /> Meu Perfil & Senha
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setSettingsTab('notifications')}
+                    className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-medium transition-all ${
+                      settingsTab === 'notifications' 
+                        ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40 shadow-[0_0_12px_rgba(32,214,199,0.2)]' 
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                    }`}
+                  >
+                    <Bell size={14} /> Alertas & WhatsApp
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setSettingsTab('security')}
+                    className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-medium transition-all ${
+                      settingsTab === 'security' 
+                        ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40 shadow-[0_0_12px_rgba(32,214,199,0.2)]' 
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                    }`}
+                  >
+                    <Shield size={14} /> Cofre & Segurança
+                  </button>
+                </div>
+              </div>
+
+              {/* Corpo com Scroll Suave */}
+              <div className="p-6 overflow-y-auto space-y-5 flex-1 bg-[#0b1013]">
                 {settingsTab === 'profile' && (
                   <form onSubmit={(e) => {
                     e.preventDefault()
@@ -2625,74 +2660,107 @@ terraform -version
                     localStorage.setItem('cloudops_user', JSON.stringify(updated))
                     setProfileNewPassword('')
                     setProfileCurrentPassword('')
-                    doAction('Dados do usuário atualizados com sucesso! 🛡️')
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '18px', padding: '12px', background: '#0a1012', border: '1px solid #162528', borderRadius: '8px' }}>
-                      <span className="user-avatar" style={{ width: '42px', height: '42px', fontSize: '18px' }}>
-                        {(profileName || currentUser?.name || 'V').charAt(0)}
-                      </span>
-                      <div>
-                        <strong style={{ fontSize: '13px', color: '#d9e2e1', display: 'block' }}>{profileName || currentUser?.name}</strong>
-                        <small style={{ color: '#20d6c7', fontSize: '10px' }}>{currentUser?.role || 'admin'} • Permissão Total Multi-Cloud</small>
+                    doAction('Dados do perfil atualizados com sucesso! 🛡️')
+                  }} className="space-y-5">
+                    {/* Card de Apresentação do Usuário */}
+                    <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-teal-950/20 via-slate-900/40 to-slate-900/20 border border-teal-500/20">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-400 to-teal-700 flex items-center justify-center text-slate-950 font-black text-xl shadow-[0_0_16px_rgba(32,214,199,0.3)]">
+                        {(profileName || currentUser?.name || 'V').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <strong className="text-sm font-semibold text-slate-100 truncate">
+                            {profileName || currentUser?.name || 'Vinícius Lourenço'}
+                          </strong>
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            {currentUser?.role || 'admin'} • Permissão Total
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1 truncate">
+                          {profileEmail || currentUser?.email || 'admin@cloudops.io'}
+                        </p>
                       </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+                    {/* Dados Básicos */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label style={{ display: 'block', fontSize: '10px', color: '#6f8387', marginBottom: '6px', textTransform: 'uppercase', fontWeight: 600 }}>Nome Completo</label>
-                        <input 
-                          type="text" 
-                          required
-                          value={profileName} 
-                          onChange={e => setProfileName(e.target.value)}
-                          placeholder="Ex: Vinicius Lourenço"
-                          style={{ width: '100%', height: '38px', background: '#080b0d', border: '1px solid #182326', borderRadius: '6px', padding: '0 12px', color: '#d9e2e1', fontSize: '12px', outline: 'none' }}
-                        />
+                        <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+                          Nome Completo
+                        </label>
+                        <div className="relative">
+                          <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                          <input 
+                            type="text" 
+                            required
+                            value={profileName} 
+                            onChange={e => setProfileName(e.target.value)}
+                            placeholder="Ex: Vinicius Lourenço"
+                            className="w-full h-10 pl-9 pr-3 rounded-lg bg-[#070b0d] border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400/40 transition-all placeholder:text-slate-600"
+                          />
+                        </div>
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '10px', color: '#6f8387', marginBottom: '6px', textTransform: 'uppercase', fontWeight: 600 }}>E-mail de Acesso</label>
-                        <input 
-                          type="email" 
-                          required
-                          value={profileEmail} 
-                          onChange={e => setProfileEmail(e.target.value)}
-                          placeholder="admin@cloudops.io"
-                          style={{ width: '100%', height: '38px', background: '#080b0d', border: '1px solid #182326', borderRadius: '6px', padding: '0 12px', color: '#d9e2e1', fontSize: '12px', outline: 'none' }}
-                        />
+                        <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+                          E-mail de Acesso
+                        </label>
+                        <div className="relative">
+                          <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                          <input 
+                            type="email" 
+                            required
+                            value={profileEmail} 
+                            onChange={e => setProfileEmail(e.target.value)}
+                            placeholder="admin@cloudops.io"
+                            className="w-full h-10 pl-9 pr-3 rounded-lg bg-[#070b0d] border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400/40 transition-all placeholder:text-slate-600"
+                          />
+                        </div>
                       </div>
                     </div>
 
-                    <div style={{ padding: '14px', background: '#080b0d', border: '1px solid #182326', borderRadius: '8px', marginBottom: '18px' }}>
-                      <div style={{ fontSize: '11px', fontWeight: 600, color: '#d9e2e1', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Lock size={13} style={{ color: '#20d6c7' }} /> Alteração de Senha
+                    {/* Bloco de Alteração de Senha */}
+                    <div className="p-4 rounded-xl bg-[#070b0d] border border-slate-800/90 space-y-3">
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-800/60">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
+                          <Lock size={14} className="text-teal-400" />
+                          <span>Alteração de Senha de Acesso</span>
+                        </div>
+                        <span className="text-[10px] text-slate-500 font-mono">bcrypt 10 rounds</span>
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label style={{ display: 'block', fontSize: '10px', color: '#6f8387', marginBottom: '6px', textTransform: 'uppercase' }}>Senha Atual</label>
+                          <label className="block text-[10px] font-medium text-slate-400 mb-1 uppercase">Senha Atual</label>
                           <input 
                             type="password" 
                             value={profileCurrentPassword}
                             onChange={e => setProfileCurrentPassword(e.target.value)}
                             placeholder="••••••••"
-                            style={{ width: '100%', height: '36px', background: '#101719', border: '1px solid #1e2c30', borderRadius: '6px', padding: '0 12px', color: '#d9e2e1', fontSize: '12px', outline: 'none' }}
+                            className="w-full h-9 px-3 rounded-lg bg-[#0a1012] border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-400 transition-all placeholder:text-slate-600"
                           />
                         </div>
                         <div>
-                          <label style={{ display: 'block', fontSize: '10px', color: '#6f8387', marginBottom: '6px', textTransform: 'uppercase' }}>Nova Senha</label>
+                          <label className="block text-[10px] font-medium text-slate-400 mb-1 uppercase">Nova Senha</label>
                           <input 
                             type="password" 
                             value={profileNewPassword}
                             onChange={e => setProfileNewPassword(e.target.value)}
                             placeholder="Mínimo 6 caracteres"
-                            style={{ width: '100%', height: '36px', background: '#101719', border: '1px solid #1e2c30', borderRadius: '6px', padding: '0 12px', color: '#d9e2e1', fontSize: '12px', outline: 'none' }}
+                            className="w-full h-9 px-3 rounded-lg bg-[#0a1012] border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-400 transition-all placeholder:text-slate-600"
                           />
                         </div>
                       </div>
-                      <small style={{ display: 'block', fontSize: '9px', color: '#526366', marginTop: '8px' }}>Deixe em branco se não desejar alterar sua senha de acesso.</small>
+                      <p className="text-[10px] text-slate-500">
+                        Deixe os campos de senha em branco se não desejar alterar sua credencial de acesso.
+                      </p>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                      <button type="submit" className="primary-button" style={{ padding: '8px 18px' }}>
+                    {/* Botão de Salvar Perfil */}
+                    <div className="flex justify-end pt-2">
+                      <button 
+                        type="submit" 
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-400 text-slate-950 font-bold text-xs hover:bg-teal-300 shadow-[0_0_18px_rgba(32,214,199,0.35)] transition-all cursor-pointer"
+                      >
                         <Check size={14} /> Salvar Alterações do Perfil
                       </button>
                     </div>
@@ -2700,16 +2768,17 @@ terraform -version
                 )}
 
                 {settingsTab === 'notifications' && (
-                  <div>
-                    <p style={{ fontSize: '11px', color: '#6f8387', margin: '0 0 16px' }}>
-                      Configure alertas em tempo real sobre incidentes, queda de servidores e status de certificados SSL.
+                  <div className="space-y-4">
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Gerencie canais de alerta proativo para falhas de containers, esgotamento de memória e certificados SSL.
                     </p>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '18px' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: '#0a1012', border: '1px solid #162528', borderRadius: '8px', cursor: 'pointer' }}>
-                        <div>
-                          <strong style={{ fontSize: '11px', color: '#d9e2e1', display: 'block' }}>Queda de Containers & Servidor Indisponível</strong>
-                          <small style={{ fontSize: '10px', color: '#6f8387' }}>Dispara alerta imediato se algum container Docker ou VM parar de responder aos probes.</small>
+                    {/* Toggles de Notificações */}
+                    <div className="space-y-2.5">
+                      <label className="flex items-center justify-between p-3.5 rounded-xl bg-[#070b0d] border border-slate-800 hover:border-slate-700 transition-all cursor-pointer">
+                        <div className="pr-4">
+                          <strong className="block text-xs font-semibold text-slate-200">Queda de Containers & Servidor Indisponível</strong>
+                          <span className="block text-[11px] text-slate-400 mt-0.5">Dispara alerta imediato se qualquer microsserviço ou nó cair.</span>
                         </div>
                         <input 
                           type="checkbox" 
@@ -2720,14 +2789,14 @@ terraform -version
                             localStorage.setItem('cloudops_notifications', JSON.stringify(pref))
                             doAction('Preferência de alerta atualizada')
                           }}
-                          style={{ width: '16px', height: '16px', accentColor: '#20d6c7', cursor: 'pointer' }}
+                          className="w-4 h-4 accent-teal-400 cursor-pointer"
                         />
                       </label>
 
-                      <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: '#0a1012', border: '1px solid #162528', borderRadius: '8px', cursor: 'pointer' }}>
-                        <div>
-                          <strong style={{ fontSize: '11px', color: '#d9e2e1', display: 'block' }}>Alerta de Expiração de SSL / Let's Encrypt</strong>
-                          <small style={{ fontSize: '10px', color: '#6f8387' }}>Avisa 15 dias antes de certificados dos domínios expirarem no Nginx ou Cloudflare.</small>
+                      <label className="flex items-center justify-between p-3.5 rounded-xl bg-[#070b0d] border border-slate-800 hover:border-slate-700 transition-all cursor-pointer">
+                        <div className="pr-4">
+                          <strong className="block text-xs font-semibold text-slate-200">Alerta de Expiração de SSL / Let's Encrypt</strong>
+                          <span className="block text-[11px] text-slate-400 mt-0.5">Notifica com 15 dias de antecedência antes da renovação automática.</span>
                         </div>
                         <input 
                           type="checkbox" 
@@ -2738,14 +2807,14 @@ terraform -version
                             localStorage.setItem('cloudops_notifications', JSON.stringify(pref))
                             doAction('Preferência de alerta atualizada')
                           }}
-                          style={{ width: '16px', height: '16px', accentColor: '#20d6c7', cursor: 'pointer' }}
+                          className="w-4 h-4 accent-teal-400 cursor-pointer"
                         />
                       </label>
 
-                      <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: '#0a1012', border: '1px solid #162528', borderRadius: '8px', cursor: 'pointer' }}>
-                        <div>
-                          <strong style={{ fontSize: '11px', color: '#d9e2e1', display: 'block' }}>Notificações por E-mail</strong>
-                          <small style={{ fontSize: '10px', color: '#6f8387' }}>Enviar relatórios e alertas críticos para <b>{currentUser?.email}</b>.</small>
+                      <label className="flex items-center justify-between p-3.5 rounded-xl bg-[#070b0d] border border-slate-800 hover:border-slate-700 transition-all cursor-pointer">
+                        <div className="pr-4">
+                          <strong className="block text-xs font-semibold text-slate-200">Relatórios & Incidentes por E-mail</strong>
+                          <span className="block text-[11px] text-slate-400 mt-0.5">Enviar resumos de deploy e telemetria para <b>{currentUser?.email || profileEmail}</b>.</span>
                         </div>
                         <input 
                           type="checkbox" 
@@ -2756,47 +2825,51 @@ terraform -version
                             localStorage.setItem('cloudops_notifications', JSON.stringify(pref))
                             doAction('Notificações por e-mail configuradas')
                           }}
-                          style={{ width: '16px', height: '16px', accentColor: '#20d6c7', cursor: 'pointer' }}
+                          className="w-4 h-4 accent-teal-400 cursor-pointer"
                         />
                       </label>
                     </div>
 
-                    <div style={{ padding: '14px', background: '#080b0d', border: '1px solid #144436', borderRadius: '8px', marginBottom: '14px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <div style={{ fontSize: '12px', fontWeight: 600, color: '#34d399', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          📲 Alertas no WhatsApp (CallMeBot Ativo)
+                    {/* Card de WhatsApp CallMeBot */}
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-950/20 via-[#070b0d] to-slate-900/30 border border-emerald-500/30 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Smartphone size={16} className="text-emerald-400" />
+                          <strong className="text-xs font-bold text-emerald-300">Alertas no WhatsApp (CallMeBot)</strong>
                         </div>
-                        <span className="status-text emerald" style={{ fontSize: '9px' }}>Conectado</span>
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          Watchdog Ativo
+                        </span>
                       </div>
-                      <p style={{ fontSize: '10px', color: '#6f8387', margin: '0 0 12px' }}>
-                        Receba notificações instantâneas no seu celular quando a VM for criada ou em caso de incidentes.
+                      <p className="text-[11px] text-slate-400">
+                        Receba notificações imediatas no seu celular quando ocorrer pico de RAM (&gt;90%) ou deploy concluído.
                       </p>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label style={{ display: 'block', fontSize: '9px', color: '#6f8387', marginBottom: '4px', textTransform: 'uppercase' }}>Número WhatsApp (com DDI + DDD)</label>
+                          <label className="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">Número (DDI + DDD)</label>
                           <input 
                             type="text" 
                             value={whatsappPhone} 
                             onChange={e => setWhatsappPhone(e.target.value)}
-                            placeholder="5511999999999"
-                            style={{ width: '100%', height: '36px', background: '#101719', border: '1px solid #1e2c30', borderRadius: '6px', padding: '0 12px', color: '#d9e2e1', fontSize: '11px', outline: 'none' }}
+                            placeholder="5581999999999"
+                            className="w-full h-9 px-3 rounded-lg bg-[#070b0d] border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-emerald-400 transition-all placeholder:text-slate-600"
                           />
                         </div>
                         <div>
-                          <label style={{ display: 'block', fontSize: '9px', color: '#6f8387', marginBottom: '4px', textTransform: 'uppercase' }}>CallMeBot API Key</label>
+                          <label className="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">API Key CallMeBot</label>
                           <input 
                             type="text" 
                             value={whatsappApiKey} 
                             onChange={e => setWhatsappApiKey(e.target.value)}
-                            placeholder="1234567"
-                            style={{ width: '100%', height: '36px', background: '#101719', border: '1px solid #1e2c30', borderRadius: '6px', padding: '0 12px', color: '#d9e2e1', fontSize: '11px', outline: 'none' }}
+                            placeholder="Chave recebida no WhatsApp"
+                            className="w-full h-9 px-3 rounded-lg bg-[#070b0d] border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-emerald-400 transition-all placeholder:text-slate-600"
                           />
                         </div>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                      <div className="flex items-center justify-end gap-2 pt-1">
                         <button 
                           type="button"
-                          className="refresh-button"
                           onClick={async () => {
                             doAction('Disparando mensagem de teste para o WhatsApp...')
                             try {
@@ -2806,48 +2879,46 @@ terraform -version
                               doAction('Erro ao testar: ' + e.message)
                             }
                           }}
+                          className="px-3.5 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-medium transition-all cursor-pointer"
                         >
-                          📲 Testar Envio
+                          🧪 Testar WhatsApp
                         </button>
                         <button 
                           type="button"
-                          className="primary-button"
-                          style={{ padding: '6px 14px', fontSize: '11px' }}
                           onClick={() => {
                             const pref = { notifyDiscord, notifyEmail, notifyDowntime, notifySsl, discordWebhookUrl, whatsappPhone, whatsappApiKey, notifyWhatsapp }
                             localStorage.setItem('cloudops_notifications', JSON.stringify(pref))
                             doAction('Configurações de WhatsApp salvas com sucesso! 🛡️')
                           }}
+                          className="px-4 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-[0_0_12px_rgba(16,185,129,0.3)] transition-all cursor-pointer"
                         >
                           Salvar WhatsApp
                         </button>
                       </div>
                     </div>
 
-                    <div style={{ padding: '14px', background: '#080b0d', border: '1px solid #182326', borderRadius: '8px', marginBottom: '14px' }}>
-                      <div style={{ fontSize: '11px', fontWeight: 600, color: '#d9e2e1', marginBottom: '6px' }}>
-                        Webhook do Discord / Slack para Alertas
-                      </div>
-                      <p style={{ fontSize: '10px', color: '#6f8387', margin: '0 0 8px' }}>
-                        Cole a URL do webhook do canal de alertas da sua equipe para receber logs em tempo real.
-                      </p>
-                      <div style={{ display: 'flex', gap: '8px' }}>
+                    {/* Card Webhook Discord / Slack */}
+                    <div className="p-4 rounded-xl bg-[#070b0d] border border-slate-800 space-y-2">
+                      <strong className="block text-xs font-semibold text-slate-200">Webhook Discord / Slack</strong>
+                      <p className="text-[11px] text-slate-400">Canal de telemetria e deploys da sua equipe.</p>
+                      <div className="flex gap-2">
                         <input 
                           type="url" 
-                          placeholder="https://discord.com/api/webhooks/... ou Slack webhook"
+                          placeholder="https://discord.com/api/webhooks/..."
                           value={discordWebhookUrl}
                           onChange={e => setDiscordWebhookUrl(e.target.value)}
-                          style={{ flex: 1, height: '36px', background: '#101719', border: '1px solid #1e2c30', borderRadius: '6px', padding: '0 12px', color: '#d9e2e1', fontSize: '11px', outline: 'none' }}
+                          className="flex-1 h-9 px-3 rounded-lg bg-[#0a1012] border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-teal-400 transition-all placeholder:text-slate-600"
                         />
                         <button 
-                          className="refresh-button"
+                          type="button"
                           onClick={() => {
                             const pref = { notifyDiscord, notifyEmail, notifyDowntime, notifySsl, discordWebhookUrl, whatsappPhone, whatsappApiKey, notifyWhatsapp }
                             localStorage.setItem('cloudops_notifications', JSON.stringify(pref))
-                            doAction('Webhook salvo e testado com sucesso! 🔔')
+                            doAction('Webhook salvo com sucesso! 🔔')
                           }}
+                          className="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition-all cursor-pointer"
                         >
-                          Salvar Webhook
+                          Salvar
                         </button>
                       </div>
                     </div>
@@ -2855,33 +2926,86 @@ terraform -version
                 )}
 
                 {settingsTab === 'security' && (
-                  <div>
-                    <div className="step-box" style={{ marginBottom: '14px' }}>
-                      <div className="step-title"><span className="live-dot" /> Chave Mestra de Criptografia (Key Vault)</div>
-                      <p style={{ fontSize: '10px', color: '#6f8387', margin: '0 0 8px' }}>Todas as chaves privadas SSH e OCI API Keys salvas no MySQL são criptografadas com AES-256-GCM.</p>
-                      <div className="code-box">AES-256-GCM: CLOUDOPS_VAULT_KEY_2026_ACTIVE_ENCRYPTED</div>
+                  <div className="space-y-4">
+                    {/* Cofre de Chaves AES-256-GCM */}
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-teal-950/20 via-slate-900/30 to-slate-900/10 border border-teal-500/25 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <ShieldCheck size={16} className="text-teal-400" />
+                          <strong className="text-xs font-bold text-teal-300">Cofre de Criptografia de Infraestrutura</strong>
+                        </div>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-teal-500/10 text-teal-300 border border-teal-500/30">
+                          AES-256-GCM Ativo
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-400 leading-relaxed">
+                        Todas as chaves privadas SSH, credenciais OCI e tokens cadastrados no CloudOps Hub são criptografados com chave simétrica de 256 bits antes de qualquer gravação em disco ou banco de dados.
+                      </p>
                     </div>
 
-                    <div className="step-box">
-                      <div className="step-title"><span className="live-dot" /> Estado da Sessão & Cache Local</div>
-                      <p style={{ fontSize: '10px', color: '#6f8387', margin: '0 0 8px' }}>Limpar os dados em cache do navegador caso deseje resetar os servidores ou redefinir as chaves.</p>
-                      <button 
-                        className="refresh-button" 
-                        style={{ color: '#ff6b6b', borderColor: '#ff6b6b44' }}
-                        onClick={() => {
-                          localStorage.clear()
-                          window.location.reload()
-                        }}
-                      >
-                        Limpar Cache Local e Resetar Hub
-                      </button>
+                    {/* Trilha de Auditoria */}
+                    <div className="p-4 rounded-xl bg-[#070b0d] border border-slate-800 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <strong className="text-xs font-semibold text-slate-200">Trilha de Auditoria (Audit Trail)</strong>
+                        <span className="text-[10px] text-emerald-400 font-medium">Compliance Ativo</span>
+                      </div>
+                      <p className="text-xs text-slate-400">
+                        Comandos executados via terminal SSH, deploys atômicos e ações no Docker são registrados com IP de origem, data/hora e usuário para rastreabilidade completa.
+                      </p>
+                    </div>
+
+                    {/* Zona de Perigo / Limpar Cache */}
+                    <div className="p-4 rounded-xl bg-red-950/10 border border-red-500/20 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <strong className="text-xs font-semibold text-red-300">Sessão Local & Cache do Navegador</strong>
+                        <span className="text-[10px] text-red-400 uppercase font-mono">Reset Local</span>
+                      </div>
+                      <p className="text-xs text-slate-400">
+                        Caso queira forçar novo login ou redefinir o servidor ativo, você pode redefinir o armazenamento local sem afetar sua máquina na nuvem.
+                      </p>
+                      <div className="pt-1">
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm('Tem certeza que deseja redefinir o cache local da sessão?')) {
+                              localStorage.clear()
+                              window.location.reload()
+                            }
+                          }}
+                          className="px-3.5 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-300 text-xs font-medium transition-all cursor-pointer"
+                        >
+                          Limpar Cache Local e Reiniciar Sessão
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
 
-              <div className="modal-actions" style={{ borderTop: '1px solid #142023', padding: '12px 20px', display: 'flex', justifyContent: 'flex-end' }}>
-                <button className="primary-button" onClick={() => setSettingsOpen(false)}>Concluir</button>
+              {/* Footer com Botão de Concluir */}
+              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-800/80 bg-[#080d0f]/90">
+                <span className="text-[11px] text-slate-500 font-mono">
+                  Sessão: {profileEmail || currentUser?.email || 'admin@cloudops.io'}
+                </span>
+                <div className="flex items-center gap-2.5">
+                  <button 
+                    type="button"
+                    onClick={() => setSettingsOpen(false)}
+                    className="px-4 py-2 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 text-xs font-medium transition-all cursor-pointer"
+                  >
+                    Fechar
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setSettingsOpen(false)
+                      doAction('Configurações concluídas com sucesso! ✨')
+                    }}
+                    className="px-5 py-2 rounded-xl bg-teal-400 hover:bg-teal-300 text-slate-950 font-bold text-xs shadow-[0_0_18px_rgba(32,214,199,0.3)] transition-all cursor-pointer"
+                  >
+                    Concluir
+                  </button>
+                </div>
               </div>
             </div>
           </div>
