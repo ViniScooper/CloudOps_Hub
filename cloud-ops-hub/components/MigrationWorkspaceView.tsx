@@ -382,7 +382,7 @@ export function MigrationWorkspaceView({ doAction, server }: { doAction: (msg: s
     }
 
     setIsMigrating(true)
-    setMigrationProgress(5)
+    setMigrationProgress(10)
     setCurrentStepIndex(0)
     setMigrationLogs([])
 
@@ -390,55 +390,69 @@ export function MigrationWorkspaceView({ doAction, server }: { doAction: (msg: s
       setMigrationLogs(prev => [...prev, `[${new Date().toLocaleTimeString('pt-BR')}] ${text}`])
     }
 
-    addLog(`🚀 Iniciando Pipeline de Migração Automatizada: Oracle Cloud ➔ ${targetProvider}...`)
+    addLog(`🚀 [Pipeline Real] Disparando migração autônoma: Oracle Cloud ➔ ${targetProvider}...`)
     addLog(`📦 Projeto Selecionado: ${currentProject.name} (${currentProject.tag})`)
+    addLog(`[Passo 1/6] Iniciando handshake SSH com a nova VPS (${targetHost}:${targetPort})...`)
 
-    // Pipeline sequencial simulado com etapas reais do backend
-    setTimeout(() => {
-      setCurrentStepIndex(0)
-      setMigrationProgress(15)
-      addLog(`[Passo 1/6] Conectando via SSH à ${targetProvider} (${targetHost}:${targetPort})...`)
-      addLog(`[Passo 1/6] Atualizando pacotes e preparando sistema operacional Ubuntu/Debian...`)
-    }, 1500)
+    // Indicador visual de progresso dinâmico enquanto o backend processa
+    const progressTimer = setInterval(() => {
+      setMigrationProgress(prev => {
+        if (prev >= 90) return prev
+        const next = prev + 10
+        if (next >= 30 && next < 50) setCurrentStepIndex(1)
+        else if (next >= 50 && next < 70) setCurrentStepIndex(2)
+        else if (next >= 70 && next < 85) setCurrentStepIndex(3)
+        else if (next >= 85) setCurrentStepIndex(4)
+        return next
+      })
+    }, 1800)
 
-    setTimeout(() => {
-      setCurrentStepIndex(1)
-      setMigrationProgress(35)
-      addLog(`[Passo 2/6] Instalando Docker Engine, Docker Compose e Git na ${targetProvider}...`)
-      addLog(`[Passo 2/6] Configurando Firewall UFW (portas 22, 80, 443 e ${currentProject.port} liberadas)...`)
-    }, 3500)
+    try {
+      const res = await fetch(getApiUrl('/api/migration/execute'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: selectedProjectId || currentProject.id,
+          targetHost,
+          targetPort,
+          targetUser,
+          targetAuthType,
+          targetPassword: targetAuthType === 'password' ? targetPassword : null,
+          targetKey: targetAuthType === 'key' ? targetKey : null,
+          targetProvider: targetProvider || 'Hostinger',
+          components: {
+            db: migrateDb,
+            storage: migrateStorage,
+            backend: migrateBackend,
+            frontend: migrateFrontend
+          }
+        })
+      })
 
-    setTimeout(() => {
-      setCurrentStepIndex(2)
-      setMigrationProgress(55)
-      addLog(`[Passo 3/6] Exportando banco MySQL da Oracle Cloud (mysqldump ${currentProject.dbName})...`)
-      addLog(`[Passo 3/6] Dump concluído com integridade (${currentProject.dbSize}).`)
-      addLog(`[Passo 3/6] Transferindo dump para a ${targetProvider} e restaurando dados...`)
-    }, 6000)
+      clearInterval(progressTimer)
+      const data = await res.json()
 
-    setTimeout(() => {
-      setCurrentStepIndex(3)
-      setMigrationProgress(75)
-      addLog(`[Passo 4/6] Sincronizando ${currentProject.storage} para a ${targetProvider}...`)
-      addLog(`[Passo 4/6] ${currentProject.storageDetails} transferidos com integridade total.`)
-    }, 8500)
+      if (data.logs && Array.isArray(data.logs)) {
+        setMigrationLogs(data.logs)
+      }
 
-    setTimeout(() => {
-      setCurrentStepIndex(4)
-      setMigrationProgress(90)
-      addLog(`[Passo 5/6] Clonando repositório ${currentProject.repo} na ${targetProvider}...`)
-      addLog(`[Passo 5/6] Injetando variáveis .env e executando 'docker compose up -d --build'...`)
-      addLog(`[Passo 5/6] Serviços ativos: ${currentProject.backend}`)
-    }, 11000)
-
-    setTimeout(() => {
-      setCurrentStepIndex(5)
-      setMigrationProgress(100)
-      addLog(`[Passo 6/6] Executando Healthcheck em http://${targetHost}:${currentProject.port.split(' ')[0]}${currentProject.healthPath}... HTTP 200 OK!`)
-      addLog(`🎉 MIGRAÇÃO CONCLUÍDA COM SUCESSO! O projeto ${currentProject.name} está 100% ativo na ${targetProvider}!`)
+      if (data.success) {
+        setMigrationProgress(100)
+        setCurrentStepIndex(5)
+        setIsMigrating(false)
+        doAction(`🎉 Migração de ${currentProject.name} para ${targetProvider} concluída com sucesso!`)
+      } else {
+        setMigrationProgress(data.progress || 35)
+        setCurrentStepIndex(data.stepIndex || 0)
+        setIsMigrating(false)
+        doAction(`⚠️ Migração interrompida: ${data.error || 'Falha na conexão ou execução remota'}`)
+      }
+    } catch (err: any) {
+      clearInterval(progressTimer)
+      addLog(`❌ Falha de comunicação com o CloudOps Backend: ${err.message}`)
       setIsMigrating(false)
-      doAction(`🎉 Migração de ${currentProject.name} para a ${targetProvider} concluída com êxito!`)
-    }, 13500)
+      doAction(`Erro ao acionar migração: ${err.message}`)
+    }
   }
 
   const steps = [
