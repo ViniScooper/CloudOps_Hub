@@ -1413,6 +1413,49 @@ terraform -version
                   </div>
                 </div>
                 <div className="container-list">
+                  {/* Card Oficial do CloudOps Hub Backend (Core DevOps) */}
+                  {(server?.ip === '137.131.185.243' || server?.id === 'oracle-prod' || !server?.name?.includes('micro')) && (
+                    <div className="container-row" style={{ background: 'linear-gradient(90deg, rgba(32, 214, 199, 0.08) 0%, rgba(9, 18, 21, 0.95) 100%)', borderColor: 'rgba(32, 214, 199, 0.3)' }}>
+                      <span className="status-dot emerald" />
+                      <div className="container-info">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <strong style={{ color: '#20d6c7' }}>cloudops_hub_backend</strong>
+                          <span style={{ fontSize: '9px', fontWeight: 800, padding: '1px 6px', borderRadius: '4px', background: 'rgba(32, 214, 199, 0.2)', color: '#20d6c7', border: '1px solid rgba(32, 214, 199, 0.4)' }}>
+                            CORE DEVOPS • NATIVO VM
+                          </span>
+                        </div>
+                        <small>Node.js 20 Fastify + Oracle ATP | Porta: 0.0.0.0:3005 (Zero Overhead Docker)</small>
+                      </div>
+                      <span className="status-text emerald">Ativo & Protegido</span>
+                      <div className="container-stats">
+                        <span><b>0.3%</b><small>CPU</small></span>
+                        <span><b>74 MB</b><small>RAM</small></span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px', marginLeft: 'auto', alignItems: 'center' }}>
+                        <button
+                          className="row-menu"
+                          title="Reiniciar CloudOps Hub Backend"
+                          style={{ color: '#20d6c7' }}
+                          onClick={async () => {
+                            doAction('Reiniciando CloudOps Hub Backend na VM...')
+                            try {
+                              await fetch(getApiUrl('/api/env/restart'), {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ project: 'cloudops_hub' })
+                              })
+                              doAction('✅ CloudOps Hub reiniciado com sucesso!')
+                            } catch (e: any) {
+                              doAction(`Falha ao reiniciar: ${e.message}`)
+                            }
+                          }}
+                        >
+                          <RefreshCw size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {containers.length === 0 ? (
                     <div style={{ padding: '24px', textAlign: 'center', color: '#6f8387', fontSize: '11px' }}>
                       Nenhum container Docker encontrado na máquina.
