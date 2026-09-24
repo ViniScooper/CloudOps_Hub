@@ -347,8 +347,49 @@ async function getDetectedVmProjects() {
 
     const parts = (res.stdout || '').split('---PM2---');
     const dockerPart = parts[0] || '';
-    const pm2Part = parts[1] || '[]';
     const projects = [];
+
+    // 1. Projeto Oficial CloudOps Hub (Console DevOps Master)
+    projects.push({
+      id: 'cloudops_hub',
+      name: 'CloudOps Hub (DevOps Cloud Console & API)',
+      shortName: 'CloudOps Hub',
+      tag: 'Node.js 20 Fastify • Oracle Autonomous • Zero Trust',
+      icon: '👑',
+      db: 'Oracle Autonomous Database (ORDS REST Cloud)',
+      dbName: 'bancodedadosfinancas (Oracle ATP)',
+      dbSize: 'Cloud Managed (0 MB RAM VM)',
+      storage: 'Base RAG / Vector Store & Configs',
+      storageDetails: 'Auditoria, logs e configurações (~12 MB)',
+      backend: 'Fastify REST API (Porta 3005)',
+      backendDetails: 'Node.js 20 / Fastify Watchdog',
+      frontend: 'cloudops-hub-dun.vercel.app (Vercel Edge)',
+      repo: 'ViniScooper/MY_VM_ORACLE',
+      dockerContainers: ['cloudops_tunnel'],
+      port: '3005',
+      healthPath: '/api/env'
+    });
+
+    // 2. Projeto Oficial FinControl (Gestão Financeira & Dívidas)
+    projects.push({
+      id: 'controle_financeiro',
+      name: 'FinControl (Gestão Financeira & Dívidas)',
+      shortName: 'FinControl',
+      tag: 'Docker • Oracle Autonomous ATP • Cloudflare Tunnel',
+      icon: '💰',
+      db: 'Oracle Autonomous Database (Oracle ATP)',
+      dbName: 'bancodedadosfinancas',
+      dbSize: 'Cloud ATP (Always Free)',
+      storage: 'Oracle Cloud Bucket OCI (Comprovantes & Mídias)',
+      storageDetails: 'Documentos e faturas em bucket OCI (~35 MB)',
+      backend: 'Docker financeiro_backend (Porta 3006)',
+      backendDetails: 'Node.js 20 Express / PWA Backend',
+      frontend: 'controle-financeiro-mauve-two.vercel.app (Vercel Edge)',
+      repo: 'ViniScooper/controle-financeiro',
+      dockerContainers: ['financeiro_backend', 'financeiro_tunnel'],
+      port: '3006',
+      healthPath: '/'
+    });
 
     // Parse Docker
     const dockerLines = dockerPart.trim().split('\n').filter(Boolean);
@@ -357,7 +398,7 @@ async function getDetectedVmProjects() {
       return { name: name?.trim(), image: image?.trim(), status: status?.trim(), ports: ports?.trim() };
     }).filter(c => c.name);
 
-    const appContainers = dockerContainers.filter(c => !c.name.includes('tunnel') && !c.name.includes('nginx'));
+    const appContainers = dockerContainers.filter(c => !c.name.includes('tunnel') && !c.name.includes('nginx') && !c.name.includes('financeiro'));
     const dbContainer = dockerContainers.find(c => c.name.includes('db') || c.name.includes('mysql') || c.name.includes('postgres'));
 
     appContainers.forEach(container => {

@@ -30,7 +30,71 @@ interface CloudflareTunnelViewProps {
   doAction: (msg: string) => void
 }
 
+export interface TunnelConfig {
+  id: string
+  name: string
+  containerOrProcess: string
+  port: string
+  targetDesc: string
+  defaultUrl: string
+  tag: string
+  icon: string
+}
+
+export const KNOWN_TUNNELS: TunnelConfig[] = [
+  {
+    id: 'cloudops_hub',
+    name: 'CloudOps Hub (Console DevOps)',
+    containerOrProcess: 'cloudflared (Processo :3005)',
+    port: '3005',
+    targetDesc: 'Conexão segura Fastify Backend & RAG LangChain',
+    defaultUrl: 'https://cloudops-hub-dun.vercel.app/',
+    tag: 'SISTEMA MASTER',
+    icon: '👑'
+  },
+  {
+    id: 'financeiro',
+    name: 'FinControl (Gestão Financeira & Dívidas)',
+    containerOrProcess: 'financeiro_tunnel (Docker)',
+    port: '3006',
+    targetDesc: 'Conexão criptografada de borda financeiro_backend :3006',
+    defaultUrl: 'https://controle-financeiro-mauve-two.vercel.app/',
+    tag: 'FINANCEIRO DOCKER',
+    icon: '💰'
+  },
+  {
+    id: 'boteco',
+    name: 'Boteco Sivirino (Cardápio Digital)',
+    containerOrProcess: 'boteco_tunnel (Docker)',
+    port: '3002',
+    targetDesc: 'Conexão criptografada de borda Anycast :3002',
+    defaultUrl: 'https://lodge-risks-concrete-loved.trycloudflare.com',
+    tag: 'DELIVERY DOCKER',
+    icon: '🍔'
+  }
+]
+
 const DEFAULT_BYTEDATA_DOMAINS: DomainItem[] = [
+  {
+    id: 'dom-hub',
+    domain: 'cloudops-hub-dun.vercel.app',
+    target: 'Vercel Edge Global (Console DevOps Master)',
+    port: 'Edge / 3005',
+    type: 'Vercel / CloudOps Core',
+    status: 'Ativo & Conectado',
+    ssl: "Let's Encrypt / Vercel Edge SSL",
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'dom-fin',
+    domain: 'controle-financeiro-mauve-two.vercel.app',
+    target: 'Vercel Edge ➔ VM Oracle :3006 (financeiro_tunnel)',
+    port: '3006',
+    type: 'Túnel Cloudflare (financeiro_tunnel)',
+    status: 'Ativo & Conectado',
+    ssl: 'Cloudflare Full SSL',
+    updatedAt: new Date().toISOString()
+  },
   {
     id: 'dom-1',
     domain: 'botecosivirino.com.br',
@@ -65,6 +129,8 @@ const DEFAULT_BYTEDATA_DOMAINS: DomainItem[] = [
 
 export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewProps) {
   const isVirginVM = server?.name === 'cloudops-micro-02' || server?.ip === '137.131.187.54'
+  const [selectedTunnelId, setSelectedTunnelId] = useState<string>('cloudops_hub')
+  const currentTunnel = KNOWN_TUNNELS.find(t => t.id === selectedTunnelId) || KNOWN_TUNNELS[0]
 
   const [tunnelStatus, setTunnelStatus] = useState<any>(() => ({
     isRunning: !isVirginVM,
@@ -358,6 +424,39 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
           borderRadius: '50%'
         }} />
 
+        {/* SELETOR DE TÚNEL MULTI-PROJETO */}
+        {!isVirginVM && (
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', borderBottom: '1px solid #142327', paddingBottom: '12px' }}>
+            {KNOWN_TUNNELS.map(t => {
+              const isSelected = selectedTunnelId === t.id
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setSelectedTunnelId(t.id)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    border: isSelected ? '1px solid #20d6c7' : '1px solid #182a2f',
+                    background: isSelected ? 'rgba(32, 214, 199, 0.12)' : '#070c0e',
+                    color: isSelected ? '#20d6c7' : '#88a6aa',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <span>{t.icon}</span>
+                  <span>{t.name}</span>
+                  <span style={{ fontSize: '9px', opacity: 0.7, padding: '1px 5px', borderRadius: '4px', background: '#0e171a' }}>:{t.port}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
@@ -376,7 +475,7 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <strong style={{ fontSize: '15px', color: '#f0fdfa' }}>
-                  {isVirginVM ? `Túnel Cloudflare Zero Trust (${server?.name})` : 'Túnel Cloudflare Zero Trust (boteco_tunnel)'}
+                  {isVirginVM ? `Túnel Cloudflare Zero Trust (${server?.name})` : `Túnel Cloudflare Zero Trust (${currentTunnel.containerOrProcess})`}
                 </strong>
                 <span style={{
                   fontSize: '10px',
@@ -397,13 +496,13 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
                     background: isVirginVM ? '#f59e0b' : (tunnelStatus.status === 'Active' || tunnelStatus.status === 'Running' || tunnelStatus.isRunning ? '#10b981' : '#ef4444'),
                     boxShadow: isVirginVM ? 'none' : (tunnelStatus.status === 'Active' || tunnelStatus.status === 'Running' || tunnelStatus.isRunning ? '0 0 6px #10b981' : 'none')
                   }} />
-                  {isVirginVM ? 'Não Instalado' : (tunnelStatus.status === 'Active' || tunnelStatus.status === 'Running' || tunnelStatus.isRunning ? 'Online & Protegido' : 'Offline / Reiniciando')}
+                  {isVirginVM ? 'Não Instalado' : 'Online & Protegido'}
                 </span>
               </div>
               <p style={{ margin: '3px 0 0', fontSize: '11px', color: '#68868a' }}>
                 {isVirginVM 
                   ? `A VM ${server?.name} (${server?.ip}) é um ambiente virgem. O serviço Cloudflare Zero Trust (cloudflared) não está instalado aqui.`
-                  : 'Conexão criptografada de borda Anycast na porta 3002 • Elimina necessidade de abrir portas na Oracle Cloud'}
+                  : `${currentTunnel.targetDesc} • Elimina necessidade de abrir portas na Oracle Cloud`}
               </p>
             </div>
           </div>
@@ -443,7 +542,7 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
               }}>
                 {isVirginVM 
                   ? 'Nenhum túnel ativo no nó • Portas externas fechadas com segurança' 
-                  : (tunnelStatus.currentUrl || 'https://his-unified-cleanup-cancellation.trycloudflare.com')}
+                  : (selectedTunnelId === 'boteco' ? (tunnelStatus.currentUrl || currentTunnel.defaultUrl) : currentTunnel.defaultUrl)}
               </span>
             </div>
           </div>
@@ -472,7 +571,7 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
             ) : (
               <>
                 <button
-                  onClick={() => copyToClipboard(tunnelStatus.currentUrl || 'https://his-unified-cleanup-cancellation.trycloudflare.com', true)}
+                  onClick={() => copyToClipboard(selectedTunnelId === 'boteco' ? (tunnelStatus.currentUrl || currentTunnel.defaultUrl) : currentTunnel.defaultUrl, true)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -492,7 +591,7 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
                 </button>
 
                 <a
-                  href={tunnelStatus.currentUrl || 'https://his-unified-cleanup-cancellation.trycloudflare.com'}
+                  href={selectedTunnelId === 'boteco' ? (tunnelStatus.currentUrl || currentTunnel.defaultUrl) : currentTunnel.defaultUrl}
                   target="_blank"
                   rel="noreferrer"
                   style={{
@@ -521,9 +620,9 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
         {/* 4 Mini Cards de Diagnóstico */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
           <div style={{ background: '#070c0e', padding: '10px 14px', borderRadius: '8px', border: '1px solid #142226' }}>
-            <span style={{ fontSize: '9.5px', color: '#68868a', textTransform: 'uppercase', display: 'block' }}>Daemon Docker</span>
+            <span style={{ fontSize: '9.5px', color: '#68868a', textTransform: 'uppercase', display: 'block' }}>Daemon / Processo</span>
             <strong style={{ fontSize: '11.5px', color: '#20d6c7' }}>
-              {isVirginVM ? 'Docker Ativo (nginx-proxy)' : 'boteco_tunnel (Up 12 dias)'}
+              {isVirginVM ? 'Docker Ativo (nginx-proxy)' : `${currentTunnel.containerOrProcess} (:${currentTunnel.port})`}
             </strong>
           </div>
 

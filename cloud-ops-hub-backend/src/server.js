@@ -1186,6 +1186,36 @@ fastify.get('/api/backups', async (request, reply) => {
   } catch (err) {
     return reply.status(500).send({ success: false, error: err.message });
   }
+// =========================================================================
+// 15. MIGRAÇÃO MULTI-CLOUD (1-CLICK MIGRATION & PROJETOS DETECTADOS)
+// =========================================================================
+const migrationService = require('./migrationService');
+
+fastify.get('/api/migration/projects', async (request, reply) => {
+  try {
+    const res = await migrationService.getDetectedVmProjects();
+    return res;
+  } catch (err) {
+    return reply.status(500).send({ connected: false, error: err.message, projects: [] });
+  }
+});
+
+fastify.get('/api/migration/targets', async () => {
+  return { targets: migrationService.loadTargets() };
+});
+
+fastify.post('/api/migration/targets', async (request) => {
+  return migrationService.addOrUpdateTarget(request.body || {});
+});
+
+fastify.post('/api/migration/test-ssh', async (request) => {
+  const { host, port = 22, user = 'root', privateKey, password } = request.body || {};
+  return await migrationService.testTargetSsh({ host, port, user, privateKey, password });
+});
+
+fastify.post('/api/migration/estimate', async (request) => {
+  const { project, targetHost } = request.body || {};
+  return migrationService.getMigrationEstimate(project, targetHost);
 });
 
 const start = async () => {
