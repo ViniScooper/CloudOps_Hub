@@ -15,7 +15,7 @@ async function getAccessRequests() {
   const seenIds = new Set();
   const seenEmails = new Set();
 
-  // 1. Lê solicitações do CloudOps Hub no JSON local
+  // 1. Lê solicitações do CloudOps Hub no storage local
   try {
     if (fs.existsSync(REQUESTS_FILE)) {
       const jsonRequests = JSON.parse(fs.readFileSync(REQUESTS_FILE, 'utf8'));
@@ -43,9 +43,9 @@ async function getAccessRequests() {
     console.error('Erro ao ler access_requests.json:', err.message);
   }
 
-  // 2. Lê solicitações do CloudOps Hub no MySQL se disponível
+  // 2. Consulta no Oracle Autonomous Database (se habilitado)
   try {
-    const dbRequests = await db.query('SELECT * FROM access_requests ORDER BY requested_at DESC LIMIT 50');
+    const dbRequests = await db.query('SELECT id, name, email, note, status, requested_at FROM access_requests ORDER BY requested_at DESC');
     if (Array.isArray(dbRequests) && dbRequests.length > 0) {
       for (const r of dbRequests) {
         if (!seenIds.has(r.id)) {
@@ -65,7 +65,7 @@ async function getAccessRequests() {
       }
     }
   } catch {
-    // Fallback caso tabela não exista no MySQL
+    // Fallback silencioso para storage local
   }
 
   // Ordena por data decrescente (mais recentes no topo)
@@ -104,52 +104,20 @@ async function approveRequest({ requestId, email, name }) {
   const passwordHash = bcrypt.hashSync(tempPassword, 10);
   const userId = 'usr-' + Date.now();
 
-  // 1. Salva usuário no MySQL (se disponível)
+  // 1. Salva usuário via conector Oracle ATP / Local
   try {
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id VARCHAR(36) PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
-        email VARCHAR(150) UNIQUE NOT NULL,
-        password_hash VARCHAR(255) NOT NULL,
-        role VARCHAR(20) DEFAULT 'user',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    await db.query(`
-      INSERT INTO users (id, name, email, password_hash, role)
-      VALUES (?, ?, ?, ?, 'user')
-      ON DUPLICATE KEY UPDATE name = VALUES(name), password_hash = VALUES(password_hash)
-    `, [userId, cleanName, cleanEmail, passwordHash]);
-  } catch (err) {
-    console.warn('[UserManagement] Aviso ao salvar usuário no MySQL:', err.message);
-  }
-
-  // 2. Salva usuário no users.json local
-  try {
-    const dir = path.dirname(USERS_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-    let usersList = [];
-    if (fs.existsSync(USERS_FILE)) {
-      try { usersList = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8')); } catch {}
-    }
-    usersList = usersList.filter(u => u.email !== cleanEmail);
-    usersList.push({
+    await db.saveUser({
       id: userId,
       name: cleanName,
       email: cleanEmail,
       password_hash: passwordHash,
-      role: 'user',
-      createdAt: new Date().toISOString()
+      role: 'user'
     });
-    fs.writeFileSync(USERS_FILE, JSON.stringify(usersList, null, 2), 'utf8');
   } catch (err) {
-    console.error('[UserManagement] Erro ao salvar users.json:', err.message);
+    console.warn('[UserManagement] Aviso ao salvar usuário via db connector:', err.message);
   }
 
-  // 3. Atualiza status no access_requests.json do CloudOps Hub
+  // 2. Atualiza status no access_requests.json do CloudOps Hub
   try {
     let hubReqs = [];
     if (fs.existsSync(REQUESTS_FILE)) {
@@ -163,12 +131,13 @@ async function approveRequest({ requestId, email, name }) {
     });
     saveRequestsToJson(updated);
 
-    await db.query('UPDATE access_requests SET status = "approved" WHERE id = ? OR email = ?', [requestId, cleanEmail]);
+    // Tenta atualizar no Oracle se houver tabela remota
+    db.executeOracleSql('UPDATE access_requests SET status = :status WHERE id = :id', { status: 'approved', id: requestId }).catch(() => {});
   } catch (err) {
     console.warn('[UserManagement] Erro ao atualizar status da requisição:', err.message);
   }
 
-  // 4. Dispara e-mail de boas-vindas se configurado
+  // 3. Dispara e-mail de boas-vindas se configurado
   if (typeof emailService.sendWelcomeCredentialsEmail === 'function') {
     emailService.sendWelcomeCredentialsEmail({
       name: cleanName,
@@ -177,7 +146,7 @@ async function approveRequest({ requestId, email, name }) {
     }).catch(err => console.warn('[UserManagement] Falha ao enviar email:', err.message));
   }
 
-  // 5. Notifica o administrador Master no WhatsApp via CallMeBot
+  // 4. Notifica o administrador Master no WhatsApp via CallMeBot
   const phone = process.env.WHATSAPP_PHONE || '558195126839';
   const apiKey = process.env.WHATSAPP_APIKEY || '7939819';
   const appUrl = 'https://cloudops-hub-dun.vercel.app/';
@@ -218,7 +187,7 @@ async function rejectRequest({ requestId, reason }) {
       });
       saveRequestsToJson(updated);
     }
-    await db.query('UPDATE access_requests SET status = "rejected" WHERE id = ?', [requestId]);
+    db.executeOracleSql('UPDATE access_requests SET status = :status WHERE id = :id', { status: 'rejected', id: requestId }).catch(() => {});
   } catch (err) {
     console.warn('[UserManagement] Erro ao rejeitar solicitação:', err.message);
   }
@@ -243,21 +212,22 @@ async function listRegisteredUsers() {
   });
   seenEmails.add('vviniciuslourenco@gmail.com');
 
-  // 2. Usuários do MySQL
+  // 2. Consulta usuários no Oracle Autonomous Database ou no conector
   try {
-    const rows = await db.query('SELECT id, name, email, role, created_at FROM users WHERE email != "vviniciuslourenco@gmail.com"');
+    const rows = await db.query('SELECT id, name, email, role, created_at FROM users');
     if (Array.isArray(rows)) {
       for (const r of rows) {
-        if (!seenEmails.has(r.email.toLowerCase())) {
-          seenEmails.add(r.email.toLowerCase());
+        const email = (r.email || '').toLowerCase();
+        if (email && !seenEmails.has(email)) {
+          seenEmails.add(email);
           users.push({
-            id: r.id,
-            name: r.name,
+            id: r.id || 'usr-' + Date.now(),
+            name: r.name || email.split('@')[0],
             email: r.email,
             role: r.role || 'user',
             status: 'Ativo',
-            system: 'CloudOps Hub',
-            createdAt: r.created_at
+            system: 'CloudOps Hub (Oracle Cloud)',
+            createdAt: r.created_at || r.createdAt || new Date().toISOString()
           });
         }
       }
@@ -269,8 +239,9 @@ async function listRegisteredUsers() {
     try {
       const jsonList = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
       for (const u of jsonList) {
-        if (!seenEmails.has((u.email || '').toLowerCase())) {
-          seenEmails.add((u.email || '').toLowerCase());
+        const email = (u.email || '').toLowerCase();
+        if (email && !seenEmails.has(email)) {
+          seenEmails.add(email);
           users.push({
             id: u.id,
             name: u.name,
