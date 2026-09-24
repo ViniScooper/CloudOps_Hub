@@ -1,21 +1,34 @@
-MIT License
+# LICENÇA DE SOFTWARE PROPRIETÁRIO & PROTEÇÃO COMERCIAL
 
-Copyright (c) 2026 Vinicius Lourenço
+**Copyright (c) 2026 José Vinícius Lourenço Marques de Sousa (Vinícius Lourenço).**
+**Todos os direitos reservados / All rights reserved.**
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+---
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+### 🛑 TERMOS DE USO E RESTRIÇÃO COMERCIAL ESTRITA
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Este software, seus componentes, interfaces, arquitetura, código-fonte e documentações correlatas constituem **propriedade intelectual exclusiva** de seu autor, protegida pela legislação de direitos autorais e de propriedade intelectual (Lei Federal nº 9.609/1998 e Lei Federal nº 9.610/1998 no Brasil, bem como tratados e convenções internacionais de propriedade intelectual).
+
+A concessão de visualização pública ou de acesso a este repositório **NÃO** transfere nenhum direito de propriedade, exploração comercial ou revenda a terceiros.
+
+---
+
+### 1. 🚫 PROIBIÇÃO DE USO COMERCIAL E REVENDA
+* É **TERMINANTEMENTE PROIBIDO** vender, revender, alugar, sublicenciar, comercializar, monetizar ou de qualquer forma auferir receita direta ou indireta com este software, seus módulos, código-fonte ou derivados, no todo ou em parte, sem prévia e expressa autorização formal por escrito do autor, acompanhada de contrato de remuneração / royalties acordado entre as partes.
+* Qualquer oferta deste sistema como SaaS (Software as a Service), produto comercial, aplicativo pago ou serviço comercial prestado a terceiros sem licença comercial expressamente outorgada pelo autor configurará infração de direitos autorais e apropriação indébita de propriedade intelectual, sujeita às sanções cíveis, indenizatórias e criminais da legislação aplicável.
+
+### 2. 👤 ATRIBUIÇÃO OBRIGATÓRIA DE CRÉDITOS
+* Em qualquer utilização autorizada, execução para fins de estudo pessoal, testes ou portfólio, **todos os avisos de direitos autorais, créditos e atribuições à autoria de José Vinícius Lourenço Marques de Sousa devem ser mantidos integral e visivelmente intactos** em todas as interfaces, rodapés, arquivos de cabeçalho e documentações.
+
+### 3. 📋 RESTRIÇÃO DE MODIFICAÇÃO E REDISTRIBUIÇÃO
+* Não é permitida a distribuição pública de versões modificadas deste software que ocultem, alterem ou removam a identidade do autor original ou que visem contornar as restrições comerciais aqui dispostas.
+
+### 4. ⚖️ ISENÇÃO DE RESPONSABILIDADE
+* O software é disponibilizado no estado em que se encontra ("AS IS"), sem garantias expressas ou implícitas de comercialização ou adequação a propósitos específicos.
+
+---
+
+### 📬 CONTATO PARA LICENCIAMENTO COMERCIAL:
+Para propostas de parceria, aquisição de licença comercial, franquia ou uso institucional:
+* **Autor:** José Vinícius Lourenço Marques de Sousa
+* **E-mail:** `vviniciuslourenco@gmail.com`

@@ -200,7 +200,7 @@ npm run dev
 
 ## 🇧🇷 Sobre o Projeto (Resumo em Português)
 
-O **CloudOps Hub** é uma plataforma open-source brasileira de console unificado de DevOps, infraestrutura multi-cloud e gerenciamento de containers Docker.
+O **CloudOps Hub** é uma plataforma brasileira de console unificado de DevOps, infraestrutura multi-cloud e gerenciamento de containers Docker.
 
 Desenvolvido para oferecer a desenvolvedores solo, startups e equipes ágeis o mesmo nível de controle de soluções corporativas (Portainer, Coolify, Datadog), porém com **consumo de memória ultrabaixo (< 50MB RAM)** e foco em custo zero — rodando perfeitamente em instâncias *Always Free* da **Oracle Cloud**, **Hostinger**, **AWS** ou qualquer VPS Linux.
 
@@ -225,13 +225,11 @@ Contribuições, correções e sugestões de novas funcionalidades são muito be
 
 ---
 
-## 📄 License
+## 📄 Licença & Propriedade Intelectual
 
-Este projeto é distribuído sob a licença **MIT**. Consulte o arquivo [`LICENSE`](./LICENSE) para mais detalhes.
-
-```text
-MIT License
-Copyright (c) 2026 Vinicius Lourenço
-```
+Este projeto está protegido sob **Licença de Software Proprietário com Restrição Comercial**.
+* **Copyright © 2026 José Vinícius Lourenço Marques de Sousa.** Todos os direitos reservados.
+* **Proibição Comercial Estrita:** É expressamente proibida a venda, revenda, exploração comercial ou distribuição deste software sem autorização formal por escrito e contrato com o autor.
+* Para mais detalhes, consulte o arquivo [`LICENSE`](./LICENSE).
 
 Desenvolvido com dedicação por [Vinicius Lourenço](https://github.com/ViniScooper).
