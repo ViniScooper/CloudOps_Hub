@@ -131,7 +131,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({ doAction
             </span>
           </div>
           <p style={{ margin: '4px 0 0', fontSize: '11.5px', color: '#728b8c' }}>
-            Aprove novas solicitações de cadastro, emita senhas temporárias automáticas e visualize os usuários ativos.
+            Aprove novas solicitações de cadastro exclusivamente para o console <strong>CloudOps Hub</strong> (https://cloudops-hub-dun.vercel.app/), emita senhas temporárias e visualize os usuários ativos.
           </p>
         </div>
 
