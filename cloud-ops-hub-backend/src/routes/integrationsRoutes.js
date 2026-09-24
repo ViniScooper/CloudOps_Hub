@@ -11,6 +11,7 @@ const renderService = require('../renderService');
 const cronService = require('../cronService');
 const watchdogService = require('../watchdogService');
 const backupService = require('../backupService');
+const storageService = require('../storageService');
 const auditService = require('../auditService');
 const { extractClientIp } = require('../security');
 
@@ -263,6 +264,18 @@ async function integrationsRoutes(fastify, options) {
     try {
       const backups = await backupService.listBackups();
       return { success: true, backups };
+    } catch (err) {
+      return reply.status(500).send({ success: false, error: err.message });
+    }
+  });
+
+  // ==========================================
+  // ORACLE OBJECT STORAGE & FOTOS DO CLIENTE
+  // ==========================================
+  fastify.get('/api/storage/objects', async (request, reply) => {
+    try {
+      const data = await storageService.listStorageObjects();
+      return data;
     } catch (err) {
       return reply.status(500).send({ success: false, error: err.message });
     }

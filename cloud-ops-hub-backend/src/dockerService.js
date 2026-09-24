@@ -76,6 +76,10 @@ async function listContainersDetailed() {
     if (!trimmed) continue;
     try {
       const parsed = JSON.parse(trimmed);
+      // O frontend do cardápio roda exclusivamente na Vercel para economizar memória na VM
+      if (parsed.name.includes('frontend') || parsed.name === 'boteco_frontend') {
+        continue;
+      }
       const isUp = parsed.state === 'running' || parsed.status.toLowerCase().includes('up');
       list.push({
         id: parsed.id,
