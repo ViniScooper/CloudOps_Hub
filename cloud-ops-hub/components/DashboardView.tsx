@@ -200,20 +200,20 @@ export function DashboardView({
             </span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                <strong style={{ color: '#ffedd5', fontSize: '13px' }}>CLOUDOPSHUB (Oracle ATP)</strong>
+                <strong style={{ color: '#ffedd5', fontSize: '13px' }}>bancodedadosfinancas (Oracle ATP)</strong>
                 <span style={{ fontSize: '10px', background: 'rgba(32, 214, 199, 0.15)', color: '#20d6c7', border: '1px solid rgba(32, 214, 199, 0.3)', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>Always Free</span>
               </div>
               <small style={{ color: '#9ca3af', display: 'block', fontSize: '11px', marginTop: '2px' }}>
-                20 GB NVMe · 1 OCPU · Exadata PDB · mTLS :1522
+                Always Free OCI · Oracle Autonomous Transaction Processing · REST Data Services (ORDS)
               </small>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span className="status-text emerald" style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#20d6c7', display: 'inline-block' }}></span>
-                Ativo
+                Ativo & Gerenciado
               </span>
               <a
-                href="https://G31AC88BC331093-CLOUDOPSHUB.adb.sa-saopaulo-1.oraclecloudapps.com/ords/sql-developer"
+                href="https://g442b32fb1cf117-bancodedadosfinancas.adb.sa-saopaulo-1.oraclecloudapps.com/ords/sql-developer"
                 target="_blank"
                 rel="noreferrer"
                 className="action-btn"
