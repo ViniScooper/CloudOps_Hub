@@ -180,7 +180,9 @@ async function executeDeploy({ project = 'cardapio_digital', branch = 'main' }) 
         ? '/home/ubuntu/plataforma_ingles' 
         : (project === 'controle-financeiro' || project === 'controle_financeiro' || project === 'fincontrol'
           ? '/home/ubuntu/controle-financeiro'
-          : `/home/ubuntu/${project}`));
+          : (project === 'cloudops_hub' || project === 'cloudops-hub' || project === 'cloud-ops-hub'
+            ? '/home/ubuntu/cloudops_hub'
+            : `/home/ubuntu/${project}`)));
       
     logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Acessando diretório ${targetDir} na VM...`);
     logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Executando: git fetch origin && git checkout ${branch} && git pull origin ${branch}...`);
@@ -221,9 +223,11 @@ async function executeDeploy({ project = 'cardapio_digital', branch = 'main' }) 
         ? 'Boteco Sivirino' 
         : (project === 'controle-financeiro' || project === 'controle_financeiro' || project === 'fincontrol'
           ? 'FinControl (Gestão Financeira)'
-          : (project === 'lottus-api' 
-            ? 'Lottus API' 
-            : (project === 'plataforma_ingles' || project === 'plataforma_ingles_api' ? 'Plataforma Inglês' : project))),
+          : (project === 'cloudops_hub' || project === 'cloudops-hub' || project === 'cloud-ops-hub'
+            ? 'CloudOps Hub (DevOps Console)'
+            : (project === 'lottus-api' 
+              ? 'Lottus API' 
+              : (project === 'plataforma_ingles' || project === 'plataforma_ingles_api' ? 'Plataforma Inglês' : project)))),
       type: 'DEPLOY',
       branch,
       commitHash,
@@ -285,7 +289,9 @@ async function executeRollback({ project = 'app_service' }) {
         ? '/home/ubuntu/plataforma_ingles' 
         : (project === 'controle-financeiro' || project === 'controle_financeiro' || project === 'fincontrol'
           ? '/home/ubuntu/controle-financeiro'
-          : `/home/ubuntu/${project}`));
+          : (project === 'cloudops_hub' || project === 'cloudops-hub' || project === 'cloud-ops-hub'
+            ? '/home/ubuntu/cloudops_hub'
+            : `/home/ubuntu/${project}`)));
     logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Executando git reset --hard HEAD~1 em ${targetDir}...`);
 
     const resetRes = await runRemoteSsh(`cd ${targetDir} && git reset --hard HEAD~1`);
@@ -312,9 +318,13 @@ async function executeRollback({ project = 'app_service' }) {
       timestamp: new Date().toLocaleString('pt-BR'),
       project: (project === 'cardapio_digital' || project === 'boteco_backend') 
         ? 'Boteco Sivirino' 
-        : (project === 'lottus-api' 
-          ? 'Lottus API' 
-          : (project === 'plataforma_ingles' || project === 'plataforma_ingles_api' ? 'Plataforma Inglês' : project)),
+        : (project === 'controle-financeiro' || project === 'controle_financeiro' || project === 'fincontrol'
+          ? 'FinControl (Gestão Financeira)'
+          : (project === 'cloudops_hub' || project === 'cloudops-hub' || project === 'cloud-ops-hub'
+            ? 'CloudOps Hub (DevOps Console)'
+            : (project === 'lottus-api' 
+              ? 'Lottus API' 
+              : (project === 'plataforma_ingles' || project === 'plataforma_ingles_api' ? 'Plataforma Inglês' : project)))),
       type: 'ROLLBACK',
       branch: 'main',
       commitHash,

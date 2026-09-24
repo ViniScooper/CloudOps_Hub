@@ -601,6 +601,92 @@ export function DeployView({ server, doAction }: DeployViewProps) {
           </div>
         </div>
 
+        {/* Card Oficial do CloudOps Hub (Console DevOps & API) */}
+        <div className="panel" style={{ padding: '20px', borderColor: 'rgba(32, 214, 199, 0.35)', background: 'linear-gradient(145deg, #091316, #060c0e)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <span className="status-dot emerald" />
+                <h3 style={{ margin: 0, fontSize: '15px', color: '#f0fdfa' }}>CloudOps Hub (DevOps Cloud Console & API)</h3>
+                <span style={{ fontSize: '9px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px', background: 'rgba(32, 214, 199, 0.15)', color: '#20d6c7', border: '1px solid rgba(32, 214, 199, 0.3)' }}>
+                  SISTEMA PRINCIPAL
+                </span>
+              </div>
+              <small style={{ color: '#6f8387' }}>Repositório: ViniScooper/MY_VM_ORACLE | VM: 3005 (Fastify) | Vercel Edge</small>
+            </div>
+            <span className="status-text emerald">Produção Ativa</span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', background: '#070a0c', padding: '12px', borderRadius: '6px', border: '1px solid #142023', marginBottom: '16px', fontSize: '11px' }}>
+            <div>
+              <span style={{ color: '#6f8387', display: 'block', fontSize: '9px', textTransform: 'uppercase' }}>Branch & Git</span>
+              <strong style={{ color: '#20d6c7', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                <GitBranch size={12} /> main (Produção)
+              </strong>
+            </div>
+            <div>
+              <span style={{ color: '#6f8387', display: 'block', fontSize: '9px', textTransform: 'uppercase' }}>Acesso Online</span>
+              <a 
+                href="https://cloudops-hub-dun.vercel.app/" 
+                target="_blank" 
+                rel="noreferrer"
+                style={{ color: '#20d6c7', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontWeight: 600 }}
+              >
+                Abrir Hub ↗
+              </a>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+            <span style={{ fontSize: '10px', color: '#52666a' }}>
+              Stack: Next.js 14 • Node.js Fastify • Oracle Cloud OCI • Zero Trust
+            </span>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button 
+                className="refresh-button"
+                disabled={isDeploying || isMerging || isRollingBack}
+                onClick={() => triggerRollback('cloudops_hub')}
+                title="Desfaz a última alteração e restaura a versão estável do Hub na VM"
+                style={{
+                  background: '#161009',
+                  borderColor: '#8c4b18',
+                  color: '#f59e0b',
+                  fontSize: '11px',
+                  padding: '7px 12px'
+                }}
+              >
+                {isRollingBack ? (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <RefreshCw size={12} className="spin" /> Revertendo...
+                  </span>
+                ) : (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <RotateCcw size={12} /> Rollback
+                  </span>
+                )}
+              </button>
+
+              <button 
+                className="primary-button"
+                disabled={isDeploying || isMerging || isRollingBack}
+                onClick={() => triggerDeploy('cloudops_hub')}
+                style={{ padding: '7px 16px', fontWeight: 600, background: '#20d6c7', color: '#03080a' }}
+              >
+                {isDeploying ? (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <RefreshCw size={14} className="spin" /> Atualizando...
+                  </span>
+                ) : (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Rocket size={14} /> Fazer Deploy / Reiniciar Hub
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Cards de Novos Projetos Clonados Dinamicamente */}
         {customProjects.map((proj, idx) => (
           <div key={idx} className="panel" style={{ padding: '20px' }}>
