@@ -162,8 +162,7 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: #080b14; color: #e7eaf2; font-family: Arial, Helvetica, sans-serif; }
 button { font: inherit; }
-.app-shell { min-height: 100vh; display: flex; background: #080b14; }
-.sidebar { width: 244px; min-height: 100vh; border-right: 1px solid #1b2232; background: #0d111d; padding: 25px 14px 18px; display: flex; flex-direction: column; flex-shrink: 0; }
+.sidebar { width: 244px; height: 100vh; max-height: 100vh; overflow-y: auto; overflow-x: hidden; border-right: 1px solid #1b2232; background: #0d111d; padding: 25px 14px 18px; display: flex; flex-direction: column; flex-shrink: 0; scrollbar-width: thin; scrollbar-color: #1a2c30 transparent; }
 .brand { display: flex; align-items: center; gap: 10px; padding: 0 11px 28px; color: #f5f7fb; font-size: 17px; letter-spacing: -.3px; }
 .brand b { color: #7c83ff; font-weight: 700; }.brand-mark { width: 29px; height: 29px; border-radius: 8px; display: grid; place-items: center; color: white; background: linear-gradient(135deg,#6366f1,#8b5cf6); box-shadow: 0 5px 14px #6366f13d; }
 .workspace { padding: 10px 10px; display: flex; align-items: center; gap: 9px; border: 1px solid #20283a; border-radius: 9px; background: #111726; margin-bottom: 25px; }.workspace-avatar { display: grid; place-items: center; width: 27px; height: 27px; background: #252d41; border-radius: 7px; font-size: 11px; font-weight: bold; color: #aeb7ff; }.workspace div { min-width: 0; flex: 1; }.workspace strong,.workspace small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.workspace strong { font-size: 11px; color: #e3e6ee; }.workspace small { color: #778199; font-size: 10px; margin-top: 2px; }.workspace > svg { color: #6f7890; }

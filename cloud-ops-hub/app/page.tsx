@@ -50,6 +50,13 @@ const navSections = [
     ]
   },
   {
+    title: 'Gerenciamento',
+    items: [
+      { label: 'Recursos & VMs', icon: Layers3 },
+      { label: 'Aprovações & Usuários', icon: Users, badge: 'Admin' },
+    ]
+  },
+  {
     title: 'Suporte',
     items: [
       { label: 'Ajuda & Guia', icon: CircleHelp, badge: 'Help' },
@@ -625,7 +632,7 @@ terraform -version
 
   // Consulta solicitações pendentes de cadastro para o usuário Master
   useEffect(() => {
-    if (currentUser && (currentUser.email === 'vviniciuslourenco@gmail.com' || currentUser.role === 'admin' || currentUser.role === 'master')) {
+    const checkRequests = () => {
       fetch(getApiUrl('/api/admin/requests'))
         .then(res => res.json())
         .then(data => {
@@ -636,6 +643,9 @@ terraform -version
         })
         .catch(() => {})
     }
+    checkRequests()
+    const timer = setInterval(checkRequests, 10000)
+    return () => clearInterval(timer)
   }, [currentUser])
 
   // Ações de Ciclo de Vida Real do Docker (Start, Stop, Restart)
@@ -708,44 +718,57 @@ terraform -version
         {navSections.map((section) => (
           <div key={section.title} className="nav-section">
             <span className="nav-caption">{section.title}</span>
-            {section.items.map(({ label, icon: Icon, badge }) => (
-              <button 
-                key={label} 
-                title={`Abrir módulo ${label}`}
-                onClick={() => { setActive(label); setSidebarOpen(false) }} 
-                className={`nav-item ${active === label ? 'active' : ''}`}
-              >
-                <Icon size={16} />
-                <span>{label}</span>
-                {label === 'Docker' && server && containers.length > 0 && <span className="nav-badge">{containers.length}</span>}
-                {label !== 'Docker' && badge && <span className="nav-badge">{badge}</span>}
-              </button>
-            ))}
+            {section.items.map(({ label, icon: Icon, badge }) => {
+              const isApproval = label === 'Aprovações & Usuários'
+              const isVm = label === 'Recursos & VMs'
+              const isDashboard = label === 'Dashboard'
+
+              const isItemActive =
+                active === label ||
+                (isVm && active === 'Dashboard') ||
+                (isDashboard && (active === 'Dashboard' || active === 'Recursos & VMs')) ||
+                (isApproval && (active === 'Usuários & Aprovações' || active === 'Aprovações & Usuários'))
+
+              return (
+                <button 
+                  key={label} 
+                  title={`Abrir módulo ${label}`}
+                  onClick={() => {
+                    if (isVm) {
+                      setActive('Dashboard')
+                    } else if (isApproval) {
+                      setActive('Usuários & Aprovações')
+                    } else {
+                      setActive(label)
+                    }
+                    setSidebarOpen(false)
+                  }} 
+                  className={`nav-item ${isItemActive ? 'active' : ''}`}
+                >
+                  <Icon size={16} style={isApproval ? { color: '#20d6c7' } : undefined} />
+                  <span>{label}</span>
+                  {label === 'Docker' && server && containers.length > 0 && <span className="nav-badge">{containers.length}</span>}
+                  {isApproval && (
+                    <span 
+                      className="nav-badge" 
+                      style={{ 
+                        background: pendingRequestsCount > 0 ? '#f59e0b' : 'rgba(32, 214, 199, 0.2)', 
+                        color: pendingRequestsCount > 0 ? '#000' : '#20d6c7', 
+                        fontWeight: 800 
+                      }}
+                    >
+                      {pendingRequestsCount > 0 ? pendingRequestsCount : 'Admin'}
+                    </span>
+                  )}
+                  {!isApproval && label !== 'Docker' && badge && <span className="nav-badge">{badge}</span>}
+                </button>
+              )
+            })}
           </div>
         ))}
       </nav>
 
       <div className="sidebar-footer">
-        <span className="nav-caption" style={{ padding: '0 10px 4px' }}>Gerenciamento</span>
-        <button className="nav-item" title="Ver recursos de computação e nós do cluster" onClick={() => setActive('Dashboard')}>
-          <Layers3 size={16} />
-          <span>Recursos & VMs</span>
-        </button>
-        {(currentUser.email === 'vviniciuslourenco@gmail.com' || currentUser.role === 'admin' || currentUser.role === 'master') && (
-          <button 
-            className={`nav-item ${active === 'Usuários & Aprovações' ? 'active' : ''}`}
-            title="Gerenciar solicitações de acesso e cadastros pendentes"
-            onClick={() => { setActive('Usuários & Aprovações'); setSidebarOpen(false) }}
-          >
-            <Users size={16} style={{ color: '#20d6c7' }} />
-            <span>Aprovações & Usuários</span>
-            {pendingRequestsCount > 0 && (
-              <span className="nav-badge" style={{ background: '#f59e0b', color: '#000', fontWeight: 800 }}>
-                {pendingRequestsCount}
-              </span>
-            )}
-          </button>
-        )}
         <button className="nav-item" title="Abrir configurações de segurança, chaves AES-256 e túneis" onClick={() => setSettingsOpen(true)}>
           <Settings size={16} />
           <span>Configurações</span>
@@ -1101,7 +1124,7 @@ terraform -version
       </header>
       <div className={active === 'Odisseu AI' ? 'page-content odisseu-page-content' : 'page-content'}>
         {/* Cabeçalho exclusivo do Dashboard (Painel de Controle, métricas de hardware da VM) */}
-        {active === 'Dashboard' && (
+        {(active === 'Dashboard' || active === 'Recursos & VMs') && (
           <>
             <div className="page-heading">
               <div>
@@ -1289,7 +1312,7 @@ terraform -version
         {/* ========================================================================= */}
         {/* ABA: GESTÃO & APROVAÇÃO DE USUÁRIOS (MASTER) */}
         {/* ========================================================================= */}
-        {active === 'Usuários & Aprovações' && (
+        {(active === 'Usuários & Aprovações' || active === 'Aprovações & Usuários') && (
           <UserManagementView doAction={doAction} />
         )}
 
