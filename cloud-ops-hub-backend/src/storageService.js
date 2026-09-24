@@ -99,18 +99,22 @@ async function listStorageObjects() {
           files.push({
             id: dish ? `dish-${dish.id}` : `obj-${Buffer.from(keyName).toString('base64').slice(0, 16)}`,
             name: keyName,
-            label: dish ? `${dish.nome}${isWebp ? ' ⚡ (WebP)' : ''}` : keyName,
+            label: dish ? dish.nome : keyName,
+            isActiveInMenu: !!dish,
             category,
             size: formatBytes(sizeBytes),
             bytes: sizeBytes,
             uploadedAt: obj.timeCreated ? new Date(obj.timeCreated).toLocaleDateString('pt-BR') : (dish?.criadoEm || 'Recente'),
-            dimensions: isWebp ? '800 x Auto (Otimizado)' : (isArchive ? 'Arquivo' : 'Original OCI'),
+            dimensions: isWebp ? '800 x Auto (WebP)' : (isArchive ? 'Arquivo' : 'Original OCI'),
             url: fileUrl,
             previewUrl: isArchive ? '' : fileUrl,
             type: isArchive ? 'archive' : 'image',
             price: dish?.preco
           });
         }
+
+        // Prioriza os pratos ativos no cardápio no topo da lista
+        files.sort((a, b) => (b.isActiveInMenu ? 1 : 0) - (a.isActiveInMenu ? 1 : 0));
       } catch (err) {
         console.warn('[StorageService] Falha ao listar via OCI SDK, usando dados do MySQL:', err.message);
       }

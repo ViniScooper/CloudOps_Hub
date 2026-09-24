@@ -3,7 +3,9 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import {
   HardDrive, Search, Copy, Check, Eye, ExternalLink,
-  Trash2, UploadCloud, X, Database, ShieldCheck, RefreshCw, Sparkles
+  Trash2, UploadCloud, X, Database, ShieldCheck, RefreshCw,
+  Sparkles, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
+  Layers, ArrowUpDown, Filter
 } from 'lucide-react'
 import { getApiUrl } from '../lib/api'
 
@@ -11,6 +13,7 @@ interface StorageFile {
   id: string
   name: string
   label?: string
+  isActiveInMenu?: boolean
   category: 'Pratos' | 'Bebidas' | 'Sobremesas' | 'Backups' | 'Banners' | string
   size: string
   bytes: number
@@ -48,6 +51,13 @@ export function StorageExplorerView({
   const [isLoading, setIsLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos')
+  
+  // Navbar interna da lista: Sub-abas, ordenação e paginação
+  const [listScope, setListScope] = useState<'active' | 'all' | 'backups'>('active')
+  const [sortBy, setSortBy] = useState<'recent' | 'name' | 'size-asc' | 'size-desc'>('recent')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState<number>(10)
+
   const [selectedImage, setSelectedImage] = useState<StorageFile | null>(null)
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
@@ -85,16 +95,57 @@ export function StorageExplorerView({
 
   const categories = ['Todos', 'Pratos', 'Bebidas', 'Sobremesas', 'Banners', 'Backups']
 
+  // Contadores para as abas internas
+  const activeCount = useMemo(() => files.filter(f => f.isActiveInMenu).length, [files])
+  const backupsCount = useMemo(() => files.filter(f => f.category === 'Backups' || f.type === 'archive').length, [files])
+
+  // Filtragem e Ordenação
   const filteredFiles = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
-    return files.filter(f => {
+    
+    let result = files.filter(f => {
+      // Filtro de Escopo da Navbar interna
+      if (listScope === 'active' && !f.isActiveInMenu) return false
+      if (listScope === 'backups' && f.category !== 'Backups' && f.type !== 'archive') return false
+
+      // Filtro de Categoria
+      const matchCat = selectedCategory === 'Todos' || f.category === selectedCategory
+
+      // Filtro de Busca
       const label = (f.label || '').toLowerCase()
       const name = (f.name || '').toLowerCase()
       const matchQuery = !query || name.includes(query) || label.includes(query)
-      const matchCat = selectedCategory === 'Todos' || f.category === selectedCategory
-      return matchQuery && matchCat
+
+      return matchCat && matchQuery
     })
-  }, [files, searchQuery, selectedCategory])
+
+    // Ordenação
+    result = [...result].sort((a, b) => {
+      if (sortBy === 'name') {
+        const nameA = a.label || a.name
+        const nameB = b.label || b.name
+        return nameA.localeCompare(nameB)
+      }
+      if (sortBy === 'size-asc') return (a.bytes || 0) - (b.bytes || 0)
+      if (sortBy === 'size-desc') return (b.bytes || 0) - (a.bytes || 0)
+      // default: recent (active dishes first, then order in list)
+      return (b.isActiveInMenu ? 1 : 0) - (a.isActiveInMenu ? 1 : 0)
+    })
+
+    return result
+  }, [files, searchQuery, selectedCategory, listScope, sortBy])
+
+  // Reseta a página se os filtros mudarem
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, selectedCategory, listScope, sortBy, pageSize])
+
+  // Cálculos de Paginação
+  const totalPages = Math.max(1, Math.ceil(filteredFiles.length / pageSize))
+  const paginatedFiles = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return filteredFiles.slice(start, start + pageSize)
+  }, [filteredFiles, currentPage, pageSize])
 
   const totalBytes = useMemo(() => {
     return files.reduce((acc, f) => acc + (f.bytes || 0), 0)
@@ -115,7 +166,7 @@ export function StorageExplorerView({
   const copyUrl = (file: StorageFile) => {
     navigator.clipboard.writeText(file.url)
     setCopiedId(file.id)
-    doAction(`Link direto da foto copiado com sucesso!`)
+    doAction(`Link copiado com sucesso! Pronto para colar no Vercel.`)
     setTimeout(() => setCopiedId(null), 2000)
   }
 
@@ -130,6 +181,7 @@ export function StorageExplorerView({
       id: `f-${Date.now()}`,
       name: sanitizedName,
       label: newFileName,
+      isActiveInMenu: true,
       category: newFileCategory,
       size: '45 KB',
       bytes: 46080,
@@ -164,7 +216,7 @@ export function StorageExplorerView({
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
       {/* CABEÇALHO DO BUCKET */}
       <div className="section-heading" style={{ marginBottom: 0 }}>
         <div>
@@ -241,7 +293,9 @@ export function StorageExplorerView({
 
         <div style={{ background: '#0e1518', border: '1px solid #1a272a', borderRadius: '8px', padding: '14px' }}>
           <span style={{ fontSize: '10px', color: '#6f8387', textTransform: 'uppercase', fontWeight: 600 }}>Objetos no Bucket</span>
-          <div style={{ fontSize: '18px', fontWeight: 700, color: '#d9e2e1', margin: '4px 0' }}>{files.length} <span style={{ fontSize: '12px', color: '#6f8387', fontWeight: 400 }}>arquivos</span></div>
+          <div style={{ fontSize: '18px', fontWeight: 700, color: '#d9e2e1', margin: '4px 0' }}>
+            {files.length} <span style={{ fontSize: '12px', color: '#6f8387', fontWeight: 400 }}>arquivos ({activeCount} ativos no cardápio)</span>
+          </div>
           <small style={{ fontSize: '10px', color: '#a3e635', marginTop: '6px', display: 'block' }}>⚡ 100% hospedados com CDN Edge Cache</small>
         </div>
 
@@ -252,330 +306,616 @@ export function StorageExplorerView({
         </div>
       </div>
 
-      {/* STORAGE NAVBAR: BARRA DE NAVEGAÇÃO, BUSCA E FILTROS */}
-      <nav 
-        className="storage-navbar"
-        style={{
-          display: 'flex',
+      {/* CONTAINER PRINCIPAL DA LISTA COM NAVBAR INTERNA INTEGRADA (SEM SCROLL INFINITO) */}
+      <section 
+        className="panel" 
+        style={{ 
+          margin: 0, 
+          overflow: 'hidden', 
+          display: 'flex', 
           flexDirection: 'column',
-          gap: '12px',
-          background: 'linear-gradient(145deg, #0e1619, #091012)',
-          border: '1px solid #1a2a2e',
+          border: '1px solid #1c2c30',
           borderRadius: '10px',
-          padding: '14px 16px',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.35)'
+          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.4)'
         }}
       >
-        {/* Linha 1 do Navbar: Campo de Busca e Indicador de Arquivos */}
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ position: 'relative', flex: '1 1 280px', minWidth: '220px' }}>
-            <Search size={14} style={{ position: 'absolute', left: '12px', top: '10px', color: '#6f8387' }} />
-            <input
-              type="text"
-              placeholder="Buscar por prato ou arquivo (ex: calabresa, picanha, heineken)..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: '100%',
-                height: '34px',
-                background: '#060a0c',
-                border: '1px solid #1c2b2f',
-                borderRadius: '6px',
-                padding: '0 32px 0 34px',
-                color: '#d9e2e1',
-                fontSize: '12px',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
-            />
-            {searchQuery && (
+        {/* NAVBAR INTERNA DA TABELA (STICKY NO TOPO DA DIV) */}
+        <div 
+          className="table-internal-navbar"
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 15,
+            background: 'linear-gradient(180deg, #10191c 0%, #0c1416 100%)',
+            borderBottom: '1px solid #1e3135',
+            padding: '12px 16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px'
+          }}
+        >
+          {/* Linha 1 da Navbar Interna: Sub-abas de Escopo + Busca */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+            {/* Sub-abas de Visualização Rápida */}
+            <div style={{ display: 'flex', gap: '6px', background: '#070c0e', padding: '3px', borderRadius: '8px', border: '1px solid #19272a' }}>
               <button
                 type="button"
-                onClick={() => setSearchQuery('')}
+                onClick={() => setListScope('active')}
                 style={{
-                  position: 'absolute',
-                  right: '10px',
-                  top: '9px',
-                  background: 'transparent',
-                  border: 0,
-                  color: '#6f8387',
-                  cursor: 'pointer',
-                  padding: 0
-                }}
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: '#7a9194' }}>
-            <span>Mostrando: <strong style={{ color: '#20d6c7' }}>{filteredFiles.length}</strong> de {files.length}</span>
-          </div>
-        </div>
-
-        {/* Linha 2 do Navbar: Pílulas de Navegação por Categoria */}
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-          {categories.map(cat => {
-            const isSelected = selectedCategory === cat
-            const count = cat === 'Todos' ? files.length : files.filter(f => f.category === cat).length
-
-            return (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setSelectedCategory(cat)}
-                style={{
-                  background: isSelected ? 'rgba(32, 214, 199, 0.15)' : '#0d1417',
-                  border: isSelected ? '1px solid #20d6c7' : '1px solid #1c2b2f',
-                  color: isSelected ? '#20d6c7' : '#8fa4a8',
-                  borderRadius: '20px',
-                  padding: '4px 12px',
+                  background: listScope === 'active' ? 'rgba(32, 214, 199, 0.18)' : 'transparent',
+                  color: listScope === 'active' ? '#20d6c7' : '#72888b',
+                  border: listScope === 'active' ? '1px solid rgba(32, 214, 199, 0.3)' : '1px solid transparent',
+                  borderRadius: '6px',
+                  padding: '5px 12px',
                   fontSize: '11px',
+                  fontWeight: listScope === 'active' ? 700 : 500,
                   cursor: 'pointer',
-                  fontWeight: isSelected ? 600 : 400,
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
                   transition: 'all 0.15s ease'
                 }}
               >
-                {cat}
-                <span 
-                  style={{ 
-                    fontSize: '9px', 
-                    background: isSelected ? '#20d6c7' : '#182528', 
-                    color: isSelected ? '#030708' : '#72888b', 
-                    padding: '1px 6px', 
-                    borderRadius: '10px',
-                    fontWeight: 700
-                  }}
-                >
-                  {count}
+                <Sparkles size={13} style={{ color: listScope === 'active' ? '#20d6c7' : '#6f8387' }} />
+                <span>Cardápio Ativo</span>
+                <span style={{ fontSize: '9.5px', background: listScope === 'active' ? '#20d6c7' : '#172528', color: listScope === 'active' ? '#030708' : '#8fa4a8', padding: '1px 6px', borderRadius: '10px', fontWeight: 700 }}>
+                  {activeCount}
                 </span>
               </button>
-            )
-          })}
-        </div>
-      </nav>
 
-      {/* LOADING STATE */}
-      {isLoading && files.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '60px 20px', background: '#0a1012', border: '1px dashed rgba(32, 214, 199, 0.3)', borderRadius: '8px' }}>
-          <RefreshCw size={32} className="spinning" style={{ color: '#20d6c7', margin: '0 auto 14px auto' }} />
-          <h3 style={{ color: '#d9e2e1', fontSize: '15px', fontWeight: 600, marginBottom: '6px' }}>
-            Sincronizando com o Oracle Cloud Object Storage...
-          </h3>
-          <p style={{ color: '#6f8387', fontSize: '12px', margin: 0 }}>
-            Consultando metadados de arquivos e fotos do bucket <code>{currentBucket}</code>.
-          </p>
-        </div>
-      )}
+              <button
+                type="button"
+                onClick={() => setListScope('all')}
+                style={{
+                  background: listScope === 'all' ? 'rgba(32, 214, 199, 0.18)' : 'transparent',
+                  color: listScope === 'all' ? '#20d6c7' : '#72888b',
+                  border: listScope === 'all' ? '1px solid rgba(32, 214, 199, 0.3)' : '1px solid transparent',
+                  borderRadius: '6px',
+                  padding: '5px 12px',
+                  fontSize: '11px',
+                  fontWeight: listScope === 'all' ? 700 : 500,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <Layers size={13} style={{ color: listScope === 'all' ? '#20d6c7' : '#6f8387' }} />
+                <span>Todos no Bucket</span>
+                <span style={{ fontSize: '9.5px', background: listScope === 'all' ? '#20d6c7' : '#172528', color: listScope === 'all' ? '#030708' : '#8fa4a8', padding: '1px 6px', borderRadius: '10px', fontWeight: 700 }}>
+                  {files.length}
+                </span>
+              </button>
 
-      {/* EMPTY STATE */}
-      {!isLoading && filteredFiles.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '60px 20px', background: '#0a1012', border: '1px dashed #1c2b2f', borderRadius: '8px' }}>
-          <Search size={32} style={{ color: '#4a6266', margin: '0 auto 14px auto' }} />
-          <h3 style={{ color: '#d9e2e1', fontSize: '15px', fontWeight: 600, marginBottom: '6px' }}>
-            Nenhum Arquivo Encontrado
-          </h3>
-          <p style={{ color: '#6f8387', fontSize: '12px', maxWidth: '420px', margin: '0 auto 18px auto' }}>
-            Nenhum arquivo corresponde ao filtro de busca selecionado no momento.
-          </p>
-          <button 
-            className="secondary-button"
-            onClick={() => {
-              setSearchQuery('')
-              setSelectedCategory('Todos')
-            }}
-          >
-            Limpar Filtros
-          </button>
-        </div>
-      )}
-
-      {/* LISTA DETALHADA (EXCLUSIVA E RESPONSIVA) */}
-      {filteredFiles.length > 0 && (
-        <section className="panel" style={{ margin: 0, overflow: 'hidden' }}>
-          <div className="container-list" style={{ padding: 0 }}>
-            {filteredFiles.map((file, idx) => {
-              const isCopied = copiedId === file.id
-              const isWebp = file.name.endsWith('.webp')
-              const isArchive = file.type === 'archive'
-
-              const displayUrl = file.previewUrl?.startsWith('http') 
-                ? file.previewUrl 
-                : file.url
-
-              return (
-                <div 
-                  className="container-row" 
-                  key={file.id} 
-                  style={{ 
-                    padding: '12px 16px',
+              {backupsCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setListScope('backups')}
+                  style={{
+                    background: listScope === 'backups' ? 'rgba(245, 158, 11, 0.18)' : 'transparent',
+                    color: listScope === 'backups' ? '#f59e0b' : '#72888b',
+                    border: listScope === 'backups' ? '1px solid rgba(245, 158, 11, 0.3)' : '1px solid transparent',
+                    borderRadius: '6px',
+                    padding: '5px 12px',
+                    fontSize: '11px',
+                    fontWeight: listScope === 'backups' ? 700 : 500,
+                    cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '14px',
-                    borderTop: idx === 0 ? 'none' : '1px solid #162326',
-                    background: idx % 2 === 0 ? 'transparent' : 'rgba(255, 255, 255, 0.01)',
-                    transition: 'background 0.15s'
+                    gap: '6px',
+                    transition: 'all 0.15s ease'
                   }}
                 >
-                  {/* Thumbnail / Miniatura com Lightbox */}
-                  <div 
-                    style={{ 
-                      width: '42px', 
-                      height: '42px', 
-                      borderRadius: '6px', 
-                      overflow: 'hidden', 
-                      background: '#070c0e',
-                      border: '1px solid #1c2b2f',
-                      flexShrink: 0,
-                      display: 'grid',
-                      placeItems: 'center',
-                      cursor: file.type === 'image' ? 'pointer' : 'default',
-                      position: 'relative'
+                  <Database size={13} style={{ color: listScope === 'backups' ? '#f59e0b' : '#6f8387' }} />
+                  <span>Backups</span>
+                  <span style={{ fontSize: '9.5px', background: listScope === 'backups' ? '#f59e0b' : '#172528', color: listScope === 'backups' ? '#030708' : '#8fa4a8', padding: '1px 6px', borderRadius: '10px', fontWeight: 700 }}>
+                    {backupsCount}
+                  </span>
+                </button>
+              )}
+            </div>
+
+            {/* Campo de Busca Rápida */}
+            <div style={{ position: 'relative', flex: '1 1 240px', minWidth: '180px', maxWidth: '380px' }}>
+              <Search size={13} style={{ position: 'absolute', left: '10px', top: '10px', color: '#6f8387' }} />
+              <input
+                type="text"
+                placeholder="Filtrar por nome ou prato..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  height: '32px',
+                  background: '#070c0e',
+                  border: '1px solid #1a292d',
+                  borderRadius: '6px',
+                  padding: '0 28px 0 30px',
+                  color: '#d9e2e1',
+                  fontSize: '11.5px',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  style={{
+                    position: 'absolute',
+                    right: '8px',
+                    top: '8px',
+                    background: 'transparent',
+                    border: 0,
+                    color: '#6f8387',
+                    cursor: 'pointer',
+                    padding: 0
+                  }}
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Linha 2 da Navbar Interna: Filtros por Categoria + Ordenação + Controles de Página */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap', paddingTop: '4px' }}>
+            {/* Pílulas de Categoria */}
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+              {categories.map(cat => {
+                const isSelected = selectedCategory === cat
+                const count = cat === 'Todos' ? files.length : files.filter(f => f.category === cat).length
+
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat)}
+                    style={{
+                      background: isSelected ? 'rgba(32, 214, 199, 0.15)' : '#070c0e',
+                      border: isSelected ? '1px solid #20d6c7' : '1px solid #182629',
+                      color: isSelected ? '#20d6c7' : '#7a9194',
+                      borderRadius: '16px',
+                      padding: '3px 10px',
+                      fontSize: '10.5px',
+                      cursor: 'pointer',
+                      fontWeight: isSelected ? 600 : 400,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      transition: 'all 0.12s ease'
                     }}
-                    onClick={() => file.type === 'image' && setSelectedImage(file)}
-                    title={file.type === 'image' ? 'Clique para ampliar' : file.name}
                   >
-                    {file.type === 'image' ? (
-                      <img
-                        src={displayUrl}
-                        alt={file.label || file.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        onError={(e) => {
-                          (e.target as any).style.display = 'none'
-                        }}
-                      />
-                    ) : (
-                      <Database size={20} style={{ color: '#f59e0b' }} />
-                    )}
-                  </div>
-
-                  {/* Informações do Arquivo */}
-                  <div className="container-info" style={{ minWidth: 0, flex: '1 1 auto' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <strong style={{ fontSize: '13px', color: '#e2edeb', fontWeight: 600 }}>
-                        {file.label || file.name}
-                      </strong>
-
-                      {isWebp && (
-                        <span style={{ fontSize: '9px', fontWeight: 700, padding: '1px 6px', borderRadius: '4px', background: 'rgba(32, 214, 199, 0.15)', color: '#20d6c7', border: '1px solid rgba(32, 214, 199, 0.3)' }}>
-                          ⚡ WebP Otimizado
-                        </span>
-                      )}
-
-                      {file.price && (
-                        <span style={{ fontSize: '10px', fontWeight: 700, color: '#a3e635' }}>
-                          {file.price}
-                        </span>
-                      )}
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '10.5px', color: '#6e8588', flexWrap: 'wrap' }}>
-                      <code style={{ color: '#88a3a6', fontSize: '10px' }}>{file.name}</code>
-                      <span>•</span>
-                      <span style={{ color: file.category === 'Backups' ? '#f59e0b' : '#20d6c7' }}>{file.category}</span>
-                      <span>•</span>
-                      <span style={{ fontWeight: 600, color: '#b2c8c6' }}>{file.size}</span>
-                      <span>•</span>
-                      <span>{file.uploadedAt}</span>
-                    </div>
-                  </div>
-
-                  {/* Ações Rápidas à Direita */}
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0, marginLeft: 'auto' }}>
-                    <button
-                      type="button"
-                      onClick={() => copyUrl(file)}
-                      title="Copiar URL pública direta do arquivo"
-                      style={{
-                        background: isCopied ? 'rgba(32, 214, 199, 0.2)' : '#101a1c',
-                        border: isCopied ? '1px solid #20d6c7' : '1px solid #1c2b2f',
-                        color: isCopied ? '#20d6c7' : '#c9dcda',
-                        borderRadius: '5px',
-                        padding: '6px 10px',
-                        fontSize: '11px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        transition: 'all 0.15s'
+                    {cat}
+                    <span 
+                      style={{ 
+                        fontSize: '9px', 
+                        background: isSelected ? '#20d6c7' : '#142023', 
+                        color: isSelected ? '#030708' : '#6f8387', 
+                        padding: '1px 5px', 
+                        borderRadius: '8px',
+                        fontWeight: 700
                       }}
                     >
-                      {isCopied ? <Check size={13} /> : <Copy size={13} />}
-                      <span className="copy-btn-text">{isCopied ? 'Copiado!' : 'Copiar URL'}</span>
-                    </button>
+                      {count}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
 
-                    {file.type === 'image' && (
+            {/* Ordenação e Paginação Navbar */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: 'auto', flexWrap: 'wrap' }}>
+              {/* Seletor de Ordenação */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10.5px', color: '#6f8387' }}>
+                <ArrowUpDown size={12} />
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  style={{
+                    background: '#070c0e',
+                    border: '1px solid #1a292d',
+                    color: '#c2d4d2',
+                    borderRadius: '5px',
+                    padding: '3px 6px',
+                    fontSize: '10.5px',
+                    outline: 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="recent">Mais Relevantes</option>
+                  <option value="name">Nome (A - Z)</option>
+                  <option value="size-asc">Menor Tamanho (KB)</option>
+                  <option value="size-desc">Maior Tamanho (MB)</option>
+                </select>
+              </div>
+
+              {/* Seletor de Itens por Página */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10.5px', color: '#6f8387' }}>
+                <span>Exibir:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  style={{
+                    background: '#070c0e',
+                    border: '1px solid #1a292d',
+                    color: '#c2d4d2',
+                    borderRadius: '5px',
+                    padding: '3px 6px',
+                    fontSize: '10.5px',
+                    outline: 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+
+              {/* Botões de Navegação de Página */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <button
+                  type="button"
+                  title="Primeira Página"
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  style={{
+                    background: '#070c0e',
+                    border: '1px solid #1a292d',
+                    color: currentPage === 1 ? '#3a4e52' : '#20d6c7',
+                    borderRadius: '4px',
+                    padding: '4px',
+                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
+                  <ChevronsLeft size={13} />
+                </button>
+
+                <button
+                  type="button"
+                  title="Página Anterior"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  style={{
+                    background: '#070c0e',
+                    border: '1px solid #1a292d',
+                    color: currentPage === 1 ? '#3a4e52' : '#20d6c7',
+                    borderRadius: '4px',
+                    padding: '4px 6px',
+                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
+                  <ChevronLeft size={13} />
+                </button>
+
+                <span style={{ fontSize: '10.5px', color: '#8fa4a8', padding: '0 4px', minWidth: '60px', textAlign: 'center' }}>
+                  <strong style={{ color: '#20d6c7' }}>{currentPage}</strong> / {totalPages}
+                </span>
+
+                <button
+                  type="button"
+                  title="Próxima Página"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  style={{
+                    background: '#070c0e',
+                    border: '1px solid #1a292d',
+                    color: currentPage === totalPages ? '#3a4e52' : '#20d6c7',
+                    borderRadius: '4px',
+                    padding: '4px 6px',
+                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
+                  <ChevronRight size={13} />
+                </button>
+
+                <button
+                  type="button"
+                  title="Última Página"
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  style={{
+                    background: '#070c0e',
+                    border: '1px solid #1a292d',
+                    color: currentPage === totalPages ? '#3a4e52' : '#20d6c7',
+                    borderRadius: '4px',
+                    padding: '4px',
+                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
+                  <ChevronsRight size={13} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* LOADING STATE */}
+        {isLoading && files.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '60px 20px', background: '#0a1012' }}>
+            <RefreshCw size={28} className="spinning" style={{ color: '#20d6c7', margin: '0 auto 12px auto' }} />
+            <h4 style={{ color: '#d9e2e1', fontSize: '14px', fontWeight: 600, margin: '0 0 4px' }}>
+              Carregando objetos do Oracle Cloud...
+            </h4>
+            <p style={{ color: '#6f8387', fontSize: '11px', margin: 0 }}>Consultando arquivos no bucket {currentBucket}.</p>
+          </div>
+        )}
+
+        {/* EMPTY STATE */}
+        {!isLoading && filteredFiles.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '50px 20px', background: '#0a1012' }}>
+            <Filter size={28} style={{ color: '#3f5659', margin: '0 auto 12px auto' }} />
+            <h4 style={{ color: '#d9e2e1', fontSize: '14px', fontWeight: 600, margin: '0 0 4px' }}>
+              Nenhum objeto encontrado nesta visualização
+            </h4>
+            <p style={{ color: '#6f8387', fontSize: '11px', margin: '0 0 14px' }}>
+              {listScope === 'active' 
+                ? 'Nenhum prato com foto ativa encontrado com os filtros atuais.' 
+                : 'Tente alterar os termos de busca ou categoria.'}
+            </p>
+            <button 
+              className="secondary-button"
+              onClick={() => {
+                setSearchQuery('')
+                setSelectedCategory('Todos')
+                setListScope('all')
+              }}
+              style={{ fontSize: '11px' }}
+            >
+              Mostrar Todos os Objetos ({files.length})
+            </button>
+          </div>
+        )}
+
+        {/* ROLAGEM INTERNA DA TABELA (COM SCROLLBAR ESTILIZADA, SEM PRECISAR DAR SCROLL NA PÁGINA) */}
+        {filteredFiles.length > 0 && (
+          <div 
+            className="storage-scroll-container"
+            style={{ 
+              maxHeight: '580px', 
+              overflowY: 'auto',
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#1c2d31 transparent'
+            }}
+          >
+            <div className="container-list" style={{ padding: 0 }}>
+              {paginatedFiles.map((file, idx) => {
+                const isCopied = copiedId === file.id
+                const isWebp = file.name.endsWith('.webp')
+                const displayUrl = file.previewUrl?.startsWith('http') ? file.previewUrl : file.url
+
+                return (
+                  <div 
+                    className="container-row" 
+                    key={file.id} 
+                    style={{ 
+                      padding: '12px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      borderTop: idx === 0 ? 'none' : '1px solid #142023',
+                      background: idx % 2 === 0 ? 'transparent' : 'rgba(255, 255, 255, 0.012)',
+                      transition: 'background 0.15s'
+                    }}
+                  >
+                    {/* Thumbnail Miniatura */}
+                    <div 
+                      style={{ 
+                        width: '42px', 
+                        height: '42px', 
+                        borderRadius: '6px', 
+                        overflow: 'hidden', 
+                        background: '#070c0e',
+                        border: '1px solid #1c2b2f',
+                        flexShrink: 0,
+                        display: 'grid',
+                        placeItems: 'center',
+                        cursor: file.type === 'image' ? 'pointer' : 'default',
+                        position: 'relative'
+                      }}
+                      onClick={() => file.type === 'image' && setSelectedImage(file)}
+                      title={file.type === 'image' ? 'Clique para ampliar foto' : file.name}
+                    >
+                      {file.type === 'image' ? (
+                        <img
+                          src={displayUrl}
+                          alt={file.label || file.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          onError={(e) => {
+                            (e.target as any).style.display = 'none'
+                          }}
+                        />
+                      ) : (
+                        <Database size={20} style={{ color: '#f59e0b' }} />
+                      )}
+                    </div>
+
+                    {/* Informações Principais do Prato */}
+                    <div className="container-info" style={{ minWidth: 0, flex: '1 1 auto' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <strong style={{ fontSize: '13px', color: '#e2edeb', fontWeight: 600 }}>
+                          {file.label || file.name}
+                        </strong>
+
+                        {isWebp && (
+                          <span style={{ fontSize: '9px', fontWeight: 700, padding: '1px 6px', borderRadius: '4px', background: 'rgba(32, 214, 199, 0.15)', color: '#20d6c7', border: '1px solid rgba(32, 214, 199, 0.3)' }}>
+                            ⚡ WebP Otimizado
+                          </span>
+                        )}
+
+                        {file.isActiveInMenu && (
+                          <span style={{ fontSize: '9px', fontWeight: 700, padding: '1px 6px', borderRadius: '4px', background: 'rgba(163, 230, 53, 0.12)', color: '#a3e635', border: '1px solid rgba(163, 230, 53, 0.25)' }}>
+                            Cardápio Ativo
+                          </span>
+                        )}
+
+                        {file.price && (
+                          <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#f4b942' }}>
+                            {file.price}
+                          </span>
+                        )}
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '10.5px', color: '#6e8588', flexWrap: 'wrap' }}>
+                        <code style={{ color: '#88a3a6', fontSize: '10px' }}>{file.name}</code>
+                        <span>•</span>
+                        <span style={{ color: file.category === 'Backups' ? '#f59e0b' : '#20d6c7' }}>{file.category}</span>
+                        <span>•</span>
+                        <span style={{ fontWeight: 600, color: '#b2c8c6' }}>{file.size}</span>
+                        <span>•</span>
+                        <span>{file.uploadedAt}</span>
+                      </div>
+                    </div>
+
+                    {/* Ações Rápidas */}
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0, marginLeft: 'auto' }}>
                       <button
                         type="button"
-                        onClick={() => setSelectedImage(file)}
-                        title="Visualizar em tela cheia"
+                        onClick={() => copyUrl(file)}
+                        title="Copiar link direto para o cardápio (Vercel)"
                         style={{
-                          background: '#101a1c',
-                          border: '1px solid #1c2b2f',
-                          color: '#20d6c7',
+                          background: isCopied ? 'rgba(32, 214, 199, 0.2)' : '#0e1719',
+                          border: isCopied ? '1px solid #20d6c7' : '1px solid #1a2c30',
+                          color: isCopied ? '#20d6c7' : '#c9dcda',
                           borderRadius: '5px',
-                          padding: '6px 9px',
+                          padding: '6px 10px',
                           fontSize: '11px',
+                          fontWeight: 600,
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '4px'
+                          gap: '5px',
+                          transition: 'all 0.15s'
                         }}
                       >
-                        <Eye size={13} />
-                        <span className="view-btn-text">Ver</span>
+                        {isCopied ? <Check size={13} /> : <Copy size={13} />}
+                        <span className="copy-btn-text">{isCopied ? 'Copiado!' : 'Copiar URL'}</span>
                       </button>
-                    )}
 
-                    <a
-                      href={file.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title="Abrir URL direta no navegador"
-                      style={{
-                        background: '#101a1c',
-                        border: '1px solid #1c2b2f',
-                        color: '#6f8387',
-                        borderRadius: '5px',
-                        padding: '6px 8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        textDecoration: 'none'
-                      }}
-                    >
-                      <ExternalLink size={13} />
-                    </a>
+                      {file.type === 'image' && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedImage(file)}
+                          title="Visualizar em tamanho grande"
+                          style={{
+                            background: '#0e1719',
+                            border: '1px solid #1a2c30',
+                            color: '#20d6c7',
+                            borderRadius: '5px',
+                            padding: '6px 9px',
+                            fontSize: '11px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <Eye size={13} />
+                          <span className="view-btn-text">Ver</span>
+                        </button>
+                      )}
 
-                    <button
-                      type="button"
-                      title="Excluir arquivo do painel"
-                      onClick={() => handleDeleteFile(file.id, file.name)}
-                      style={{
-                        background: '#101a1c',
-                        border: '1px solid #1c2b2f',
-                        color: '#ff6b6b',
-                        borderRadius: '5px',
-                        padding: '6px 8px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <Trash2 size={13} />
-                    </button>
+                      <a
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Abrir no navegador"
+                        style={{
+                          background: '#0e1719',
+                          border: '1px solid #1a2c30',
+                          color: '#6f8387',
+                          borderRadius: '5px',
+                          padding: '6px 8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          textDecoration: 'none'
+                        }}
+                      >
+                        <ExternalLink size={13} />
+                      </a>
+
+                      <button
+                        type="button"
+                        title="Remover arquivo"
+                        onClick={() => handleDeleteFile(file.id, file.name)}
+                        style={{
+                          background: '#0e1719',
+                          border: '1px solid #1a2c30',
+                          color: '#ff6b6b',
+                          borderRadius: '5px',
+                          padding: '6px 8px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
-        </section>
-      )}
+        )}
+
+        {/* RODAPÉ DA TABELA: TOTALIZADOR E NAVEGAÇÃO COMPACTA */}
+        {filteredFiles.length > 0 && (
+          <div 
+            style={{
+              padding: '10px 16px',
+              background: '#0a1012',
+              borderTop: '1px solid #162427',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '11px',
+              color: '#6f8387',
+              flexWrap: 'wrap',
+              gap: '10px'
+            }}
+          >
+            <span>
+              Mostrando <strong style={{ color: '#20d6c7' }}>{((currentPage - 1) * pageSize) + 1}</strong> a <strong style={{ color: '#20d6c7' }}>{Math.min(currentPage * pageSize, filteredFiles.length)}</strong> de <strong>{filteredFiles.length}</strong> objetos filtrados
+            </span>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <button
+                type="button"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="secondary-button"
+                style={{ padding: '3px 8px', fontSize: '10.5px', height: '26px' }}
+              >
+                Anterior
+              </button>
+              <span style={{ fontSize: '10px', color: '#8fa4a8' }}>
+                Página {currentPage} de {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="secondary-button"
+                style={{ padding: '3px 8px', fontSize: '10.5px', height: '26px' }}
+              >
+                Próxima
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
 
       {/* MODAL LIGHTBOX: VISUALIZAR FOTO EM ALTA RESOLUÇÃO */}
       {selectedImage && (
