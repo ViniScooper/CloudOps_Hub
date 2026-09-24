@@ -94,6 +94,32 @@ async function integrationsRoutes(fastify, options) {
     return { code: terraformCode };
   });
 
+  fastify.post('/api/migration/execute', async (request) => {
+    const {
+      projectId,
+      targetHost,
+      targetPort,
+      targetUser,
+      targetAuthType,
+      targetPassword,
+      targetKey,
+      targetProvider,
+      components
+    } = request.body || {};
+
+    return migrationService.executeMigrationPipeline({
+      projectId,
+      targetHost,
+      targetPort,
+      targetUser,
+      targetAuthType,
+      targetPassword,
+      targetKey,
+      targetProvider,
+      components
+    });
+  });
+
   // ==========================================
   // VERCEL EDGE & FRONTEND
   // ==========================================
