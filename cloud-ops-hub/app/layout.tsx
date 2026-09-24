@@ -23,6 +23,12 @@ export const metadata: Metadata = {
     ],
     apple: '/apple-icon.png',
   },
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'CloudOps Hub',
+  },
 }
 
 export const viewport: Viewport = {

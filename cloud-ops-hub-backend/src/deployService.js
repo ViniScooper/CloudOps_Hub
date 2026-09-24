@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const oracleScraper = require('./oracleScraper');
 
+const { sanitizeBashCommand } = require('./security');
+
 const HISTORY_FILE = path.join(__dirname, '..', 'database', 'deploy_history.json');
 
 function getSshKey() {
@@ -15,6 +17,10 @@ function getSshKey() {
 }
 
 function runRemoteSsh(command) {
+  const secCheck = sanitizeBashCommand(command);
+  if (!secCheck.safe) {
+    return Promise.reject(new Error(`[Security Check] Comando bloqueado: ${secCheck.error}`));
+  }
   if (process.platform === 'linux') {
     return new Promise((resolve) => {
       exec(command, { maxBuffer: 1024 * 1024 * 10 }, (err, stdout, stderr) => {
