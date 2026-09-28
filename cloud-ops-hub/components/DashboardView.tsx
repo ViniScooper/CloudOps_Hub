@@ -5,6 +5,7 @@ import {
   MoreHorizontal, ArrowUpRight, RotateCcw, Database, Cloud, Archive, Copy, ExternalLink, Server, ShieldCheck
 } from 'lucide-react'
 import { getApiUrl } from '../lib/api'
+import { ResourceHistoryChart } from './ResourceHistoryChart'
 
 interface DashboardViewProps {
   server: any
@@ -360,6 +361,8 @@ export function DashboardView({
           })()}
         </section>
       </div>
+
+      <ResourceHistoryChart doAction={doAction} />
     </>
   )
 }
