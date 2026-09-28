@@ -137,16 +137,20 @@ async function integrationsRoutes(fastify, options) {
   });
 
   fastify.get('/api/vercel/deployments', async (request, reply) => {
-    const { limit = 10 } = request.query || {};
+    const { limit = 10, project, projectName } = request.query || {};
     const token = request.headers['x-vercel-token'] || '';
-    return vercelService.getDeployments(Number(limit), token);
+    return vercelService.getDeployments(Number(limit), token, project || projectName);
   });
 
   fastify.post('/api/vercel/redeploy', async (request, reply) => {
-    const { deploymentId } = request.body || {};
+    const { deploymentId, project, projectName } = request.body || {};
     const token = request.headers['x-vercel-token'] || '';
     try {
-      return await vercelService.triggerRedeploy(deploymentId, token);
+      return await vercelService.triggerRedeploy({
+        deploymentId,
+        userToken: token,
+        projectName: project || projectName
+      });
     } catch (err) {
       return reply.status(500).send({ success: false, error: err.message });
     }

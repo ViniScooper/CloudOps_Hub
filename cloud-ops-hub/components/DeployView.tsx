@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { GitSetupModal } from './GitSetupModal'
 import { CloneRepoModal } from './CloneRepoModal'
+import { VercelIcon } from './VercelDeploymentsView'
 import { getApiUrl } from '../lib/api'
 
 interface DeployViewProps {
@@ -41,6 +42,7 @@ export function DeployView({ server, doAction }: DeployViewProps) {
   const [showTokenInput, setShowTokenInput] = useState(false)
   const [lastDeployTime, setLastDeployTime] = useState('Hoje, 11:45 (v2.4.0)')
   const [history, setHistory] = useState<DeployRecord[]>([])
+  const [isDeployingVercel, setIsDeployingVercel] = useState<{ [key: string]: boolean }>({})
 
   const fetchHistory = async () => {
     try {
@@ -118,6 +120,43 @@ export function DeployView({ server, doAction }: DeployViewProps) {
       doAction('Falha ao executar rollback')
     } finally {
       setIsRollingBack(false)
+      fetchHistory()
+    }
+  }
+
+  const triggerVercelDeploy = async (project: string) => {
+    setIsDeployingVercel(prev => ({ ...prev, [project]: true }))
+    doAction(`Disparando deploy de frontend para ${project} na Vercel Edge... ⚡`)
+    setDeployLogs(prev => [
+      `[${new Date().toLocaleTimeString('pt-BR')}] 🌐 Disparando deploy de frontend (${project}) na Vercel Edge...`,
+      ...prev
+    ])
+
+    try {
+      const res = await fetch(getApiUrl('/api/deploy/vercel'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project })
+      })
+
+      const data = await res.json()
+      if (data.logs) {
+        setDeployLogs(prev => [...data.logs, ...prev])
+      }
+      if (data.history) {
+        setHistory(data.history)
+      }
+      if (data.success) {
+        doAction(`Deploy de Frontend (${project}) concluído com sucesso na Vercel! 🌐⚡`)
+        setLastDeployTime(`Agora mesmo (Vercel Edge)`)
+      } else {
+        doAction(`Erro no deploy Vercel: ${data.error || 'Falha na requisição'}`)
+      }
+    } catch (err: any) {
+      setDeployLogs(prev => [`❌ Erro no deploy Vercel: ${err.message}`, ...prev])
+      doAction(`Falha ao conectar com Vercel: ${err.message}`)
+    } finally {
+      setIsDeployingVercel(prev => ({ ...prev, [project]: false }))
       fetchHistory()
     }
   }
@@ -554,11 +593,11 @@ export function DeployView({ server, doAction }: DeployViewProps) {
               Stack: React Vite PWA + Node.js (Oracle ATP)
             </span>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               {/* Botão de Rollback */}
               <button 
                 className="refresh-button"
-                disabled={isDeploying || isMerging || isRollingBack}
+                disabled={isDeploying || isMerging || isRollingBack || isDeployingVercel['controle-financeiro']}
                 onClick={() => triggerRollback('controle-financeiro')}
                 title="Desfaz a última alteração e restaura a versão anterior na VM"
                 style={{
@@ -575,25 +614,56 @@ export function DeployView({ server, doAction }: DeployViewProps) {
                   </span>
                 ) : (
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <RotateCcw size={12} /> Rollback
+                    <RotateCcw size={12} /> Rollback VM
                   </span>
                 )}
               </button>
 
-              {/* Botão de Deploy */}
+              {/* Botão de Deploy Backend (VM) */}
               <button 
                 className="primary-button"
-                disabled={isDeploying || isMerging || isRollingBack}
+                disabled={isDeploying || isMerging || isRollingBack || isDeployingVercel['controle-financeiro']}
                 onClick={() => triggerDeploy('controle-financeiro')}
-                style={{ padding: '7px 16px', fontWeight: 600, background: '#10b981', color: '#090d16' }}
+                title="Atualiza e reinicia o backend Node.js (porta 3006) na VM Oracle"
+                style={{ padding: '7px 14px', fontWeight: 600, background: '#10b981', color: '#090d16', fontSize: '11px' }}
               >
                 {isDeploying ? (
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <RefreshCw size={14} className="spin" /> Fazendo Deploy...
+                    <RefreshCw size={13} className="spin" /> Deploy VM...
                   </span>
                 ) : (
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Rocket size={14} /> Fazer Deploy Agora
+                    <Rocket size={13} /> Deploy Backend (VM)
+                  </span>
+                )}
+              </button>
+
+              {/* Botão de Deploy Frontend (Vercel) */}
+              <button 
+                className="primary-button"
+                disabled={isDeploying || isMerging || isRollingBack || isDeployingVercel['controle-financeiro']}
+                onClick={() => triggerVercelDeploy('controle-financeiro')}
+                title="Compila e publica a interface frontend mais recente diretamente na Vercel Edge"
+                style={{ 
+                  padding: '7px 14px', 
+                  fontWeight: 600, 
+                  background: 'linear-gradient(135deg, #090d16 0%, #171d28 100%)', 
+                  border: '1px solid #334155',
+                  color: '#ffffff', 
+                  fontSize: '11px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: isDeployingVercel['controle-financeiro'] ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {isDeployingVercel['controle-financeiro'] ? (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <RefreshCw size={13} className="spin" /> Publicando Vercel...
+                  </span>
+                ) : (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <VercelIcon size={12} color="#ffffff" /> Deploy Frontend (Vercel)
                   </span>
                 )}
               </button>
@@ -642,10 +712,10 @@ export function DeployView({ server, doAction }: DeployViewProps) {
               Stack: Next.js 14 • Node.js Fastify • Oracle Cloud OCI • Zero Trust
             </span>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <button 
                 className="refresh-button"
-                disabled={isDeploying || isMerging || isRollingBack}
+                disabled={isDeploying || isMerging || isRollingBack || isDeployingVercel['cloudops-hub']}
                 onClick={() => triggerRollback('cloudops_hub')}
                 title="Desfaz a última alteração e restaura a versão estável do Hub na VM"
                 style={{
@@ -662,24 +732,54 @@ export function DeployView({ server, doAction }: DeployViewProps) {
                   </span>
                 ) : (
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <RotateCcw size={12} /> Rollback
+                    <RotateCcw size={12} /> Rollback VM
                   </span>
                 )}
               </button>
 
               <button 
                 className="primary-button"
-                disabled={isDeploying || isMerging || isRollingBack}
+                disabled={isDeploying || isMerging || isRollingBack || isDeployingVercel['cloudops-hub']}
                 onClick={() => triggerDeploy('cloudops_hub')}
-                style={{ padding: '7px 16px', fontWeight: 600, background: '#20d6c7', color: '#03080a' }}
+                title="Atualiza e reinicia o backend Fastify e console na VM"
+                style={{ padding: '7px 14px', fontWeight: 600, background: '#20d6c7', color: '#03080a', fontSize: '11px' }}
               >
                 {isDeploying ? (
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <RefreshCw size={14} className="spin" /> Atualizando...
+                    <RefreshCw size={13} className="spin" /> Atualizando VM...
                   </span>
                 ) : (
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Rocket size={14} /> Fazer Deploy / Reiniciar Hub
+                    <Rocket size={13} /> Deploy VM
+                  </span>
+                )}
+              </button>
+
+              <button 
+                className="primary-button"
+                disabled={isDeploying || isMerging || isRollingBack || isDeployingVercel['cloudops-hub']}
+                onClick={() => triggerVercelDeploy('cloudops-hub')}
+                title="Publica a interface Next.js do CloudOps Hub na Vercel Edge"
+                style={{ 
+                  padding: '7px 14px', 
+                  fontWeight: 600, 
+                  background: 'linear-gradient(135deg, #090d16 0%, #171d28 100%)', 
+                  border: '1px solid #334155',
+                  color: '#ffffff', 
+                  fontSize: '11px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: isDeployingVercel['cloudops-hub'] ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {isDeployingVercel['cloudops-hub'] ? (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <RefreshCw size={13} className="spin" /> Publicando Vercel...
+                  </span>
+                ) : (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <VercelIcon size={12} color="#ffffff" /> Deploy Frontend (Vercel)
                   </span>
                 )}
               </button>

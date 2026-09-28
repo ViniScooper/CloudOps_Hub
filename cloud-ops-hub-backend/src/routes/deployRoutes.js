@@ -5,6 +5,7 @@
 const deployService = require('../deployService');
 const githubService = require('../githubService');
 const oracleScraper = require('../oracleScraper');
+const vercelService = require('../vercelService');
 const auditService = require('../auditService');
 const { extractClientIp } = require('../security');
 
@@ -140,6 +141,90 @@ async function deployRoutes(fastify, options) {
         error: err.message,
         logs: [
           `[${new Date().toLocaleTimeString('pt-BR')}] ❌ Falha no Rollback SSH: ${err.message}`
+        ]
+      });
+    }
+  });
+
+  // Deploy Frontend na Vercel (Edge 1-Click)
+  fastify.post('/api/deploy/vercel', {
+    config: {
+      rateLimit: {
+        max: 10,
+        timeWindow: '1 minute'
+      }
+    }
+  }, async (request, reply) => {
+    const { project = 'controle-financeiro', deploymentId } = request.body || {};
+    const clientIp = extractClientIp(request);
+    const token = request.headers['x-vercel-token'] || '';
+
+    try {
+      const result = await vercelService.triggerRedeploy({
+        deploymentId,
+        userToken: token,
+        projectName: project
+      });
+
+      const projectNameFormatted = project === 'controle-financeiro' 
+        ? 'FinControl (Frontend Vercel)' 
+        : (project === 'cloudops-hub' ? 'CloudOps Hub (Frontend Vercel)' : `${project} (Vercel)`);
+
+      const depRecord = {
+        id: `ver-${Math.floor(1000 + Math.random() * 9000)}`,
+        timestamp: new Date().toLocaleString('pt-BR'),
+        project: projectNameFormatted,
+        type: 'DEPLOY',
+        branch: result.deployment?.gitSource?.ref || 'main',
+        commitHash: result.deployment?.gitSource?.sha ? result.deployment.gitSource.sha.substring(0, 7) : 'edge',
+        commitMessage: result.deployment?.meta?.githubCommitMessage || 'Deploy Frontend acionado via CloudOps Hub',
+        author: result.deployment?.creator?.username || 'DevOps',
+        duration: 'Vercel Edge',
+        status: 'Sucesso'
+      };
+      const updatedHistory = deployService.appendDeployHistory(depRecord);
+
+      auditService.logEvent({
+        user: 'deployer',
+        action: 'DEPLOY_VERCEL',
+        target: project,
+        ip: clientIp,
+        status: 'SUCCESS',
+        details: result.message || 'Deploy na Vercel disparado'
+      });
+
+      oracleScraper.sendWhatsAppNotification(
+        `⚡ *CloudOps Hub:* Deploy do Frontend (*${project}*) disparado com sucesso na Vercel Edge!\n\nDomínio: ${result.deployment?.url ? 'https://' + result.deployment.url : 'Global CDN'}`
+      );
+
+      return {
+        success: true,
+        project,
+        result,
+        history: updatedHistory.slice(0, 10),
+        logs: [
+          `[${new Date().toLocaleTimeString('pt-BR')}] 🚀 Deploy do frontend (${project}) enviado para a Vercel com sucesso!`,
+          `[${new Date().toLocaleTimeString('pt-BR')}] ⚡ ID do Deploy: ${result.deployment?.id || 'Iniciado'}`,
+          `[${new Date().toLocaleTimeString('pt-BR')}] 🌐 URL: ${result.deployment?.url ? 'https://' + result.deployment.url : 'Global CDN'}`,
+          `[${new Date().toLocaleTimeString('pt-BR')}] ✅ Compilação e distribuição em andamento na CDN global da Vercel.`
+        ]
+      };
+    } catch (err) {
+      auditService.logEvent({
+        user: 'deployer',
+        action: 'DEPLOY_VERCEL',
+        target: project,
+        ip: clientIp,
+        status: 'FAILED',
+        details: err.message
+      });
+
+      return reply.status(500).send({
+        success: false,
+        project,
+        error: err.message,
+        logs: [
+          `[${new Date().toLocaleTimeString('pt-BR')}] ❌ Falha no Deploy Vercel: ${err.message}`
         ]
       });
     }

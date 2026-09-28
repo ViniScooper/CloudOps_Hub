@@ -92,14 +92,15 @@ async function testToken(token) {
 }
 
 // Lista os últimos deployments do projeto
-async function getDeployments(limit = 10, userToken = '') {
+async function getDeployments(limit = 10, userToken = '', projectName = '') {
   const config = getVercelConfig();
   const token = userToken || config.token;
+  const targetProject = projectName || config.projectName;
 
   if (!token) {
     return {
       configured: false,
-      projectName: config.projectName,
+      projectName: targetProject,
       productionDomain: config.productionDomain,
       deployments: [],
       message: 'Token de acesso da Vercel ainda não configurado.'
@@ -108,7 +109,7 @@ async function getDeployments(limit = 10, userToken = '') {
 
   try {
     const data = await vercelFetch(
-      `/v6/deployments?app=${encodeURIComponent(config.projectName)}&limit=${limit}`,
+      `/v6/deployments?app=${encodeURIComponent(targetProject)}&limit=${limit}`,
       {},
       token
     );
@@ -136,7 +137,7 @@ async function getDeployments(limit = 10, userToken = '') {
 
     return {
       configured: true,
-      projectName: config.projectName,
+      projectName: targetProject,
       productionDomain: config.productionDomain,
       total: deployments.length,
       latest: deployments[0] || null,
@@ -146,7 +147,7 @@ async function getDeployments(limit = 10, userToken = '') {
     return {
       configured: true,
       error: err.message,
-      projectName: config.projectName,
+      projectName: targetProject,
       productionDomain: config.productionDomain,
       deployments: []
     };
@@ -154,12 +155,26 @@ async function getDeployments(limit = 10, userToken = '') {
 }
 
 // Dispara um novo deploy (Redeploy) na Vercel
-async function triggerRedeploy(deploymentId = '', userToken = '') {
+async function triggerRedeploy(optionsOrId = '', userTokenArg = '', projectNameArg = '') {
   const config = getVercelConfig();
-  const token = userToken || config.token;
+  
+  let deploymentId = '';
+  let userToken = userTokenArg;
+  let projectName = projectNameArg;
 
-  // Se houver Deploy Hook configurado, prioriza o hook (mais rápido e infalível)
-  if (config.deployHookUrl) {
+  if (typeof optionsOrId === 'object' && optionsOrId !== null) {
+    deploymentId = optionsOrId.deploymentId || '';
+    userToken = optionsOrId.userToken || userToken || '';
+    projectName = optionsOrId.projectName || optionsOrId.project || projectName || '';
+  } else {
+    deploymentId = optionsOrId || '';
+  }
+
+  const token = userToken || config.token;
+  const targetProject = projectName || config.projectName;
+
+  // Se houver Deploy Hook configurado e o projeto for o mesmo da configuração padrão
+  if (config.deployHookUrl && (!projectName || projectName === config.projectName)) {
     try {
       const hookRes = await fetch(config.deployHookUrl, { method: 'POST' });
       if (hookRes.ok) {
@@ -167,7 +182,7 @@ async function triggerRedeploy(deploymentId = '', userToken = '') {
         return {
           success: true,
           method: 'deploy_hook',
-          message: '🚀 Redeploy disparado com sucesso via Vercel Deploy Hook!',
+          message: `🚀 Redeploy disparado com sucesso via Vercel Deploy Hook para ${targetProject}!`,
           data: hookData
         };
       }
@@ -188,7 +203,7 @@ async function triggerRedeploy(deploymentId = '', userToken = '') {
         {
           method: 'POST',
           body: JSON.stringify({
-            name: config.projectName,
+            name: targetProject,
             deploymentId: deploymentId
           })
         },
@@ -197,7 +212,7 @@ async function triggerRedeploy(deploymentId = '', userToken = '') {
       return {
         success: true,
         method: 'redeploy_api',
-        message: '🚀 Redeploy disparado com sucesso na Vercel!',
+        message: `🚀 Redeploy de ${targetProject} disparado com sucesso na Vercel!`,
         deployment: res
       };
     } catch (apiErr) {
@@ -205,12 +220,13 @@ async function triggerRedeploy(deploymentId = '', userToken = '') {
     }
   }
 
-  // Fallback: Busca o último deployment de produção e dispara o redeploy dele
-  const current = await getDeployments(1, token);
-  const targetId = current.latest?.id;
+  // Fallback: Busca o último deployment (preferencialmente bem-sucedido) do projeto e dispara o redeploy dele
+  const current = await getDeployments(5, token, targetProject);
+  const targetDep = current.deployments?.find(d => d.state === 'READY') || current.latest;
+  const targetId = targetDep?.id;
 
   if (!targetId) {
-    throw new Error('Nenhum deployment encontrado no projeto para recompilar.');
+    throw new Error(`Nenhum deployment prévio encontrado no projeto "${targetProject}" para recompilar.`);
   }
 
   const res = await vercelFetch(
@@ -218,7 +234,7 @@ async function triggerRedeploy(deploymentId = '', userToken = '') {
     {
       method: 'POST',
       body: JSON.stringify({
-        name: config.projectName,
+        name: targetProject,
         deploymentId: targetId
       })
     },
@@ -228,7 +244,7 @@ async function triggerRedeploy(deploymentId = '', userToken = '') {
   return {
     success: true,
     method: 'redeploy_api',
-    message: '🚀 Redeploy da versão de produção iniciado com sucesso!',
+    message: `🚀 Redeploy da versão de produção de ${targetProject} iniciado com sucesso na Vercel!`,
     deployment: res
   };
 }
