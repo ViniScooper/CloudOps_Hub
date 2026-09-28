@@ -526,14 +526,23 @@ function getDeployHistory() {
   return loadHistory().slice(0, 10);
 }
 
+function appendDeployHistory(record) {
+  const history = loadHistory();
+  history.unshift(record);
+  saveHistory(history);
+  return history;
+}
+
 module.exports = {
   executeDeploy,
   executeRollback,
   getDeployHistory,
+  appendDeployHistory,
   setupGitOnVm,
   getGitVmStatus,
   cloneAndLaunchProject,
   runRemoteSsh
 };
+
 
 
