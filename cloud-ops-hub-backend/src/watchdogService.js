@@ -1,4 +1,5 @@
 const https = require('https');
+const http = require('http');
 const { runRemoteSsh } = require('./deployService');
 
 let watchdogInterval = null;
@@ -10,11 +11,11 @@ const state = {
   ramTotal: 956,
   selfHealingEvents: [],
   criticalContainers: [
-    { name: 'boteco_db', status: 'unknown', essential: true },
-    { name: 'boteco_backend', status: 'unknown', essential: true },
-    { name: 'boteco_tunnel', status: 'unknown', essential: true },
-    { name: 'financeiro_backend', status: 'unknown', essential: true },
-    { name: 'nginx-manager-nginx-1', status: 'unknown', essential: true }
+    { name: 'financeiro_backend', status: 'unknown', essential: true, healthPort: 3006, healthPath: '/api/finance/health', consecutiveFailures: 0 },
+    { name: 'boteco_backend', status: 'unknown', essential: true, healthPort: 3001, healthPath: '/api/health', consecutiveFailures: 0 },
+    { name: 'boteco_db', status: 'unknown', essential: true, consecutiveFailures: 0 },
+    { name: 'boteco_tunnel', status: 'unknown', essential: true, consecutiveFailures: 0 },
+    { name: 'nginx-manager-nginx-1', status: 'unknown', essential: true, consecutiveFailures: 0 }
   ],
   alertsHistory: [],
   lastAlertTimestamps: {}
@@ -154,7 +155,47 @@ async function runHealthCheck() {
           , 15);
         }
       } else {
-        c.status = 'Online (' + statusText + ')';
+        // Container está com status "Up", mas vamos sondar se a API HTTP realmente responde ou se travou (Zombie Process)
+        if (c.healthPort) {
+          try {
+            const probeRes = await runRemoteSsh(`curl -s -o /dev/null -w "%{http_code}" --max-time 4 http://127.0.0.1:${c.healthPort}${c.healthPath || '/'}`);
+            const statusCode = parseInt((probeRes.stdout || '').trim(), 10);
+            const isHealthy = statusCode >= 200 && statusCode < 500;
+
+            if (isHealthy) {
+              c.consecutiveFailures = 0;
+              c.status = `Online (HTTP ${statusCode} OK)`;
+            } else {
+              c.consecutiveFailures = (c.consecutiveFailures || 0) + 1;
+              console.warn(`[Watchdog Probe] Container ${c.name} respondeu HTTP ${statusCode || '000/Timeout'} (Falha ${c.consecutiveFailures}/3)`);
+
+              if (c.consecutiveFailures >= 3) {
+                console.warn(`[Watchdog Auto-Healing] Container ${c.name} travou em loop/deadlock (3 falhas consecutivas). Executando Auto-Healing...`);
+                await runRemoteSsh(`docker restart ${c.name}`);
+                c.consecutiveFailures = 0;
+                c.status = `Online (Auto-curado de travamento HTTP)`;
+
+                state.selfHealingEvents.unshift({
+                  container: c.name,
+                  recoveredAt: new Date().toISOString(),
+                  status: `Recuperado de travamento HTTP (código ${statusCode})`
+                });
+
+                await triggerAlert(
+                  `probe_heal_${c.name}`,
+                  `🛡️ *[CloudOps Watchdog — Auto-Cura de Travamento]*\n\nO container *${c.name}* estava em execução mas parou de responder a requisições HTTP (código ${statusCode || 'Timeout'}).\n\n✅ *Ação do Sentinela:* Container reiniciado automaticamente!\n⚡ *Status:* Serviço restabelecido com sucesso.\n⏰ *Horário:* ${new Date().toLocaleTimeString('pt-BR')}`
+                , 15);
+              } else {
+                c.status = `Alerta: Resposta HTTP ${statusCode || 'Timeout'} (${c.consecutiveFailures}/3)`;
+              }
+            }
+          } catch (probeErr) {
+            // Em caso de falha de conexão SSH transitória
+            c.status = 'Online (' + statusText + ')';
+          }
+        } else {
+          c.status = 'Online (' + statusText + ')';
+        }
       }
     }
 

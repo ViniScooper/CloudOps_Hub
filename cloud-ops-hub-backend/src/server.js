@@ -65,8 +65,12 @@ const start = async () => {
     // Inicia agendador de Cron / Anti-Sleep
     cronService.initCronScheduler();
 
-    // Inicia Watchdog de Monitoramento Proativo de RAM e Containers (a cada 3 min)
+    // Inicia Watchdog de Monitoramento Proativo de RAM e Containers com Auto-Healing (a cada 3 min)
     watchdogService.startWatchdog(3);
+
+    // Inicia Coletor de Métricas Históricas no Oracle ATP (a cada 10 min)
+    const oracleMetricsService = require('./oracleMetricsService');
+    oracleMetricsService.startMetricsCollector(10);
 
     const port = process.env.PORT || 3005;
     await app.listen({ port: Number(port), host: '0.0.0.0' });

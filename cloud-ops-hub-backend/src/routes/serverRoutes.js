@@ -211,6 +211,28 @@ async function serverRoutes(fastify, options) {
     });
   });
 
+  // Endpoints de Métricas Históricas no Oracle ATP (Time-Series)
+  const oracleMetricsService = require('../oracleMetricsService');
+
+  fastify.get('/api/metrics/history', async (request, reply) => {
+    const { limit = 36 } = request.query || {};
+    try {
+      const history = await oracleMetricsService.getMetricsHistory(Number(limit) || 36);
+      return { success: true, history };
+    } catch (err) {
+      return reply.status(500).send({ success: false, error: err.message });
+    }
+  });
+
+  fastify.post('/api/metrics/collect', async (request, reply) => {
+    try {
+      const record = await oracleMetricsService.collectAndRecordMetrics();
+      return { success: true, record };
+    } catch (err) {
+      return reply.status(500).send({ success: false, error: err.message });
+    }
+  });
+
   // Executar comando no Terminal da VM via SSH com SANITIZAÇÃO e AUDITORIA
   fastify.post('/api/servers/exec', {
     config: {

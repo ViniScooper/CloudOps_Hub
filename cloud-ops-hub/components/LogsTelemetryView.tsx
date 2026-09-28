@@ -22,6 +22,7 @@ import {
   X
 } from 'lucide-react'
 import { getApiUrl } from '../lib/api'
+import { LiveContainerLogs } from './LiveContainerLogs'
 
 interface TelemetryLog {
   id: string
@@ -46,6 +47,7 @@ export function LogsTelemetryView({ doAction }: { doAction: (msg: string) => voi
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedLog, setSelectedLog] = useState<TelemetryLog | null>(null)
   const [autoRefresh, setAutoRefresh] = useState(false)
+  const [activeTab, setActiveTab] = useState<'telemetry' | 'docker'>('docker')
 
   const fetchLogs = async () => {
     try {
@@ -189,6 +191,50 @@ export function LogsTelemetryView({ doAction }: { doAction: (msg: string) => voi
         </div>
       </div>
 
+      {/* SELETOR DE MODO: LIVE DOCKER LOGS vs TELEMETRIA DE ERROS */}
+      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '12px' }}>
+        <button
+          onClick={() => setActiveTab('docker')}
+          style={{
+            background: activeTab === 'docker' ? 'rgba(32, 214, 199, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+            color: activeTab === 'docker' ? '#20d6c7' : '#9ca3af',
+            border: activeTab === 'docker' ? '1px solid #20d6c7' : '1px solid rgba(255, 255, 255, 0.08)',
+            padding: '8px 16px',
+            borderRadius: '8px',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <Terminal size={16} /> 🐳 Live Logs dos Containers Docker
+        </button>
+        <button
+          onClick={() => setActiveTab('telemetry')}
+          style={{
+            background: activeTab === 'telemetry' ? 'rgba(32, 214, 199, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+            color: activeTab === 'telemetry' ? '#20d6c7' : '#9ca3af',
+            border: activeTab === 'telemetry' ? '1px solid #20d6c7' : '1px solid rgba(255, 255, 255, 0.08)',
+            padding: '8px 16px',
+            borderRadius: '8px',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <ShieldAlert size={16} /> 📊 Telemetria de Erros & Tráfego HTTP ({metrics.total})
+        </button>
+      </div>
+
+      {activeTab === 'docker' ? (
+        <LiveContainerLogs doAction={doAction} />
+      ) : (
+        <>
       {/* CARDS DE MÉTRICAS */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
         <div style={{ background: '#0e1518', border: '1px solid #182326', borderRadius: '12px', padding: '14px 18px' }}>
@@ -549,6 +595,8 @@ export function LogsTelemetryView({ doAction }: { doAction: (msg: string) => voi
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   )
