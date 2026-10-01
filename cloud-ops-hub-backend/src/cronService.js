@@ -18,12 +18,26 @@ function getJobs() {
   return [
     {
       id: 'cron_render_antisleep',
-      name: 'Guardião Anti-Sleep Render',
+      name: 'Guardião Anti-Sleep CloudOps',
       description: 'Ping a cada 10 min para evitar o modo sleep de 15 min do plano Free do Render',
       targetUrl: 'https://cloud-ops-hub-backend.onrender.com/api/health',
       method: 'GET',
       intervalMinutes: 10,
       enabled: false,
+      lastRun: null,
+      lastStatus: null,
+      lastLatencyMs: null,
+      lastError: null,
+      history: []
+    },
+    {
+      id: 'cron_job_tracker_render',
+      name: 'Guardião Anti-Sleep — Job Tracker API',
+      description: 'Ping a cada 10 min na API do Job Tracker no Render para evitar cold-start',
+      targetUrl: 'https://job-tracker-1-e7fg.onrender.com/health',
+      method: 'GET',
+      intervalMinutes: 10,
+      enabled: true,
       lastRun: null,
       lastStatus: null,
       lastLatencyMs: null,
