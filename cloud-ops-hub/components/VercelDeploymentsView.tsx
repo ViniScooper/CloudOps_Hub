@@ -60,6 +60,15 @@ export const VERCEL_PROJECTS: VercelProjectConfig[] = [
     url: 'https://cardapio-digital.vercel.app/',
     branch: 'main',
     framework: 'Next.js / Node'
+  },
+  {
+    id: 'job_tracker',
+    name: 'Job Tracker (Rastreamento de Vagas)',
+    repo: 'TekoFamily/job_tracker',
+    domain: 'job-tracker-lac-five.vercel.app',
+    url: 'https://job-tracker-lac-five.vercel.app/',
+    branch: 'main',
+    framework: 'React 19 Vite SPA'
   }
 ]
 
