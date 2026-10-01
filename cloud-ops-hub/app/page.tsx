@@ -5,7 +5,7 @@ import {
   Activity, Bell, Check, ChevronDown, CircleHelp, Cloud, Container, Database,
   HardDrive, LayoutDashboard, Menu, MoreHorizontal, Network, Plus, RefreshCw,
   Search, Server, Settings, TerminalSquare, X, Zap, Globe2, ArrowUpRight,
-  RotateCcw, Layers3, Shield, LogOut, Users, Rocket, KeyRound, Bot, ArrowLeftRight, Briefcase
+  RotateCcw, Layers3, Shield, LogOut, Users, Rocket, KeyRound, Bot, ArrowLeftRight
 } from 'lucide-react'
 import { VmScraper } from '../components/VmScraper'
 import { DashboardView } from '../components/DashboardView'
@@ -19,7 +19,6 @@ import { LogsTelemetryView } from '../components/LogsTelemetryView'
 import { MigrationWorkspaceView } from '../components/MigrationWorkspaceView'
 import { VercelDeploymentsView, VercelIcon } from '../components/VercelDeploymentsView'
 import { RenderDeploymentsView, RenderIcon } from '../components/RenderDeploymentsView'
-import { JobTrackerView } from '../components/JobTrackerView'
 import { LoginView } from '../components/LoginView'
 import { UserManagementView } from '../components/UserManagementView'
 import { SettingsView } from '../components/SettingsView'
@@ -42,7 +41,6 @@ const navSections = [
       { label: 'Vercel Frontend', icon: VercelIcon, badge: 'Edge' },
       { label: 'Render Backend', icon: RenderIcon, badge: 'PaaS' },
       { label: 'Monitoramento & Logs', icon: Activity, badge: 'Realtime' },
-      { label: 'Job Tracker', icon: Briefcase, badge: 'Vagas' },
       { label: 'Migração Multi-Cloud', icon: ArrowLeftRight, badge: '1-Click' },
     ]
   },
@@ -1111,10 +1109,6 @@ export default function Page() {
 
           {active === 'Render Backend' && (
             <RenderDeploymentsView doAction={doAction} />
-          )}
-
-          {active === 'Job Tracker' && (
-            <JobTrackerView doAction={doAction} />
           )}
 
           {active === 'Migração Multi-Cloud' && (
