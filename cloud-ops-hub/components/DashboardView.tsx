@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { getApiUrl } from '../lib/api'
 import { ResourceHistoryChart } from './ResourceHistoryChart'
+import { VmBotsSection } from './VmBotsSection'
 
 interface DashboardViewProps {
   server: any
@@ -130,6 +131,13 @@ export function DashboardView({
           Ver todos os containers e serviços <span>→</span>
         </button>
       </section>
+
+      {/* Robôs & Automações da VM Ativa */}
+      <VmBotsSection 
+        server={server} 
+        doAction={doAction} 
+        onOpenScraperModal={() => setActive('VM Scraper')} 
+      />
 
       <div className="section-heading lower-heading">
         <div>
