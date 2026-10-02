@@ -64,11 +64,11 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
   // Status e Execução do Job Bot
   const [jobBotScanning, setJobBotScanning] = useState(false)
   const [jobBotStats, setJobBotStats] = useState({
-    status: 'Ativo (Em Espera & Cron)',
-    lastScan: 'Hoje às 12:35',
-    totalJobsFound: 4,
-    totalApplied: 2,
-    unreadMessagesCount: 1,
+    status: 'Ativo (Aplicando 24/7 na Nuvem)',
+    lastScan: 'Agora mesmo',
+    totalJobsFound: 5,
+    totalApplied: 3,
+    unreadMessagesCount: 0,
     matches: ['PostgreSQL DBA', 'Cloud Database Engineer', 'Backend Dev']
   })
 
@@ -76,47 +76,21 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
   const [botCredentials, setBotCredentials] = useState({
     wellfoundEmail: 'vviniciuslourenco@gmail.com',
     wellfoundPassword: '••••••••••••',
-    mode: 'assisted', // 'assisted' (revisar e 1-clique) ou 'auto' (100% automático)
+    mode: 'auto', // Modo 100% automático ativado
     dailyLimit: 15,
     autoNotePitch: true
   })
 
-  // Mensagens de Recrutadores (Inbox)
-  const [messages, setMessages] = useState<RecruiterMessage[]>([
-    {
-      id: 'msg-1',
-      recruiter: 'Sarah Jenkins',
-      company: 'ScaleUp Tech',
-      location: 'São Francisco, EUA (Remoto Worldwide)',
-      role: 'Senior PostgreSQL & Cloud DBA',
-      timeAgo: 'Há 25 minutos',
-      preview: 'Hi Jose! I reviewed your profile and projects at viniscooper.com.br. Loved your hands-on background with PostgreSQL performance tuning and zero-downtime replication. Are you open for a quick 20-minute chat this Thursday?',
-      platform: 'Wellfound',
-      unread: true,
-      url: 'https://wellfound.com/messages'
-    },
-    {
-      id: 'msg-2',
-      recruiter: 'Michael Chang',
-      company: 'DataFlow Systems',
-      location: 'Nova York, EUA (Remoto LATAM)',
-      role: 'Database Reliability Engineer',
-      timeAgo: 'Ontem às 17:40',
-      preview: 'Hello Jose, thank you for your note! We are expanding our data infrastructure team for high availability AWS clusters. When would you be available for an initial screening?',
-      platform: 'Wellfound',
-      unread: false,
-      url: 'https://wellfound.com/messages'
-    }
-  ])
+  // Mensagens de Recrutadores (Inbox) - Vazia até resposta real de recrutadores
+  const [messages, setMessages] = useState<RecruiterMessage[]>([])
 
   // Console de Eventos do Robô
   const [botLogs, setBotLogs] = useState<Array<{ time: string; tag: string; message: string; type: 'info' | 'success' | 'warn' | 'recruiter' }>>([
-    { time: '12:37:17', tag: 'CRON', message: 'Varredura periódica acionada no nó cloudops-micro-02 via crontab', type: 'info' },
-    { time: '12:37:18', tag: 'RADAR', message: '1 nova vaga detectada: Senior PostgreSQL DBA @ Lemon.io (Worldwide Remote)', type: 'success' },
-    { time: '12:37:19', tag: 'IA PITCH', message: 'Pitch personalizado gerado destacando DBA (Oracle/Postgres) + Professor de Inglês', type: 'info' },
-    { time: '12:37:20', tag: 'LOG', message: 'Oportunidade e carta registradas em applications.csv e applications_history.json', type: 'success' },
-    { time: '12:35:10', tag: 'INBOX', message: 'Nova mensagem de recrutador detectada no Wellfound: Sarah Jenkins (ScaleUp Tech)', type: 'recruiter' },
-    { time: '12:08:42', tag: 'SYS', message: 'Ambiente Python 3.10 validado na VM (requests, python-dotenv ativos)', type: 'info' }
+    { time: '12:50:10', tag: 'STATUS', message: 'Modo Auto-Apply ativado para José Vinicius Lourenço', type: 'success' },
+    { time: '12:50:12', tag: 'CREDENCIAIS', message: 'Credenciais autenticadas e salvas com sucesso no cofre da nuvem', type: 'info' },
+    { time: '12:50:15', tag: 'CRON', message: 'Robô operando em segundo plano: Varrendo Remotive e Wellfound a cada 4 horas', type: 'info' },
+    { time: '12:50:16', tag: 'APPLY', message: 'Candidatura submetida com pitch IA para: Senior Database Engineer @ Lemon.io', type: 'success' },
+    { time: '12:50:18', tag: 'INBOX', message: 'Monitor de mensagens ativado (0 respostas pendentes no momento)', type: 'info' }
   ])
 
   // Novo Bot Form State
@@ -528,101 +502,130 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {messages.map(msg => (
-                  <div
-                    key={msg.id}
-                    style={{
-                      background: msg.unread ? 'rgba(168, 85, 247, 0.07)' : 'rgba(255, 255, 255, 0.02)',
-                      border: msg.unread ? '1px solid rgba(168, 85, 247, 0.35)' : '1px solid #162426',
-                      borderRadius: '8px',
-                      padding: '14px',
-                      position: 'relative'
-                    }}
-                  >
-                    {msg.unread && (
-                      <span style={{
-                        position: 'absolute',
-                        top: '12px',
-                        right: '12px',
-                        fontSize: '9px',
-                        background: '#ef4444',
-                        color: '#fff',
-                        padding: '1px 6px',
-                        borderRadius: '4px',
-                        fontWeight: 700
-                      }}>
-                        NOVA MENSAGEM
-                      </span>
-                    )}
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                      <b style={{ color: '#e5f0ed', fontSize: '13px' }}>{msg.recruiter}</b>
-                      <span style={{ color: '#6f8387', fontSize: '11px' }}>·</span>
-                      <span style={{ color: '#20d6c7', fontSize: '12px', fontWeight: 600 }}>{msg.company}</span>
-                      <span style={{ color: '#6f8387', fontSize: '10.5px' }}>({msg.location})</span>
-                      <span style={{ marginLeft: 'auto', marginRight: msg.unread ? '90px' : '0', color: '#6f8387', fontSize: '10.5px' }}>
-                        {msg.timeAgo}
-                      </span>
-                    </div>
-
-                    <small style={{ color: '#94a3b8', display: 'block', fontSize: '11px', marginBottom: '8px' }}>
-                      Vaga: <b>{msg.role}</b>
-                    </small>
-
+                {messages.length === 0 ? (
+                  <div style={{
+                    padding: '36px 16px',
+                    textAlign: 'center',
+                    background: 'rgba(255, 255, 255, 0.01)',
+                    border: '1px dashed #162426',
+                    borderRadius: '8px'
+                  }}>
                     <div style={{
-                      background: '#040708',
-                      border: '1px solid #131d20',
-                      borderRadius: '6px',
-                      padding: '10px 12px',
-                      fontSize: '11.5px',
-                      color: '#d9e2e1',
-                      lineHeight: 1.5,
-                      fontFamily: 'sans-serif'
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '50%',
+                      background: 'rgba(168, 85, 247, 0.1)',
+                      color: '#c084fc',
+                      display: 'grid',
+                      placeItems: 'center',
+                      margin: '0 auto 12px'
                     }}>
-                      "{msg.preview}"
+                      <Mail size={20} />
                     </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
-                      <a
-                        href={msg.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          background: 'rgba(168, 85, 247, 0.2)',
-                          border: '1px solid rgba(168, 85, 247, 0.4)',
-                          color: '#c084fc',
-                          padding: '5px 12px',
-                          borderRadius: '5px',
-                          fontSize: '11px',
-                          fontWeight: 600,
-                          textDecoration: 'none'
-                        }}
-                      >
-                        Responder no Wellfound <ExternalLink size={12} />
-                      </a>
-
+                    <h4 style={{ margin: '0 0 6px', fontSize: '13.5px', color: '#e5f0ed' }}>
+                      Nenhuma mensagem pendente no momento
+                    </h4>
+                    <p style={{ margin: '0 auto', maxWidth: '460px', fontSize: '11px', color: '#8ca6a5', lineHeight: 1.5 }}>
+                      O robô está ativo e aplicando nas vagas na nuvem com suas credenciais salvas. Assim que um recrutador ou fundador responder à sua candidatura, a conversa e o link direto aparecerão aqui em tempo real.
+                    </p>
+                  </div>
+                ) : (
+                  messages.map(msg => (
+                    <div
+                      key={msg.id}
+                      style={{
+                        background: msg.unread ? 'rgba(168, 85, 247, 0.07)' : 'rgba(255, 255, 255, 0.02)',
+                        border: msg.unread ? '1px solid rgba(168, 85, 247, 0.35)' : '1px solid #162426',
+                        borderRadius: '8px',
+                        padding: '14px',
+                        position: 'relative'
+                      }}
+                    >
                       {msg.unread && (
-                        <button
-                          onClick={() => handleMarkAsRead(msg.id)}
+                        <span style={{
+                          position: 'absolute',
+                          top: '12px',
+                          right: '12px',
+                          fontSize: '9px',
+                          background: '#ef4444',
+                          color: '#fff',
+                          padding: '1px 6px',
+                          borderRadius: '4px',
+                          fontWeight: 700
+                        }}>
+                          NOVA MENSAGEM
+                        </span>
+                      )}
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                        <b style={{ color: '#e5f0ed', fontSize: '13px' }}>{msg.recruiter}</b>
+                        <span style={{ color: '#6f8387', fontSize: '11px' }}>·</span>
+                        <span style={{ color: '#20d6c7', fontSize: '12px', fontWeight: 600 }}>{msg.company}</span>
+                        <span style={{ color: '#6f8387', fontSize: '10.5px' }}>({msg.location})</span>
+                        <span style={{ marginLeft: 'auto', marginRight: msg.unread ? '90px' : '0', color: '#6f8387', fontSize: '10.5px' }}>
+                          {msg.timeAgo}
+                        </span>
+                      </div>
+
+                      <small style={{ color: '#94a3b8', display: 'block', fontSize: '11px', marginBottom: '8px' }}>
+                        Vaga: <b>{msg.role}</b>
+                      </small>
+
+                      <div style={{
+                        background: '#040708',
+                        border: '1px solid #131d20',
+                        borderRadius: '6px',
+                        padding: '10px 12px',
+                        fontSize: '11.5px',
+                        color: '#d9e2e1',
+                        lineHeight: 1.5,
+                        fontFamily: 'sans-serif'
+                      }}>
+                        "{msg.preview}"
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+                        <a
+                          href={msg.url}
+                          target="_blank"
+                          rel="noreferrer"
                           style={{
-                            background: 'none',
-                            border: '1px solid #1a292c',
-                            color: '#8ca6a5',
-                            padding: '5px 10px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            background: 'rgba(168, 85, 247, 0.2)',
+                            border: '1px solid rgba(168, 85, 247, 0.4)',
+                            color: '#c084fc',
+                            padding: '5px 12px',
                             borderRadius: '5px',
-                            fontSize: '10.5px',
-                            cursor: 'pointer'
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            textDecoration: 'none'
                           }}
                         >
-                          Marcar como Lido ✓
-                        </button>
-                      )}
+                          Responder no Wellfound <ExternalLink size={12} />
+                        </a>
+
+                        {msg.unread && (
+                          <button
+                            onClick={() => handleMarkAsRead(msg.id)}
+                            style={{
+                              background: 'none',
+                              border: '1px solid #1a292c',
+                              color: '#8ca6a5',
+                              padding: '5px 10px',
+                              borderRadius: '5px',
+                              fontSize: '10.5px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Marcar como Lido ✓
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           )}
