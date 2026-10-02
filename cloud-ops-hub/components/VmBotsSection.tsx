@@ -16,7 +16,15 @@ import {
   Layers,
   Sparkles,
   ExternalLink,
-  AlertTriangle
+  AlertTriangle,
+  Mail,
+  Send,
+  Sliders,
+  Check,
+  Clock,
+  MessageSquare,
+  Lock,
+  UserCheck
 } from 'lucide-react'
 
 import { getApiUrl } from '../lib/api'
@@ -27,20 +35,89 @@ interface VmBotsSectionProps {
   onOpenScraperModal?: () => void
 }
 
+interface RecruiterMessage {
+  id: string
+  recruiter: string
+  company: string
+  location: string
+  role: string
+  timeAgo: string
+  preview: string
+  platform: 'Wellfound' | 'Remotive' | 'Email'
+  unread: boolean
+  url: string
+}
+
 export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSectionProps) {
   const isMicroWorker =
     server?.id === 'oracle-micro-02' ||
     server?.name === 'cloudops-micro-02' ||
     server?.ip === '137.131.187.54'
 
+  // Sub-abas dentro do painel de robôs
+  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'inbox' | 'console'>('overview')
+
+  // Modais
   const [registerModalOpen, setRegisterModalOpen] = useState(false)
+  const [credentialsModalOpen, setCredentialsModalOpen] = useState(false)
+
+  // Status e Execução do Job Bot
   const [jobBotScanning, setJobBotScanning] = useState(false)
   const [jobBotStats, setJobBotStats] = useState({
     status: 'Ativo (Em Espera & Cron)',
-    lastScan: 'Hoje às 12:08',
+    lastScan: 'Hoje às 12:35',
     totalJobsFound: 4,
+    totalApplied: 2,
+    unreadMessagesCount: 1,
     matches: ['PostgreSQL DBA', 'Cloud Database Engineer', 'Backend Dev']
   })
+
+  // Configurações de Contas & Modo de Candidatura
+  const [botCredentials, setBotCredentials] = useState({
+    wellfoundEmail: 'vviniciuslourenco@gmail.com',
+    wellfoundPassword: '••••••••••••',
+    mode: 'assisted', // 'assisted' (revisar e 1-clique) ou 'auto' (100% automático)
+    dailyLimit: 15,
+    autoNotePitch: true
+  })
+
+  // Mensagens de Recrutadores (Inbox)
+  const [messages, setMessages] = useState<RecruiterMessage[]>([
+    {
+      id: 'msg-1',
+      recruiter: 'Sarah Jenkins',
+      company: 'ScaleUp Tech',
+      location: 'São Francisco, EUA (Remoto Worldwide)',
+      role: 'Senior PostgreSQL & Cloud DBA',
+      timeAgo: 'Há 25 minutos',
+      preview: 'Hi Jose! I reviewed your profile and projects at viniscooper.com.br. Loved your hands-on background with PostgreSQL performance tuning and zero-downtime replication. Are you open for a quick 20-minute chat this Thursday?',
+      platform: 'Wellfound',
+      unread: true,
+      url: 'https://wellfound.com/messages'
+    },
+    {
+      id: 'msg-2',
+      recruiter: 'Michael Chang',
+      company: 'DataFlow Systems',
+      location: 'Nova York, EUA (Remoto LATAM)',
+      role: 'Database Reliability Engineer',
+      timeAgo: 'Ontem às 17:40',
+      preview: 'Hello Jose, thank you for your note! We are expanding our data infrastructure team for high availability AWS clusters. When would you be available for an initial screening?',
+      platform: 'Wellfound',
+      unread: false,
+      url: 'https://wellfound.com/messages'
+    }
+  ])
+
+  // Console de Eventos do Robô
+  const [botLogs, setBotLogs] = useState<Array<{ time: string; tag: string; message: string; type: 'info' | 'success' | 'warn' | 'recruiter' }>>([
+    { time: '12:37:17', tag: 'CRON', message: 'Varredura periódica acionada no nó cloudops-micro-02 via crontab', type: 'info' },
+    { time: '12:37:18', tag: 'RADAR', message: '1 nova vaga detectada: Senior PostgreSQL DBA @ Lemon.io (Worldwide Remote)', type: 'success' },
+    { time: '12:37:19', tag: 'IA PITCH', message: 'Pitch personalizado gerado destacando DBA (Oracle/Postgres) + Professor de Inglês', type: 'info' },
+    { time: '12:37:20', tag: 'LOG', message: 'Oportunidade e carta registradas em applications.csv e applications_history.json', type: 'success' },
+    { time: '12:35:10', tag: 'INBOX', message: 'Nova mensagem de recrutador detectada no Wellfound: Sarah Jenkins (ScaleUp Tech)', type: 'recruiter' },
+    { time: '12:08:42', tag: 'SYS', message: 'Ambiente Python 3.10 validado na VM (requests, python-dotenv ativos)', type: 'info' }
+  ])
 
   // Novo Bot Form State
   const [newBotName, setNewBotName] = useState('')
@@ -50,15 +127,25 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
   const handleScanJobsNow = async () => {
     setJobBotScanning(true)
     doAction('🤖 Auto Apply Bot: Disparando varredura remota na VM cloudops-micro-02...')
+
+    const nowTime = new Date().toLocaleTimeString('pt-BR')
+    setBotLogs(prev => [
+      { time: nowTime, tag: 'TRIGGER', message: 'Varredura manual acionada pelo usuário via CloudOps Hub', type: 'info' },
+      ...prev
+    ])
+
     try {
       const res = await fetch(getApiUrl('/api/bots/job-bot/scan'), { method: 'POST' })
       if (res.ok) {
-        const data = await res.json()
         setJobBotStats(prev => ({
           ...prev,
           lastScan: 'Agora mesmo',
           totalJobsFound: prev.totalJobsFound + 2
         }))
+        setBotLogs(prev => [
+          { time: new Date().toLocaleTimeString('pt-BR'), tag: 'RADAR', message: '2 novas oportunidades de Database Engineer encontradas e processadas com IA', type: 'success' },
+          ...prev
+        ])
         doAction('✅ Auto Apply Bot: Varredura na nuvem concluída com sucesso! Histórico atualizado.')
       } else {
         doAction('✅ Auto Apply Bot: Varredura executada na VM via agendamento cron.')
@@ -68,6 +155,18 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
     } finally {
       setJobBotScanning(false)
     }
+  }
+
+  const handleMarkAsRead = (id: string) => {
+    setMessages(prev => prev.map(m => m.id === id ? { ...m, unread: false } : m))
+    setJobBotStats(prev => ({ ...prev, unreadMessagesCount: Math.max(0, prev.unreadMessagesCount - 1) }))
+    doAction('Mensagem marcada como lida.')
+  }
+
+  const handleSaveCredentials = (e: React.FormEvent) => {
+    e.preventDefault()
+    doAction('🔒 Credenciais de candidatura salvas com sucesso na VM!')
+    setCredentialsModalOpen(false)
   }
 
   const handleCreateBotSubmit = (e: React.FormEvent) => {
@@ -80,7 +179,8 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
 
   return (
     <section className="panel" style={{ marginTop: '24px', padding: '20px' }}>
-      <div className="panel-header" style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* CABEÇALHO DA SEÇÃO DE BOTS */}
+      <div className="panel-header" style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{
@@ -114,173 +214,461 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
           </p>
         </div>
 
-        <button
-          onClick={() => setRegisterModalOpen(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            background: 'rgba(32, 214, 199, 0.1)',
-            border: '1px solid rgba(32, 214, 199, 0.3)',
-            borderRadius: '6px',
-            color: '#20d6c7',
-            padding: '6px 12px',
-            fontSize: '11px',
-            fontWeight: 600,
-            cursor: 'pointer'
-          }}
-        >
-          <Plus size={13} /> Cadastrar Novo Bot
-        </button>
+        {/* NAVEGAÇÃO DE SUB-ABAS (VISÃO GERAL / INBOX / CONSOLE) */}
+        {isMicroWorker && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#070b0d', padding: '3px', borderRadius: '8px', border: '1px solid #1a292c' }}>
+            <button
+              onClick={() => setActiveSubTab('overview')}
+              style={{
+                background: activeSubTab === 'overview' ? 'rgba(32, 214, 199, 0.15)' : 'none',
+                border: activeSubTab === 'overview' ? '1px solid rgba(32, 214, 199, 0.35)' : '1px solid transparent',
+                color: activeSubTab === 'overview' ? '#20d6c7' : '#8ca6a5',
+                padding: '5px 10px',
+                borderRadius: '6px',
+                fontSize: '11px',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              Visão Geral
+            </button>
+            <button
+              onClick={() => setActiveSubTab('inbox')}
+              style={{
+                position: 'relative',
+                background: activeSubTab === 'inbox' ? 'rgba(168, 85, 247, 0.15)' : 'none',
+                border: activeSubTab === 'inbox' ? '1px solid rgba(168, 85, 247, 0.35)' : '1px solid transparent',
+                color: activeSubTab === 'inbox' ? '#c084fc' : '#8ca6a5',
+                padding: '5px 10px',
+                borderRadius: '6px',
+                fontSize: '11px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+            >
+              <Mail size={12} />
+              Inbox Recrutadores
+              {jobBotStats.unreadMessagesCount > 0 && (
+                <span style={{
+                  background: '#ef4444',
+                  color: '#fff',
+                  borderRadius: '10px',
+                  padding: '1px 5px',
+                  fontSize: '9px',
+                  fontWeight: 700
+                }}>
+                  {jobBotStats.unreadMessagesCount}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveSubTab('console')}
+              style={{
+                background: activeSubTab === 'console' ? 'rgba(32, 214, 199, 0.15)' : 'none',
+                border: activeSubTab === 'console' ? '1px solid rgba(32, 214, 199, 0.35)' : '1px solid transparent',
+                color: activeSubTab === 'console' ? '#20d6c7' : '#8ca6a5',
+                padding: '5px 10px',
+                borderRadius: '6px',
+                fontSize: '11px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+            >
+              <Terminal size={12} /> Console de Eventos
+            </button>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {isMicroWorker && (
+            <button
+              onClick={() => setCredentialsModalOpen(true)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'rgba(168, 85, 247, 0.1)',
+                border: '1px solid rgba(168, 85, 247, 0.3)',
+                borderRadius: '6px',
+                color: '#c084fc',
+                padding: '6px 12px',
+                fontSize: '11px',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              <Sliders size={13} /> Configurar Contas & Login
+            </button>
+          )}
+
+          <button
+            onClick={() => setRegisterModalOpen(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'rgba(32, 214, 199, 0.1)',
+              border: '1px solid rgba(32, 214, 199, 0.3)',
+              borderRadius: '6px',
+              color: '#20d6c7',
+              padding: '6px 12px',
+              fontSize: '11px',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            <Plus size={13} /> Cadastrar Novo Bot
+          </button>
+        </div>
       </div>
 
       {isMicroWorker ? (
-        /* --- VISÃO DA VM MICRO (2 BOTS EM EXECUÇÃO) --- */
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
-          {/* BOT 1: OCI CAPACITY SCRAPER */}
-          <div style={{
-            background: 'linear-gradient(145deg, rgba(16, 28, 32, 0.8) 0%, rgba(9, 15, 17, 0.9) 100%)',
-            border: '1px solid rgba(32, 214, 199, 0.25)',
-            borderRadius: '10px',
-            padding: '16px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between'
-          }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+        <>
+          {/* SUB-ABA 1: VISÃO GERAL DOS 2 BOTS */}
+          {activeSubTab === 'overview' && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+              {/* BOT 1: OCI CAPACITY SCRAPER */}
+              <div style={{
+                background: 'linear-gradient(145deg, rgba(16, 28, 32, 0.8) 0%, rgba(9, 15, 17, 0.9) 100%)',
+                border: '1px solid rgba(32, 214, 199, 0.25)',
+                borderRadius: '10px',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Cpu size={16} style={{ color: '#20d6c7' }} />
+                      <strong style={{ fontSize: '13px', color: '#e5f0ed' }}>OCI Capacity Scraper (Ampere A1)</strong>
+                    </div>
+                    <span style={{
+                      fontSize: '9.5px',
+                      background: 'rgba(16, 185, 129, 0.15)',
+                      color: '#10b981',
+                      border: '1px solid rgba(16, 185, 129, 0.3)',
+                      padding: '1px 6px',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#10b981' }} />
+                      Ativo (24/7)
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '11px', color: '#8ca6a5', margin: '0 0 12px', lineHeight: 1.4 }}>
+                    Monitora disponibilidade de capacidade Always Free de 4 OCPUs e 24GB RAM na Oracle Cloud (sa-saopaulo-1).
+                  </p>
+
+                  <div style={{ display: 'flex', gap: '12px', marginBottom: '12px', background: 'rgba(0, 0, 0, 0.25)', padding: '8px 10px', borderRadius: '6px' }}>
+                    <div>
+                      <small style={{ fontSize: '9px', color: '#557277', textTransform: 'uppercase', display: 'block' }}>Serviço</small>
+                      <code style={{ fontSize: '10px', color: '#20d6c7' }}>cloudops-scraper.service</code>
+                    </div>
+                    <div>
+                      <small style={{ fontSize: '9px', color: '#557277', textTransform: 'uppercase', display: 'block' }}>Alvo</small>
+                      <span style={{ fontSize: '10.5px', color: '#d9e2e1' }}>VM.Standard.A1.Flex</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                  <button
+                    onClick={onOpenScraperModal}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                      background: 'rgba(32, 214, 199, 0.15)',
+                      border: '1px solid rgba(32, 214, 199, 0.35)',
+                      color: '#20d6c7',
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Activity size={12} /> Ver Telemetria & Logs
+                  </button>
+                </div>
+              </div>
+
+              {/* BOT 2: AUTO APPLY JOB BOT (EXPANDIDO COM STATUS DE APLICAÇÃO E INBOX) */}
+              <div style={{
+                background: 'linear-gradient(145deg, rgba(16, 28, 32, 0.8) 0%, rgba(9, 15, 17, 0.9) 100%)',
+                border: '1px solid rgba(168, 85, 247, 0.3)',
+                borderRadius: '10px',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Sparkles size={16} style={{ color: '#c084fc' }} />
+                      <strong style={{ fontSize: '13px', color: '#e5f0ed' }}>Auto Apply Job Bot (Internacional)</strong>
+                    </div>
+                    <span style={{
+                      fontSize: '9.5px',
+                      background: 'rgba(168, 85, 247, 0.15)',
+                      color: '#c084fc',
+                      border: '1px solid rgba(168, 85, 247, 0.3)',
+                      padding: '1px 6px',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#c084fc' }} />
+                      {jobBotStats.status}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '11px', color: '#8ca6a5', margin: '0 0 12px', lineHeight: 1.4 }}>
+                    Radar de vagas remotas para Database Engineer & PostgreSQL com geração de pitch via IA e monitor de respostas.
+                  </p>
+
+                  {/* ESTATÍSTICAS EXPANDIDAS */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '12px', background: 'rgba(0, 0, 0, 0.25)', padding: '8px 10px', borderRadius: '6px' }}>
+                    <div>
+                      <small style={{ fontSize: '9px', color: '#557277', textTransform: 'uppercase', display: 'block' }}>Vagas Salvas</small>
+                      <b style={{ fontSize: '12px', color: '#c084fc' }}>{jobBotStats.totalJobsFound}</b>
+                    </div>
+                    <div>
+                      <small style={{ fontSize: '9px', color: '#557277', textTransform: 'uppercase', display: 'block' }}>Candidaturas</small>
+                      <b style={{ fontSize: '12px', color: '#10b981' }}>{jobBotStats.totalApplied} enviadas</b>
+                    </div>
+                    <div>
+                      <small style={{ fontSize: '9px', color: '#557277', textTransform: 'uppercase', display: 'block' }}>Respostas</small>
+                      <b style={{ fontSize: '12px', color: jobBotStats.unreadMessagesCount > 0 ? '#f43f5e' : '#8ca6a5' }}>
+                        {jobBotStats.unreadMessagesCount} nova(s)
+                      </b>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                  <button
+                    onClick={handleScanJobsNow}
+                    disabled={jobBotScanning}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                      background: jobBotScanning ? 'rgba(168, 85, 247, 0.1)' : 'rgba(168, 85, 247, 0.2)',
+                      border: '1px solid rgba(168, 85, 247, 0.4)',
+                      color: '#c084fc',
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: jobBotScanning ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    <RefreshCw size={12} className={jobBotScanning ? 'animate-spin' : ''} />
+                    {jobBotScanning ? 'Varrendo Vagas...' : 'Escanear Vagas Agora'}
+                  </button>
+
+                  <button
+                    onClick={() => setActiveSubTab('inbox')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      color: '#d9e2e1',
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Mail size={12} /> Ver Inbox ({jobBotStats.unreadMessagesCount})
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* SUB-ABA 2: INBOX DE RECRUTADORES & MENSAGENS */}
+          {activeSubTab === 'inbox' && (
+            <div style={{
+              background: '#070b0d',
+              border: '1px solid #162426',
+              borderRadius: '10px',
+              padding: '16px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', borderBottom: '1px solid #162426', paddingBottom: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Cpu size={16} style={{ color: '#20d6c7' }} />
-                  <strong style={{ fontSize: '13px', color: '#e5f0ed' }}>OCI Capacity Scraper (Ampere A1)</strong>
+                  <Mail size={16} style={{ color: '#c084fc' }} />
+                  <strong style={{ fontSize: '13px', color: '#e5f0ed' }}>
+                    Respostas de Recrutadores & Convites de Entrevista
+                  </strong>
+                  <span style={{ fontSize: '10px', background: 'rgba(168, 85, 247, 0.15)', color: '#c084fc', padding: '1px 6px', borderRadius: '4px' }}>
+                    Sincronizado via Wellfound API
+                  </span>
                 </div>
-                <span style={{
-                  fontSize: '9.5px',
-                  background: 'rgba(16, 185, 129, 0.15)',
-                  color: '#10b981',
-                  border: '1px solid rgba(16, 185, 129, 0.3)',
-                  padding: '1px 6px',
-                  borderRadius: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px'
-                }}>
-                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#10b981' }} />
-                  Ativo (24/7)
-                </span>
+                <small style={{ color: '#6f8387', fontSize: '11px' }}>
+                  Responda rápido para garantir sua vaga na primeira rodada
+                </small>
               </div>
-              <p style={{ fontSize: '11px', color: '#8ca6a5', margin: '0 0 12px', lineHeight: 1.4 }}>
-                Monitora disponibilidade de capacidade Always Free de 4 OCPUs e 24GB RAM na Oracle Cloud (sa-saopaulo-1).
-              </p>
 
-              <div style={{ display: 'flex', gap: '12px', marginBottom: '12px', background: 'rgba(0, 0, 0, 0.25)', padding: '8px 10px', borderRadius: '6px' }}>
-                <div>
-                  <small style={{ fontSize: '9px', color: '#557277', textTransform: 'uppercase', display: 'block' }}>Serviço</small>
-                  <code style={{ fontSize: '10px', color: '#20d6c7' }}>cloudops-scraper.service</code>
-                </div>
-                <div>
-                  <small style={{ fontSize: '9px', color: '#557277', textTransform: 'uppercase', display: 'block' }}>Alvo</small>
-                  <span style={{ fontSize: '10.5px', color: '#d9e2e1' }}>VM.Standard.A1.Flex</span>
-                </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {messages.map(msg => (
+                  <div
+                    key={msg.id}
+                    style={{
+                      background: msg.unread ? 'rgba(168, 85, 247, 0.07)' : 'rgba(255, 255, 255, 0.02)',
+                      border: msg.unread ? '1px solid rgba(168, 85, 247, 0.35)' : '1px solid #162426',
+                      borderRadius: '8px',
+                      padding: '14px',
+                      position: 'relative'
+                    }}
+                  >
+                    {msg.unread && (
+                      <span style={{
+                        position: 'absolute',
+                        top: '12px',
+                        right: '12px',
+                        fontSize: '9px',
+                        background: '#ef4444',
+                        color: '#fff',
+                        padding: '1px 6px',
+                        borderRadius: '4px',
+                        fontWeight: 700
+                      }}>
+                        NOVA MENSAGEM
+                      </span>
+                    )}
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                      <b style={{ color: '#e5f0ed', fontSize: '13px' }}>{msg.recruiter}</b>
+                      <span style={{ color: '#6f8387', fontSize: '11px' }}>·</span>
+                      <span style={{ color: '#20d6c7', fontSize: '12px', fontWeight: 600 }}>{msg.company}</span>
+                      <span style={{ color: '#6f8387', fontSize: '10.5px' }}>({msg.location})</span>
+                      <span style={{ marginLeft: 'auto', marginRight: msg.unread ? '90px' : '0', color: '#6f8387', fontSize: '10.5px' }}>
+                        {msg.timeAgo}
+                      </span>
+                    </div>
+
+                    <small style={{ color: '#94a3b8', display: 'block', fontSize: '11px', marginBottom: '8px' }}>
+                      Vaga: <b>{msg.role}</b>
+                    </small>
+
+                    <div style={{
+                      background: '#040708',
+                      border: '1px solid #131d20',
+                      borderRadius: '6px',
+                      padding: '10px 12px',
+                      fontSize: '11.5px',
+                      color: '#d9e2e1',
+                      lineHeight: 1.5,
+                      fontFamily: 'sans-serif'
+                    }}>
+                      "{msg.preview}"
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+                      <a
+                        href={msg.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          background: 'rgba(168, 85, 247, 0.2)',
+                          border: '1px solid rgba(168, 85, 247, 0.4)',
+                          color: '#c084fc',
+                          padding: '5px 12px',
+                          borderRadius: '5px',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          textDecoration: 'none'
+                        }}
+                      >
+                        Responder no Wellfound <ExternalLink size={12} />
+                      </a>
+
+                      {msg.unread && (
+                        <button
+                          onClick={() => handleMarkAsRead(msg.id)}
+                          style={{
+                            background: 'none',
+                            border: '1px solid #1a292c',
+                            color: '#8ca6a5',
+                            padding: '5px 10px',
+                            borderRadius: '5px',
+                            fontSize: '10.5px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Marcar como Lido ✓
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
+          )}
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
-              <button
-                onClick={onOpenScraperModal}
-                style={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '5px',
-                  background: 'rgba(32, 214, 199, 0.15)',
-                  border: '1px solid rgba(32, 214, 199, 0.35)',
-                  color: '#20d6c7',
-                  padding: '6px 10px',
-                  borderRadius: '6px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                <Activity size={12} /> Ver Telemetria & Logs
-              </button>
-            </div>
-          </div>
-
-          {/* BOT 2: AUTO APPLY JOB BOT */}
-          <div style={{
-            background: 'linear-gradient(145deg, rgba(16, 28, 32, 0.8) 0%, rgba(9, 15, 17, 0.9) 100%)',
-            border: '1px solid rgba(168, 85, 247, 0.3)',
-            borderRadius: '10px',
-            padding: '16px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between'
-          }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+          {/* SUB-ABA 3: CONSOLE DE EVENTOS AO VIVO DO JOB BOT */}
+          {activeSubTab === 'console' && (
+            <div style={{
+              background: '#040708',
+              border: '1px solid rgba(168, 85, 247, 0.3)',
+              borderRadius: '10px',
+              padding: '16px',
+              fontFamily: 'monospace'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', borderBottom: '1px solid #131d20', paddingBottom: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Sparkles size={16} style={{ color: '#c084fc' }} />
-                  <strong style={{ fontSize: '13px', color: '#e5f0ed' }}>Auto Apply Job Bot (Internacional)</strong>
+                  <Terminal size={14} style={{ color: '#c084fc' }} />
+                  <span style={{ fontSize: '11.5px', color: '#c084fc', fontWeight: 700 }}>
+                    Console de Eventos da Nuvem · Auto Apply Job Bot (cloudops-micro-02)
+                  </span>
                 </div>
-                <span style={{
-                  fontSize: '9.5px',
-                  background: 'rgba(168, 85, 247, 0.15)',
-                  color: '#c084fc',
-                  border: '1px solid rgba(168, 85, 247, 0.3)',
-                  padding: '1px 6px',
-                  borderRadius: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px'
-                }}>
-                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#c084fc' }} />
-                  {jobBotStats.status}
-                </span>
-              </div>
-              <p style={{ fontSize: '11px', color: '#8ca6a5', margin: '0 0 12px', lineHeight: 1.4 }}>
-                Radar de vagas remotas para Database Engineer & PostgreSQL (Remotive & Wellfound) com geração de pitch via IA.
-              </p>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px', background: 'rgba(0, 0, 0, 0.25)', padding: '8px 10px', borderRadius: '6px' }}>
-                <div>
-                  <small style={{ fontSize: '9px', color: '#557277', textTransform: 'uppercase', display: 'block' }}>Vagas Salvas</small>
-                  <b style={{ fontSize: '12px', color: '#c084fc' }}>{jobBotStats.totalJobsFound} vagas</b>
-                </div>
-                <div>
-                  <small style={{ fontSize: '9px', color: '#557277', textTransform: 'uppercase', display: 'block' }}>Último Scan</small>
-                  <span style={{ fontSize: '10.5px', color: '#d9e2e1' }}>{jobBotStats.lastScan}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+                  <span style={{ fontSize: '10px', color: '#10b981' }}>STREAM ATIVO</span>
                 </div>
               </div>
-            </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
-              <button
-                onClick={handleScanJobsNow}
-                disabled={jobBotScanning}
-                style={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '5px',
-                  background: jobBotScanning ? 'rgba(168, 85, 247, 0.1)' : 'rgba(168, 85, 247, 0.2)',
-                  border: '1px solid rgba(168, 85, 247, 0.4)',
-                  color: '#c084fc',
-                  padding: '6px 10px',
-                  borderRadius: '6px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  cursor: jobBotScanning ? 'not-allowed' : 'pointer'
-                }}
-              >
-                <RefreshCw size={12} className={jobBotScanning ? 'animate-spin' : ''} />
-                {jobBotScanning ? 'Varrendo Vagas...' : 'Escanear Vagas Agora'}
-              </button>
+              <div style={{ maxHeight: '240px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px' }}>
+                {botLogs.map((log, index) => (
+                  <div key={index} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', lineHeight: 1.4 }}>
+                    <span style={{ color: '#557277', flexShrink: 0 }}>[{log.time}]</span>
+                    <span style={{
+                      color: log.type === 'success' ? '#10b981' : log.type === 'recruiter' ? '#c084fc' : '#20d6c7',
+                      fontWeight: 700,
+                      flexShrink: 0
+                    }}>
+                      [{log.tag}]
+                    </span>
+                    <span style={{ color: log.type === 'recruiter' ? '#f5d0fe' : '#d9e2e1' }}>
+                      {log.message}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        </div>
+          )}
+        </>
       ) : (
         /* --- VISÃO DA VM DE PRODUÇÃO (0 BOTS ATIVOS + AVISO DE SEGURANÇA) --- */
         <div style={{
@@ -328,6 +716,198 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
           >
             <Plus size={13} /> Cadastrar / Instalar um Bot nesta VM
           </button>
+        </div>
+      )}
+
+      {/* --- MODAL DE CONFIGURAÇÃO DE CONTAS & CREDENCIAIS --- */}
+      {credentialsModalOpen && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(4px)',
+          display: 'grid',
+          placeItems: 'center',
+          zIndex: 99999,
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#0d1518',
+            border: '1px solid rgba(168, 85, 247, 0.4)',
+            borderRadius: '12px',
+            width: '100%',
+            maxWidth: '480px',
+            padding: '24px',
+            boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Sliders size={18} style={{ color: '#c084fc' }} />
+                <h3 style={{ margin: 0, fontSize: '15px', color: '#e5f0ed' }}>
+                  Contas de Candidatura & Automação
+                </h3>
+              </div>
+              <button
+                onClick={() => setCredentialsModalOpen(false)}
+                style={{ background: 'none', border: 'none', color: '#6f8387', cursor: 'pointer', fontSize: '16px' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCredentials} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', color: '#8ca6a5', marginBottom: '4px' }}>
+                  E-mail da sua Conta no Wellfound / Plataformas
+                </label>
+                <input
+                  type="email"
+                  value={botCredentials.wellfoundEmail}
+                  onChange={e => setBotCredentials(prev => ({ ...prev, wellfoundEmail: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    background: '#070b0d',
+                    border: '1px solid #1a292c',
+                    borderRadius: '6px',
+                    padding: '8px 10px',
+                    color: '#e5f0ed',
+                    fontSize: '12px'
+                  }}
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', color: '#8ca6a5', marginBottom: '4px' }}>
+                  Senha de Acesso (Criptografada e Segura)
+                </label>
+                <input
+                  type="password"
+                  value={botCredentials.wellfoundPassword}
+                  onChange={e => setBotCredentials(prev => ({ ...prev, wellfoundPassword: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    background: '#070b0d',
+                    border: '1px solid #1a292c',
+                    borderRadius: '6px',
+                    padding: '8px 10px',
+                    color: '#e5f0ed',
+                    fontSize: '12px'
+                  }}
+                />
+                <small style={{ fontSize: '10px', color: '#557277', marginTop: '3px', display: 'block' }}>
+                  Sua senha é mantida no cofre isolado da VM para login via Playwright.
+                </small>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', color: '#8ca6a5', marginBottom: '6px' }}>
+                  Modo de Operação do Robô
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setBotCredentials(prev => ({ ...prev, mode: 'assisted' }))}
+                    style={{
+                      background: botCredentials.mode === 'assisted' ? 'rgba(32, 214, 199, 0.15)' : 'rgba(255, 255, 255, 0.02)',
+                      border: botCredentials.mode === 'assisted' ? '1px solid #20d6c7' : '1px solid #1a292c',
+                      borderRadius: '8px',
+                      padding: '10px',
+                      textAlign: 'left',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <b style={{ color: botCredentials.mode === 'assisted' ? '#20d6c7' : '#d9e2e1', fontSize: '11.5px', display: 'block' }}>
+                      🛡️ Modo Assistido
+                    </b>
+                    <small style={{ color: '#8ca6a5', fontSize: '10px', display: 'block', marginTop: '3px', lineHeight: 1.3 }}>
+                      Minera vagas e cria o pitch com IA. Você revisa e clica para enviar.
+                    </small>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setBotCredentials(prev => ({ ...prev, mode: 'auto' }))}
+                    style={{
+                      background: botCredentials.mode === 'auto' ? 'rgba(168, 85, 247, 0.15)' : 'rgba(255, 255, 255, 0.02)',
+                      border: botCredentials.mode === 'auto' ? '1px solid #c084fc' : '1px solid #1a292c',
+                      borderRadius: '8px',
+                      padding: '10px',
+                      textAlign: 'left',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <b style={{ color: botCredentials.mode === 'auto' ? '#c084fc' : '#d9e2e1', fontSize: '11.5px', display: 'block' }}>
+                      🤖 100% Automático
+                    </b>
+                    <small style={{ color: '#8ca6a5', fontSize: '10px', display: 'block', marginTop: '3px', lineHeight: 1.3 }}>
+                      O robô loga e envia a nota para o fundador sozinho com pausas de 45s.
+                    </small>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', color: '#8ca6a5', marginBottom: '4px' }}>
+                  Limite Máximo Diário de Candidaturas
+                </label>
+                <input
+                  type="number"
+                  min="5"
+                  max="35"
+                  value={botCredentials.dailyLimit}
+                  onChange={e => setBotCredentials(prev => ({ ...prev, dailyLimit: Number(e.target.value) }))}
+                  style={{
+                    width: '100%',
+                    background: '#070b0d',
+                    border: '1px solid #1a292c',
+                    borderRadius: '6px',
+                    padding: '8px 10px',
+                    color: '#e5f0ed',
+                    fontSize: '12px'
+                  }}
+                />
+                <small style={{ fontSize: '10px', color: '#557277', marginTop: '3px', display: 'block' }}>
+                  Recomendado: 15 a 20 vagas/dia para manter a reputação da conta blindada.
+                </small>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setCredentialsModalOpen(false)}
+                  style={{
+                    flex: 1,
+                    background: 'none',
+                    border: '1px solid #1a292c',
+                    color: '#8ca6a5',
+                    padding: '8px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    flex: 2,
+                    background: '#c084fc',
+                    border: 'none',
+                    color: '#070b0d',
+                    padding: '8px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Salvar Configurações
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
