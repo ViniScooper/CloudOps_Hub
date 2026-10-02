@@ -109,10 +109,22 @@ export function HelpView({ onNavigate }: HelpViewProps) {
       desc: 'Automação que contorna o erro "Out of host capacity" da Oracle Cloud, tentando alocar instâncias gratuitas em loop assinado até conseguir, avisando no WhatsApp.',
       actionLabel: 'Ver VM Scraper',
       targetTab: 'VM Scraper'
+    },
+    {
+      num: '12',
+      title: 'Robôs & Automações da VM',
+      icon: Bot,
+      desc: 'Nó trabalhador dedicado a rodar scrapers e bots 24/7. Qualquer pessoa pode criar um script no PC, enviar via git push para o GitHub, puxar na VM e gerenciar com botão de pausar/continuar.',
+      actionLabel: 'Ver Robôs da VM',
+      targetTab: 'Robôs & Bots da VM'
     }
   ]
 
   const faqs = [
+    {
+      q: 'Como qualquer pessoa pode criar um robô (script) e colocar para rodar 24/7 na VM? O fluxo é do Git para a VM?',
+      a: 'Sim, exatamente! Esse é o padrão mundial da engenharia de Cloud e DevOps: 1) O desenvolvedor cria o script localmente no PC (Python, Node.js, Go ou Bash) para executar a tarefa desejada; 2) Envia o código para o GitHub com "git push"; 3) A VM na Oracle baixa o código com "git pull" (você pode fazer isso pela aba Deploy do CloudOps Hub ou via terminal); 4) A VM executa o robô em segundo plano usando Systemd (se for um serviço 24/7 contínuo) ou Crontab (se for agendado a cada X horas); 5) O CloudOps Hub gerencia o robô: exibe o stream de eventos em tempo real, métricas de memória/CPU e botões para Pausar e Continuar a execução em 1 clique.'
+    },
     {
       q: 'O que o usuário precisa configurar para usar o GitFlow & Pull Request no Hub?',
       a: 'É super simples e dividido em 2 partes: 1) Na VM da Nuvem: Apenas ter o Git instalado (sudo apt install git) e o repositório clonado. Se o repositório for privado, adicione uma Deploy Key no GitHub para a VM poder dar "git pull"; 2) No CloudOps Hub: O usuário pode clicar em "⚙️ Configurar GitHub Token" e colar seu Personal Access Token com permissão de "repo" para criar PRs pelo celular ou outro PC. Se estiver rodando o Hub no PC onde já programa, o sistema usa o Git local automaticamente sem precisar de token!'
@@ -474,12 +486,159 @@ export function HelpView({ onNavigate }: HelpViewProps) {
         </div>
       </section>
 
-      {/* MAPA COMPLETO DOS 11 MÓDULOS DO SISTEMA */}
+      {/* GUIA DEFINITIVO: COMO CRIAR E RODAR BOTS NA VM VIA GIT */}
+      <section className="panel" style={{ padding: '22px', marginBottom: '28px', borderColor: '#20d6c7', background: 'linear-gradient(180deg, #071518 0%, #0a1114 100%)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '14px', marginBottom: '16px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <Bot size={20} style={{ color: '#20d6c7' }} />
+              <h3 style={{ margin: 0, fontSize: '16px', color: '#e5f0ed' }}>
+                Como Criar e Rodar Qualquer Bot na VM via Git (Fluxo para Desenvolvedores)
+              </h3>
+            </div>
+            <p style={{ color: '#8ca6a5', fontSize: '12px', margin: 0 }}>
+              Qualquer pessoa ou dev pode criar um robô ou script de automação no próprio computador e colocá-lo para rodar 24/7 na nuvem sem risco de parada.
+            </p>
+          </div>
+
+          <button
+            className="primary-button"
+            onClick={() => onNavigate('Robôs & Bots da VM')}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', padding: '6px 14px' }}
+          >
+            <Bot size={13} /> Ir para Robôs & Bots
+          </button>
+        </div>
+
+        {/* FLUXO PASSO A PASSO (DIAGRAMA VISUAL) */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+          
+          {/* Passo 1 */}
+          <div style={{ background: '#070b0d', padding: '14px', borderRadius: '8px', border: '1px solid #1a2b2e' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{ fontSize: '10px', background: 'rgba(32, 214, 199, 0.15)', color: '#20d6c7', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                PASSO 1
+              </span>
+              <Terminal size={14} style={{ color: '#20d6c7' }} />
+            </div>
+            <strong style={{ color: '#e5f0ed', fontSize: '12.5px', display: 'block', marginBottom: '4px' }}>
+              1. Crie o Script Local
+            </strong>
+            <p style={{ fontSize: '11px', color: '#8fa4a8', margin: 0, lineHeight: 1.5 }}>
+              O dev desenvolve o bot no seu PC na linguagem que preferir (Python, Node.js, Go ou Bash). O script executa a tarefa desejada (scrapers, automações de emprego, monitor de preços, checagens periódicas, etc).
+            </p>
+          </div>
+
+          {/* Passo 2 */}
+          <div style={{ background: '#070b0d', padding: '14px', borderRadius: '8px', border: '1px solid #1a2b2e' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{ fontSize: '10px', background: 'rgba(168, 85, 247, 0.15)', color: '#c084fc', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                PASSO 2
+              </span>
+              <GitPullRequest size={14} style={{ color: '#c084fc' }} />
+            </div>
+            <strong style={{ color: '#e5f0ed', fontSize: '12.5px', display: 'block', marginBottom: '4px' }}>
+              2. Git Push (GitHub)
+            </strong>
+            <p style={{ fontSize: '11px', color: '#8fa4a8', margin: 0, lineHeight: 1.5 }}>
+              O código é versionado e enviado para o GitHub:
+              <code style={{ display: 'block', background: '#040708', padding: '3px 6px', borderRadius: '4px', marginTop: '4px', color: '#20d6c7', fontSize: '10.5px' }}>
+                git push origin main
+              </code>
+              Garante versionamento, histórico de commits e segurança de rollback.
+            </p>
+          </div>
+
+          {/* Passo 3 */}
+          <div style={{ background: '#070b0d', padding: '14px', borderRadius: '8px', border: '1px solid #1a2b2e' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{ fontSize: '10px', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                PASSO 3
+              </span>
+              <HardDrive size={14} style={{ color: '#38bdf8' }} />
+            </div>
+            <strong style={{ color: '#e5f0ed', fontSize: '12.5px', display: 'block', marginBottom: '4px' }}>
+              3. A VM Puxa o Código
+            </strong>
+            <p style={{ fontSize: '11px', color: '#8fa4a8', margin: 0, lineHeight: 1.5 }}>
+              Pelo CloudOps Hub (aba Deploy) ou via SSH, a VM clona a pasta ou dá <code>git pull</code> para atualizar o código e instalar os pacotes (<code>pip install</code> ou <code>npm install</code>).
+            </p>
+          </div>
+
+          {/* Passo 4 */}
+          <div style={{ background: '#070b0d', padding: '14px', borderRadius: '8px', border: '1px solid #1a2b2e' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{ fontSize: '10px', background: 'rgba(34, 197, 94, 0.15)', color: '#4ade80', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                PASSO 4
+              </span>
+              <Zap size={14} style={{ color: '#4ade80' }} />
+            </div>
+            <strong style={{ color: '#e5f0ed', fontSize: '12.5px', display: 'block', marginBottom: '4px' }}>
+              4. Execução 24/7 na VM
+            </strong>
+            <p style={{ fontSize: '11px', color: '#8fa4a8', margin: 0, lineHeight: 1.5 }}>
+              O robô roda no nó trabalhador isolado (ex: <code>cloudops-micro-02</code>) como serviço <b>systemd</b> (24/7 ininterrupto) ou via <b>crontab</b> (agendado), sem gastar bateria nem memória do seu PC.
+            </p>
+          </div>
+        </div>
+
+        {/* COMO CONFIGURAR A EXECUÇÃO NA VM: SYSTEMD VS CRONTAB */}
+        <div style={{ background: '#040708', border: '1px solid #142023', borderRadius: '8px', padding: '16px', marginBottom: '16px' }}>
+          <h4 style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#20d6c7', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Cpu size={15} /> Como escolher o modo de execução do seu Bot no Linux?
+          </h4>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+            <div style={{ background: '#0a1012', padding: '12px', borderRadius: '6px', border: '1px solid #19272b' }}>
+              <b style={{ color: '#e5f0ed', fontSize: '12px', display: 'block', marginBottom: '4px' }}>
+                Modo 1: Serviço Systemd (Ininterrupto 24/7)
+              </b>
+              <p style={{ fontSize: '11px', color: '#8fa4a8', margin: '0 0 6px 0', lineHeight: 1.5 }}>
+                <b>Ideal para:</b> Bots que precisam escutar eventos em tempo real, scrapers contínuos com sleep, bots de Telegram/WhatsApp ou WebSockets.
+              </p>
+              <div style={{ fontSize: '10.5px', color: '#20d6c7', fontFamily: 'monospace', background: '#040708', padding: '6px', borderRadius: '4px' }}>
+                sudo systemctl enable meu-bot.service<br/>
+                sudo systemctl start meu-bot.service
+              </div>
+              <small style={{ color: '#6f8387', display: 'block', marginTop: '6px', fontSize: '10px' }}>
+                ✓ Reinicia sozinho se a VM reiniciar ou se o processo der erro.
+              </small>
+            </div>
+
+            <div style={{ background: '#0a1012', padding: '12px', borderRadius: '6px', border: '1px solid #19272b' }}>
+              <b style={{ color: '#e5f0ed', fontSize: '12px', display: 'block', marginBottom: '4px' }}>
+                Modo 2: Agendamento Crontab (Periódico)
+              </b>
+              <p style={{ fontSize: '11px', color: '#8fa4a8', margin: '0 0 6px 0', lineHeight: 1.5 }}>
+                <b>Ideal para:</b> Varreduras periódicas que rodam e finalizam (ex: buscar vagas a cada 4 horas, gerar relatório diário às 08h, backup noturno).
+              </p>
+              <div style={{ fontSize: '10.5px', color: '#38bdf8', fontFamily: 'monospace', background: '#040708', padding: '6px', borderRadius: '4px' }}>
+                # Exemplo: Rodar a cada 4 horas<br/>
+                0 */4 * * * python3 /home/ubuntu/meu_bot/main.py
+              </div>
+              <small style={{ color: '#6f8387', display: 'block', marginTop: '6px', fontSize: '10px' }}>
+                ✓ Zero consumo de RAM enquanto o robô não está no minuto de execução.
+              </small>
+            </div>
+          </div>
+        </div>
+
+        {/* BOAS PRÁTICAS PARA O DESENVOLVEDOR NO CLOUDOPS HUB */}
+        <div style={{ background: 'rgba(32, 214, 199, 0.05)', border: '1px solid rgba(32, 214, 199, 0.2)', borderRadius: '8px', padding: '14px', fontSize: '11.5px', color: '#d9e2e1', lineHeight: 1.6 }}>
+          <b style={{ color: '#20d6c7', display: 'block', marginBottom: '4px' }}>
+            💡 3 Boas Práticas que todo Bot deve seguir na VM:
+          </b>
+          1. <b>Suporte a Pausa Fácil:</b> Faça seu script verificar um arquivo como <code>.paused</code> ou variável de ambiente. Se existir, ele apenas espera ou encerra sem disparar ações. Isso permite que o botão <b>Pausar/Continuar</b> do CloudOps Hub funcione em 1 clique!<br/>
+          2. <b>Consumo de RAM Ultra-Baixo:</b> Isole os robôs pesados no nó <code>cloudops-micro-02</code> para não disputar memória com os bancos de dados ou APIs do nó de produção.<br/>
+          3. <b>Logs Limpos:</b> Em Python, utilize <code>flush=True</code> nos <code>print()</code> ou execute com <code>python -u</code> para que o CloudOps Hub receba os logs instantaneamente no console em tempo real.
+        </div>
+      </section>
+
+      {/* MAPA COMPLETO DOS 12 MÓDULOS DO SISTEMA */}
       <section className="panel" style={{ padding: '22px', marginBottom: '28px', borderColor: '#1b3236' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
           <Sparkles size={18} style={{ color: '#20d6c7' }} />
           <h3 style={{ margin: 0, fontSize: '16px', color: '#d9e2e1' }}>
-            Mapa Completo do Sistema: Guia de Cada Tópico
+            Mapa Completo do Sistema: Guia de Cada Tópico (12 Módulos)
           </h3>
         </div>
         <p style={{ color: '#8fa4a8', fontSize: '12px', margin: '0 0 18px 0', lineHeight: 1.5 }}>
@@ -661,6 +820,22 @@ export function HelpView({ onNavigate }: HelpViewProps) {
             </div>
             <button onClick={() => onNavigate('VM Scraper')} style={{ background: '#0f1b1e', border: '1px solid #1a2f34', color: '#20d6c7', borderRadius: '4px', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
               Ver VM Scraper <ArrowRight size={11} />
+            </button>
+          </div>
+
+          {/* 12. Robôs & Automações da VM */}
+          <div style={{ background: '#070a0c', padding: '16px', borderRadius: '8px', border: '1px solid #142023', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#c084fc', fontWeight: 700, fontSize: '13px', marginBottom: '8px' }}>
+                <Bot size={16} /> 12. Robôs & Automações da VM
+              </div>
+              <p style={{ fontSize: '11.5px', color: '#8fa4a8', lineHeight: 1.6, margin: '0 0 10px 0' }}>
+                <b>O que faz:</b> Nó trabalhador isolado (cloudops-micro-02) dedicado a scrapers e automações de vagas (Greenhouse, Lever, Remotive). Mostra stream de eventos, métricas de memória e botões de pausar/continuar.<br/>
+                <b>Quando usar:</b> Sempre que quiser acompanhar seus bots, pausar/retomar tarefas ou subir um novo script desenvolvido por você via Git.
+              </p>
+            </div>
+            <button onClick={() => onNavigate('Robôs & Bots da VM')} style={{ background: '#0f1b1e', border: '1px solid #1a2f34', color: '#c084fc', borderRadius: '4px', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
+              Ver Robôs & Bots <ArrowRight size={11} />
             </button>
           </div>
 
