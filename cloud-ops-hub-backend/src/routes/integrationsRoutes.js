@@ -394,11 +394,13 @@ async function integrationsRoutes(fastify, options) {
 
   fastify.post('/api/bots/job-bot/scan', async (request, reply) => {
     const { exec } = require('child_process');
+    const { mode = 'all', limit = 6 } = request.body || {};
     const microIp = '137.131.187.54';
     const keyFlag = process.platform === 'linux' ? '-i /home/ubuntu/.ssh/id_rsa' : `-i "C:\\Users\\vini\\Documents\\CHAVES_SSH_ORACLE_HOJE\\ssh-key-2026-02-20 (1).key"`;
 
+    const flag = mode === 'ats' ? '--ats' : '--scan';
     return new Promise((resolve) => {
-      const cmd = `ssh ${keyFlag} -o StrictHostKeyChecking=no -o ConnectTimeout=5 ubuntu@${microIp} "python3 /home/ubuntu/auto_apply_bot/bot_runner.py --scan --limit 5"`;
+      const cmd = `ssh ${keyFlag} -o StrictHostKeyChecking=no -o ConnectTimeout=5 ubuntu@${microIp} "python3 /home/ubuntu/auto_apply_bot/bot_runner.py ${flag} --limit ${limit}"`;
       exec(cmd, { timeout: 45000 }, (error, stdout, stderr) => {
         resolve({
           success: !error,

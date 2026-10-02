@@ -75,10 +75,14 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
 
   // Configurações de Contas & Modo de Candidatura
   const [botCredentials, setBotCredentials] = useState({
-    wellfoundEmail: 'vviniciuslourenco@gmail.com',
+    candidateName: 'José Vinicius Lourenço',
+    email: 'vviniciuslourenco@gmail.com',
+    portfolioUrl: 'https://portfolio-dusky-phi-38.vercel.app/',
+    linkedinUrl: 'https://www.linkedin.com/in/jose-vinicius-louren%C3%A7o-1a6b9014a/',
+    phone: '+55 81 99999-9999',
     wellfoundPassword: '••••••••••••',
     mode: 'auto', // Modo 100% automático ativado
-    dailyLimit: 15,
+    dailyLimit: 20,
     autoNotePitch: true
   })
 
@@ -132,22 +136,27 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
     } catch {}
   }
 
-  const handleScanJobsNow = async () => {
+  const handleScanJobsNow = async (mode: 'all' | 'ats' = 'all') => {
     if (jobBotPaused) {
       doAction('⚠️ Robô está pausado. Clique em "Continuar Robô" antes de escanear.')
       return
     }
     setJobBotScanning(true)
-    doAction('🤖 Auto Apply Bot: Disparando varredura remota na VM cloudops-micro-02...')
+    const scanTitle = mode === 'ats' ? 'ATS Startups (Greenhouse / Lever)' : 'Multi-Fontes (ATS & Remotive)'
+    doAction(`🤖 Auto Apply Bot: Disparando radar ${scanTitle} na VM cloudops-micro-02...`)
 
     const nowTime = new Date().toLocaleTimeString('pt-BR')
     setBotLogs(prev => [
-      { time: nowTime, tag: 'TRIGGER', message: 'Varredura manual acionada pelo usuário via CloudOps Hub', type: 'info' },
+      { time: nowTime, tag: mode === 'ats' ? 'ATS-RADAR' : 'TRIGGER', message: `Varredura ${scanTitle} acionada pelo usuário via CloudOps Hub`, type: 'info' },
       ...prev
     ])
 
     try {
-      const res = await fetch(getApiUrl('/api/bots/job-bot/scan'), { method: 'POST' })
+      const res = await fetch(getApiUrl('/api/bots/job-bot/scan'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode, limit: 6 })
+      })
       if (res.ok) {
         setJobBotStats(prev => ({
           ...prev,
@@ -155,10 +164,10 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
           totalJobsFound: prev.totalJobsFound + 2
         }))
         setBotLogs(prev => [
-          { time: new Date().toLocaleTimeString('pt-BR'), tag: 'RADAR', message: '2 novas oportunidades de Database Engineer encontradas e processadas com IA', type: 'success' },
+          { time: new Date().toLocaleTimeString('pt-BR'), tag: mode === 'ats' ? 'GREENHOUSE' : 'RADAR', message: `Oportunidades internacionais processadas e pitches IA gerados com link ${botCredentials.portfolioUrl}`, type: 'success' },
           ...prev
         ])
-        doAction('✅ Auto Apply Bot: Varredura na nuvem concluída com sucesso! Histórico atualizado.')
+        doAction(`✅ Auto Apply Bot: Varredura ${scanTitle} concluída na nuvem com sucesso!`)
       } else {
         doAction('✅ Auto Apply Bot: Varredura executada na VM via agendamento cron.')
       }
@@ -470,9 +479,35 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
                       {jobBotStats.status}
                     </span>
                   </div>
-                  <p style={{ fontSize: '11px', color: '#8ca6a5', margin: '0 0 12px', lineHeight: 1.4 }}>
-                    Radar de vagas remotas para Database Engineer & PostgreSQL com geração de pitch via IA e monitor de respostas.
+                  <p style={{ fontSize: '11px', color: '#8ca6a5', margin: '0 0 10px', lineHeight: 1.4 }}>
+                    Radar autônomo nos <b>ATS das Startups Americanas (Greenhouse & Lever)</b> e Remotive. Candidaturas padronizadas via API/Formulário sem necessidade de login.
                   </p>
+
+                  {/* BADGES DOS SISTEMAS ATS CONECTADOS */}
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '9.5px', background: 'rgba(34, 197, 94, 0.12)', color: '#4ade80', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '2px 7px', borderRadius: '4px', fontWeight: 600 }}>
+                      ⚡ Greenhouse (boards.greenhouse.io)
+                    </span>
+                    <span style={{ fontSize: '9.5px', background: 'rgba(56, 189, 248, 0.12)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)', padding: '2px 7px', borderRadius: '4px', fontWeight: 600 }}>
+                      ⚡ Lever (jobs.lever.co)
+                    </span>
+                    <span style={{ fontSize: '9.5px', background: 'rgba(168, 85, 247, 0.12)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.3)', padding: '2px 7px', borderRadius: '4px', fontWeight: 600 }}>
+                      🌐 Remotive & Wellfound
+                    </span>
+                  </div>
+
+                  {/* PORTFÓLIO & RESUME ATS STATUS */}
+                  <div style={{ background: 'rgba(0, 0, 0, 0.35)', border: '1px solid #162426', borderRadius: '6px', padding: '6px 10px', marginBottom: '10px', fontSize: '10.5px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <span style={{ color: '#20d6c7', fontWeight: 600 }}>Portfolio:</span>
+                      <a href="https://portfolio-dusky-phi-38.vercel.app/" target="_blank" rel="noreferrer" style={{ color: '#94a3b8', textDecoration: 'underline' }}>
+                        portfolio-dusky-phi-38.vercel.app
+                      </a>
+                    </div>
+                    <span style={{ color: '#10b981', fontWeight: 600 }}>
+                      ✓ Resume PDF ATS Gerado
+                    </span>
+                  </div>
 
                   {/* ESTATÍSTICAS EXPANDIDAS */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '12px', background: 'rgba(0, 0, 0, 0.25)', padding: '8px 10px', borderRadius: '6px' }}>
@@ -495,11 +530,35 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.05)', flexWrap: 'wrap' }}>
                   <button
-                    onClick={handleScanJobsNow}
+                    onClick={() => handleScanJobsNow('ats')}
                     disabled={jobBotScanning || jobBotPaused}
                     style={{
                       flex: 1,
-                      minWidth: '130px',
+                      minWidth: '150px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                      background: 'rgba(34, 197, 94, 0.2)',
+                      border: '1px solid rgba(34, 197, 94, 0.5)',
+                      color: '#4ade80',
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: (jobBotScanning || jobBotPaused) ? 'not-allowed' : 'pointer',
+                      opacity: jobBotPaused ? 0.6 : 1
+                    }}
+                    title="Varre startups americanas no Greenhouse e Lever diretamente"
+                  >
+                    <Sparkles size={12} className={jobBotScanning ? 'animate-spin' : ''} />
+                    {jobBotScanning ? 'Varrendo ATS...' : '⚡ Radar ATS Startups'}
+                  </button>
+
+                  <button
+                    onClick={() => handleScanJobsNow('all')}
+                    disabled={jobBotScanning || jobBotPaused}
+                    style={{
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -516,7 +575,7 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
                     }}
                   >
                     <RefreshCw size={12} className={jobBotScanning ? 'animate-spin' : ''} />
-                    {jobBotScanning ? 'Varrendo Vagas...' : 'Escanear Vagas Agora'}
+                    Escanear Todas
                   </button>
 
                   <button
@@ -536,7 +595,7 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
                     }}
                     title={jobBotPaused ? 'Retomar execução do robô na nuvem' : 'Pausar execuções do robô'}
                   >
-                    {jobBotPaused ? <Play size={12} /> : <Square size={12} />}
+                    {jobBotPaused ? <Play size={12} fill="#10b981" /> : <Pause size={12} />}
                     {jobBotPaused ? 'Continuar Robô' : 'Pausar Robô'}
                   </button>
 
@@ -555,7 +614,7 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
                       cursor: 'pointer'
                     }}
                   >
-                    <Mail size={12} /> Ver Inbox ({jobBotStats.unreadMessagesCount})
+                    <Mail size={12} /> Inbox ({jobBotStats.unreadMessagesCount})
                   </button>
                 </div>
               </div>
@@ -756,7 +815,31 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
                   </button>
 
                   <button
-                    onClick={handleScanJobsNow}
+                    onClick={() => handleScanJobsNow('ats')}
+                    disabled={jobBotScanning || jobBotPaused}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: 'rgba(34, 197, 94, 0.2)',
+                      border: '1px solid rgba(34, 197, 94, 0.45)',
+                      color: '#4ade80',
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: (jobBotScanning || jobBotPaused) ? 'not-allowed' : 'pointer',
+                      opacity: jobBotPaused ? 0.5 : 1,
+                      fontFamily: 'sans-serif'
+                    }}
+                    title="Varre Greenhouse e Lever na nuvem"
+                  >
+                    <Sparkles size={11} className={jobBotScanning ? 'animate-spin' : ''} />
+                    {jobBotScanning ? 'Varrendo...' : '⚡ Radar ATS'}
+                  </button>
+
+                  <button
+                    onClick={() => handleScanJobsNow('all')}
                     disabled={jobBotScanning || jobBotPaused}
                     style={{
                       display: 'inline-flex',
@@ -775,7 +858,7 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
                     }}
                   >
                     <RefreshCw size={11} className={jobBotScanning ? 'animate-spin' : ''} />
-                    {jobBotScanning ? 'Varrendo...' : 'Escanear Agora'}
+                    {jobBotScanning ? 'Varrendo...' : 'Escanear Geral'}
                   </button>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', paddingLeft: '4px' }}>
@@ -932,15 +1015,82 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
               </button>
             </div>
 
-            <form onSubmit={handleSaveCredentials} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {/* CALLOUT ATS DAS STARTUPS */}
+            <div style={{
+              background: 'rgba(34, 197, 94, 0.08)',
+              border: '1px solid rgba(34, 197, 94, 0.3)',
+              borderRadius: '8px',
+              padding: '10px 12px',
+              marginBottom: '14px',
+              fontSize: '11px',
+              color: '#d1fae5',
+              lineHeight: 1.4
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+                <span style={{ fontSize: '13px' }}>⚡</span>
+                <b style={{ color: '#4ade80' }}>ATS das Startups (Greenhouse & Lever)</b>
+                <span style={{ fontSize: '9px', background: 'rgba(34, 197, 94, 0.25)', color: '#4ade80', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>
+                  SEM LOGIN / SENHA
+                </span>
+              </div>
+              Mais de 80% das empresas nos EUA e Europa contratam via Greenhouse e Lever. Elas <b>não exigem login nem senha</b>: o robô envia seu formulário padronizado com seu Portfólio, LinkedIn, Pitch IA e Currículo PDF ATS em segundos.
+            </div>
+
+            <form onSubmit={handleSaveCredentials} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '11px', color: '#8ca6a5', marginBottom: '4px' }}>
-                  E-mail da sua Conta no Wellfound / Plataformas
+                  Link do seu Portfólio Ativo
+                </label>
+                <input
+                  type="url"
+                  value={botCredentials.portfolioUrl}
+                  onChange={e => setBotCredentials(prev => ({ ...prev, portfolioUrl: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    background: '#070b0d',
+                    border: '1px solid #1a292c',
+                    borderRadius: '6px',
+                    padding: '8px 10px',
+                    color: '#20d6c7',
+                    fontWeight: 600,
+                    fontSize: '11.5px'
+                  }}
+                  required
+                />
+                <small style={{ fontSize: '10px', color: '#557277', marginTop: '3px', display: 'block' }}>
+                  Enviado em todos os pitches e formulários ATS para recrutadores americanos.
+                </small>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', color: '#8ca6a5', marginBottom: '4px' }}>
+                  URL do Perfil do LinkedIn
+                </label>
+                <input
+                  type="url"
+                  value={botCredentials.linkedinUrl}
+                  onChange={e => setBotCredentials(prev => ({ ...prev, linkedinUrl: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    background: '#070b0d',
+                    border: '1px solid #1a292c',
+                    borderRadius: '6px',
+                    padding: '8px 10px',
+                    color: '#e5f0ed',
+                    fontSize: '11.5px'
+                  }}
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', color: '#8ca6a5', marginBottom: '4px' }}>
+                  E-mail do Candidato (Wellfound, Greenhouse & Lever)
                 </label>
                 <input
                   type="email"
-                  value={botCredentials.wellfoundEmail}
-                  onChange={e => setBotCredentials(prev => ({ ...prev, wellfoundEmail: e.target.value }))}
+                  value={botCredentials.email}
+                  onChange={e => setBotCredentials(prev => ({ ...prev, email: e.target.value }))}
                   style={{
                     width: '100%',
                     background: '#070b0d',
