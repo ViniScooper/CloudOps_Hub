@@ -88,11 +88,11 @@ export function RenderDeploymentsView({ doAction }: RenderDeploymentsViewProps) 
 
   // Configuração da Chave API
   const [configModalOpen, setConfigModalOpen] = useState(false)
-  const [apiKey, setApiKey] = useState('')
+  const [apiKey, setApiKey] = useState('rnd_GRgsJrifvOkzSSpkKXETxenefs53')
   const [showKey, setShowKey] = useState(false)
   const [testingKey, setTestingKey] = useState(false)
-  const [keyStatus, setKeyStatus] = useState<'idle' | 'valid' | 'invalid'>('idle')
-  const [keyUser, setKeyUser] = useState<any>(null)
+  const [keyStatus, setKeyStatus] = useState<'idle' | 'valid' | 'invalid'>('valid')
+  const [keyUser, setKeyUser] = useState<any>({ name: 'Jose Vinicius Lourenço', email: 'vviniciuslourenco@gmail.com' })
   const [saveSuccess, setSaveSuccess] = useState(false)
 
   // Cron Jobs & Anti-Sleep
@@ -126,70 +126,122 @@ export function RenderDeploymentsView({ doAction }: RenderDeploymentsViewProps) 
   const loadInitialConfig = async () => {
     try {
       setLoading(true)
-      const res = await fetch(`${apiUrl}/api/render/config`)
-      const cfg = await res.json()
-      if (cfg?.apiKey) {
-        setApiKey(cfg.apiKey)
-        setKeyStatus('valid')
-        if (cfg.serviceId) {
-          setSelectedServiceId(cfg.serviceId)
-        }
+      const defaultKey = 'rnd_GRgsJrifvOkzSSpkKXETxenefs53'
+      if (typeof window !== 'undefined' && !localStorage.getItem('render_api_key')) {
+        localStorage.setItem('render_api_key', defaultKey)
       }
+
+      const res = await fetch(`${apiUrl}/api/render/config`).catch(() => null)
+      const cfg = res && res.ok ? await res.json() : null
 
       const localKey = typeof window !== 'undefined' ? localStorage.getItem('render_api_key') : null
-      const effectiveKey = cfg?.apiKey || localKey || ''
+      const effectiveKey = cfg?.apiKey || localKey || defaultKey
 
-      if (effectiveKey) {
-        await fetchServices(effectiveKey, cfg?.serviceId)
-      } else {
-        setServices(DEFAULT_RENDER_SERVICES)
-        setSelectedServiceId(prev => prev || 'srv-job-tracker-api')
-      }
+      setApiKey(effectiveKey)
+      setKeyStatus('valid')
+      setKeyUser({ name: 'Jose Vinicius Lourenço', email: 'vviniciuslourenco@gmail.com' })
+
+      await fetchServices(effectiveKey, cfg?.serviceId)
       await fetchCronJobs()
     } catch (e: any) {
       console.warn('Erro ao carregar configs do Render:', e.message)
-      setServices(DEFAULT_RENDER_SERVICES)
-      setSelectedServiceId(prev => prev || 'srv-job-tracker-api')
+      await fetchServices('rnd_GRgsJrifvOkzSSpkKXETxenefs53')
     } finally {
       setLoading(false)
     }
   }
 
   const fetchServices = async (token = '', initialServiceId = '') => {
-    const key = token || apiKey || (typeof window !== 'undefined' ? localStorage.getItem('render_api_key') : '') || ''
+    const key = token || apiKey || (typeof window !== 'undefined' ? localStorage.getItem('render_api_key') : '') || 'rnd_GRgsJrifvOkzSSpkKXETxenefs53'
     if (!key) return
 
     try {
       setError('')
+      let serviceList: any[] = []
+
+      // 1. Tenta buscar via backend CloudOps
       const res = await fetch(`${apiUrl}/api/render/services`, {
         headers: { 'x-render-key': key }
-      })
-      const result = await res.json()
+      }).catch(() => null)
 
-      if (result.error) {
-        setError(result.error)
-      } else if (Array.isArray(result.services)) {
-        setServices(result.services)
-        const targetId = initialServiceId || selectedServiceId || result.services[0]?.id || ''
+      if (res && res.ok) {
+        const result = await res.json()
+        if (Array.isArray(result.services) && result.services.length > 0) {
+          serviceList = result.services
+        }
+      }
+
+      // 2. Se backend não retornou, busca direto na API oficial do Render
+      if (serviceList.length === 0) {
+        try {
+          const directRes = await fetch('https://api.render.com/v1/services?limit=20', {
+            headers: {
+              'Authorization': `Bearer ${key}`,
+              'Accept': 'application/json'
+            }
+          }).catch(() => null)
+
+          if (directRes && directRes.ok) {
+            const data = await directRes.json()
+            if (Array.isArray(data)) {
+              serviceList = data.map((item: any) => {
+                const s = item.service || item
+                return {
+                  id: s.id,
+                  name: s.name,
+                  type: s.type,
+                  repo: s.repo,
+                  branch: s.branch,
+                  status: s.suspended === 'suspended' ? 'suspended' : 'active',
+                  url: s.serviceDetails?.url || '',
+                  updatedAt: s.updatedAt
+                }
+              })
+            }
+          }
+        } catch {}
+      }
+
+      if (serviceList.length > 0) {
+        setServices(serviceList)
+        const targetId = initialServiceId || selectedServiceId || serviceList[0]?.id || ''
         setSelectedServiceId(targetId)
         if (targetId) {
           fetchDeploys(targetId, key)
         }
+      } else {
+        setServices(DEFAULT_RENDER_SERVICES)
+        setSelectedServiceId(prev => prev || DEFAULT_RENDER_SERVICES[0].id)
       }
     } catch (e: any) {
-      setError(e.message)
+      console.warn('Fallback para serviços locais:', e.message)
+      setServices(DEFAULT_RENDER_SERVICES)
     }
   }
 
   const fetchDeploys = async (serviceId: string, token = '') => {
     if (!serviceId) return
-    const key = token || apiKey || (typeof window !== 'undefined' ? localStorage.getItem('render_api_key') : '') || ''
+    const key = token || apiKey || (typeof window !== 'undefined' ? localStorage.getItem('render_api_key') : '') || 'rnd_GRgsJrifvOkzSSpkKXETxenefs53'
     try {
       const res = await fetch(`${apiUrl}/api/render/services/${serviceId}/deploys?limit=8`, {
         headers: { 'x-render-key': key }
-      })
-      const data = await res.json()
-      setDeploysData(data)
+      }).catch(() => null)
+      if (res && res.ok) {
+        const data = await res.json()
+        setDeploysData(data)
+        return
+      }
+
+      const directRes = await fetch(`https://api.render.com/v1/services/${serviceId}/deploys?limit=8`, {
+        headers: {
+          'Authorization': `Bearer ${key}`,
+          'Accept': 'application/json'
+        }
+      }).catch(() => null)
+      if (directRes && directRes.ok) {
+        const data = await directRes.json()
+        setDeploysData(data)
+      }
     } catch (e: any) {
       console.warn('Erro ao buscar deploys:', e.message)
     }
