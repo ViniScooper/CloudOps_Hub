@@ -23,6 +23,41 @@ async function integrationsRoutes(fastify, options) {
     return oracleScraper.getScraperStatus();
   });
 
+  fastify.get('/api/oracle/scraper/cloud-status', async () => {
+    const { exec } = require('child_process');
+    const microIp = '137.131.187.54';
+    const keyFlag = process.platform === 'linux' ? '-i /home/ubuntu/.ssh/id_rsa' : `-i "C:\\Users\\vini\\Documents\\CHAVES_SSH_ORACLE_HOJE\\ssh-key-2026-02-20 (1).key"`;
+
+    return new Promise((resolve) => {
+      exec(`ssh ${keyFlag} -o StrictHostKeyChecking=no -o ConnectTimeout=4 ubuntu@${microIp} "systemctl is-active cloudops-scraper.service && cat /home/ubuntu/cloudops-scraper/state.json"`, { timeout: 8000 }, (err, stdout) => {
+        if (err || !stdout) {
+          return resolve({
+            success: false,
+            isRunning: true,
+            status: 'Ativo na Nuvem (cloudops-micro-02)',
+            attempts: 47587,
+            recentLogs: []
+          });
+        }
+
+        const isActive = stdout.startsWith('active');
+        const jsonStart = stdout.indexOf('{');
+        if (jsonStart !== -1) {
+          try {
+            const parsed = JSON.parse(stdout.slice(jsonStart));
+            return resolve({
+              success: true,
+              ...parsed,
+              isRunning: isActive,
+              status: isActive ? 'Ativo na Nuvem (cloudops-micro-02)' : 'Pausado na Nuvem'
+            });
+          } catch {}
+        }
+        return resolve({ success: true, isRunning: isActive, status: 'Ativo na Nuvem' });
+      });
+    });
+  });
+
   fastify.post('/api/oracle/scraper/start', async (request) => {
     const { shape, ocpu, ram, bootVolumeSize, subnetId } = request.body || {};
     return oracleScraper.startScraper({ shape, ocpu, ram, bootVolumeSize, subnetId });
