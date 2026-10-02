@@ -5,9 +5,10 @@ import {
   Activity, Bell, Check, ChevronDown, CircleHelp, Cloud, Container, Database,
   HardDrive, LayoutDashboard, Menu, MoreHorizontal, Network, Plus, RefreshCw,
   Search, Server, Settings, TerminalSquare, X, Zap, Globe2, ArrowUpRight,
-  RotateCcw, Layers3, Shield, LogOut, Users, Rocket, KeyRound, Bot, ArrowLeftRight
+  RotateCcw, Layers3, Shield, LogOut, Users, Rocket, KeyRound, Bot, ArrowLeftRight, Cpu
 } from 'lucide-react'
 import { VmScraper } from '../components/VmScraper'
+import { VmBotsSection } from '../components/VmBotsSection'
 import { DashboardView } from '../components/DashboardView'
 import { DeployView } from '../components/DeployView'
 import { EnvManagerView } from '../components/EnvManagerView'
@@ -36,6 +37,7 @@ const navSections = [
     title: 'Workspace',
     items: [
       { label: 'Dashboard', icon: LayoutDashboard },
+      { label: 'Robôs & Bots da VM', icon: Cpu, badge: '2 Bots' },
       { label: 'Odisseu AI', icon: Bot, badge: 'Copilot' },
       { label: 'Deploy', icon: Rocket, badge: 'CI/CD' },
       { label: 'Vercel Frontend', icon: VercelIcon, badge: 'Edge' },
@@ -1085,14 +1087,23 @@ export default function Page() {
             <OdisseuChatView server={server} doAction={doAction} />
           )}
 
-          {active === 'VM Scraper' && (
-            <VmScraper
-              scraperData={scraperData}
-              scraperLoading={scraperLoading}
-              doAction={doAction}
-              setScraperLoading={setScraperLoading}
-              server={server}
-            />
+          {(active === 'VM Scraper' || active === 'Robôs & Bots da VM') && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {server && (
+                <VmBotsSection
+                  server={server}
+                  doAction={doAction}
+                  onOpenScraperModal={() => {}}
+                />
+              )}
+              <VmScraper
+                scraperData={scraperData}
+                scraperLoading={scraperLoading}
+                doAction={doAction}
+                setScraperLoading={setScraperLoading}
+                server={server}
+              />
+            </div>
           )}
 
           {active === 'Deploy' && (

@@ -310,6 +310,41 @@ async function integrationsRoutes(fastify, options) {
       return reply.status(500).send({ success: false, error: err.message });
     }
   });
+
+  // ==========================================
+  // AUTO APPLY JOB BOT (VM CLOUDOPS-MICRO-02)
+  // ==========================================
+  fastify.get('/api/bots/job-bot/status', async (request, reply) => {
+    try {
+      return {
+        success: true,
+        host: 'cloudops-micro-02',
+        ip: '137.131.187.54',
+        status: 'Ativo (Agendado Cron 4h)',
+        botName: 'Auto Apply Job Bot',
+        targetRoles: ['Database Engineer', 'PostgreSQL DBA', 'Cloud Engineer', 'Backend']
+      };
+    } catch (err) {
+      return reply.status(500).send({ success: false, error: err.message });
+    }
+  });
+
+  fastify.post('/api/bots/job-bot/scan', async (request, reply) => {
+    const { exec } = require('child_process');
+    const keyPath = process.env.VM_SSH_KEY_PATH || 'C:\\Users\\vini\\Documents\\CHAVES_SSH_ORACLE_HOJE\\ssh-key-2026-02-20 (1).key';
+    const microIp = '137.131.187.54';
+
+    return new Promise((resolve) => {
+      const cmd = `ssh -i "${keyPath}" -o StrictHostKeyChecking=no ubuntu@${microIp} "python3 /home/ubuntu/auto_apply_bot/bot_runner.py --scan --limit 5"`;
+      exec(cmd, { timeout: 45000 }, (error, stdout, stderr) => {
+        resolve({
+          success: !error,
+          output: stdout || stderr,
+          error: error ? error.message : null
+        });
+      });
+    });
+  });
 }
 
 module.exports = integrationsRoutes;
