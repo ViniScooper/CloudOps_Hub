@@ -46,8 +46,28 @@ export function VmScraper({
     serverList?.find((s: any) => s.ip === cloudVmIp)?.privateKey ||
     defaultSshKey
 
-  // Função para consultar o status em tempo real do robô na nuvem via SSH
+  // Função para consultar o status em tempo real do robô na nuvem via SSH ou API Gateway
   const fetchCloudStatus = async () => {
+    try {
+      // 1. Consulta direto o endpoint do backend (que tem acesso SSH direto à VM cloudops-micro-02)
+      const resCloud = await fetch(getApiUrl('/api/oracle/scraper/cloud-status'))
+      if (resCloud.ok) {
+        const json = await resCloud.json()
+        if (json && (json.attempts !== undefined || json.recentLogs)) {
+          setCloudData({
+            ...json,
+            isRunning: json.isRunning ?? true,
+            status: json.status || 'Ativo na Nuvem (cloudops-micro-02)'
+          })
+          setCloudLastSync(new Date().toLocaleTimeString('pt-BR'))
+          return
+        }
+      }
+    } catch (e) {
+      // continua para fallback
+    }
+
+    // 2. Fallback: via SSH exec direto do cliente caso o usuário tenha chave no navegador
     if (!sshKeyToUse) return
     try {
       const res = await fetch(getApiUrl('/api/servers/exec'), {
@@ -94,7 +114,7 @@ export function VmScraper({
       const interval = setInterval(fetchCloudStatus, 5000)
       return () => clearInterval(interval)
     }
-  }, [activeMode, sshKeyToUse])
+  }, [activeMode])
 
   // Ação de Iniciar/Parar o Robô na Nuvem via systemctl
   const toggleCloudScraper = async (start: boolean) => {
