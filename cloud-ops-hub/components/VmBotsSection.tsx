@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import {
   Bot,
   Play,
+  Pause,
   Square,
   RefreshCw,
   Plus,
@@ -98,7 +99,44 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
   const [newBotType, setNewBotType] = useState('python')
   const [newBotSchedule, setNewBotSchedule] = useState('0 */4 * * *')
 
+  // Estado de Pausa / Execução
+  const [jobBotPaused, setJobBotPaused] = useState(false)
+
+  const handleToggleJobBot = async () => {
+    const nextPaused = !jobBotPaused
+    setJobBotPaused(nextPaused)
+    const nowTime = new Date().toLocaleTimeString('pt-BR')
+
+    if (nextPaused) {
+      setJobBotStats(prev => ({ ...prev, status: 'Pausado na Nuvem' }))
+      setBotLogs(prev => [
+        { time: nowTime, tag: 'PAUSE', message: 'Robô de candidaturas pausado pelo usuário via CloudOps Hub', type: 'warn' },
+        ...prev
+      ])
+      doAction('⏸️ Auto Apply Bot: Robô pausado na nuvem.')
+    } else {
+      setJobBotStats(prev => ({ ...prev, status: 'Ativo (Aplicando 24/7 na Nuvem)' }))
+      setBotLogs(prev => [
+        { time: nowTime, tag: 'RESUME', message: 'Robô de candidaturas retomado em modo contínuo 24/7', type: 'success' },
+        ...prev
+      ])
+      doAction('▶️ Auto Apply Bot: Robô retomado na nuvem com sucesso!')
+    }
+
+    try {
+      await fetch(getApiUrl('/api/bots/job-bot/toggle'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paused: nextPaused })
+      })
+    } catch {}
+  }
+
   const handleScanJobsNow = async () => {
+    if (jobBotPaused) {
+      doAction('⚠️ Robô está pausado. Clique em "Continuar Robô" antes de escanear.')
+      return
+    }
     setJobBotScanning(true)
     doAction('🤖 Auto Apply Bot: Disparando varredura remota na VM cloudops-micro-02...')
 
@@ -259,7 +297,30 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          {isMicroWorker && (
+            <button
+              onClick={handleToggleJobBot}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: jobBotPaused ? 'rgba(16, 185, 129, 0.15)' : 'rgba(234, 179, 8, 0.15)',
+                border: jobBotPaused ? '1px solid rgba(16, 185, 129, 0.45)' : '1px solid rgba(234, 179, 8, 0.35)',
+                borderRadius: '6px',
+                color: jobBotPaused ? '#10b981' : '#eab308',
+                padding: '6px 12px',
+                fontSize: '11px',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+              title={jobBotPaused ? 'Retomar execução do robô na nuvem' : 'Pausar execuções do robô'}
+            >
+              {jobBotPaused ? <Play size={13} fill="#10b981" /> : <Pause size={13} />}
+              {jobBotPaused ? 'Continuar Robô' : 'Pausar Robô'}
+            </button>
+          )}
+
           {isMicroWorker && (
             <button
               onClick={() => setCredentialsModalOpen(true)}
@@ -396,16 +457,16 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
                     </div>
                     <span style={{
                       fontSize: '9.5px',
-                      background: 'rgba(168, 85, 247, 0.15)',
-                      color: '#c084fc',
-                      border: '1px solid rgba(168, 85, 247, 0.3)',
+                      background: jobBotPaused ? 'rgba(234, 179, 8, 0.15)' : 'rgba(168, 85, 247, 0.15)',
+                      color: jobBotPaused ? '#eab308' : '#c084fc',
+                      border: jobBotPaused ? '1px solid rgba(234, 179, 8, 0.3)' : '1px solid rgba(168, 85, 247, 0.3)',
                       padding: '1px 6px',
                       borderRadius: '4px',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '4px'
                     }}>
-                      <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#c084fc' }} />
+                      <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: jobBotPaused ? '#eab308' : '#c084fc' }} />
                       {jobBotStats.status}
                     </span>
                   </div>
@@ -432,12 +493,13 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.05)', flexWrap: 'wrap' }}>
                   <button
                     onClick={handleScanJobsNow}
-                    disabled={jobBotScanning}
+                    disabled={jobBotScanning || jobBotPaused}
                     style={{
                       flex: 1,
+                      minWidth: '130px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -449,11 +511,33 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
                       borderRadius: '6px',
                       fontSize: '11px',
                       fontWeight: 600,
-                      cursor: jobBotScanning ? 'not-allowed' : 'pointer'
+                      cursor: (jobBotScanning || jobBotPaused) ? 'not-allowed' : 'pointer',
+                      opacity: jobBotPaused ? 0.6 : 1
                     }}
                   >
                     <RefreshCw size={12} className={jobBotScanning ? 'animate-spin' : ''} />
                     {jobBotScanning ? 'Varrendo Vagas...' : 'Escanear Vagas Agora'}
+                  </button>
+
+                  <button
+                    onClick={handleToggleJobBot}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: jobBotPaused ? 'rgba(16, 185, 129, 0.15)' : 'rgba(234, 179, 8, 0.15)',
+                      border: jobBotPaused ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(234, 179, 8, 0.35)',
+                      color: jobBotPaused ? '#10b981' : '#eab308',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                    title={jobBotPaused ? 'Retomar execução do robô na nuvem' : 'Pausar execuções do robô'}
+                  >
+                    {jobBotPaused ? <Play size={12} /> : <Square size={12} />}
+                    {jobBotPaused ? 'Continuar Robô' : 'Pausar Robô'}
                   </button>
 
                   <button
@@ -639,18 +723,108 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
               padding: '16px',
               fontFamily: 'monospace'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', borderBottom: '1px solid #131d20', paddingBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', borderBottom: '1px solid #131d20', paddingBottom: '10px', flexWrap: 'wrap', gap: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Terminal size={14} style={{ color: '#c084fc' }} />
                   <span style={{ fontSize: '11.5px', color: '#c084fc', fontWeight: 700 }}>
                     Console de Eventos da Nuvem · Auto Apply Job Bot (cloudops-micro-02)
                   </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-                  <span style={{ fontSize: '10px', color: '#10b981' }}>STREAM ATIVO</span>
+                
+                {/* AÇÕES DE CONTROLE RÁPIDO DO ROBÔ NO CONSOLE */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={handleToggleJobBot}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: jobBotPaused ? 'rgba(16, 185, 129, 0.2)' : 'rgba(234, 179, 8, 0.18)',
+                      border: jobBotPaused ? '1px solid rgba(16, 185, 129, 0.5)' : '1px solid rgba(234, 179, 8, 0.4)',
+                      color: jobBotPaused ? '#10b981' : '#eab308',
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontFamily: 'sans-serif'
+                    }}
+                    title={jobBotPaused ? 'Retomar execução do robô na nuvem' : 'Pausar execuções do robô'}
+                  >
+                    {jobBotPaused ? <Play size={12} fill="#10b981" /> : <Pause size={12} />}
+                    {jobBotPaused ? 'Continuar Robô' : 'Pausar Robô'}
+                  </button>
+
+                  <button
+                    onClick={handleScanJobsNow}
+                    disabled={jobBotScanning || jobBotPaused}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: 'rgba(168, 85, 247, 0.2)',
+                      border: '1px solid rgba(168, 85, 247, 0.4)',
+                      color: '#c084fc',
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: (jobBotScanning || jobBotPaused) ? 'not-allowed' : 'pointer',
+                      opacity: jobBotPaused ? 0.5 : 1,
+                      fontFamily: 'sans-serif'
+                    }}
+                  >
+                    <RefreshCw size={11} className={jobBotScanning ? 'animate-spin' : ''} />
+                    {jobBotScanning ? 'Varrendo...' : 'Escanear Agora'}
+                  </button>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', paddingLeft: '4px' }}>
+                    <span style={{
+                      width: '7px',
+                      height: '7px',
+                      borderRadius: '50%',
+                      background: jobBotPaused ? '#eab308' : '#10b981',
+                      display: 'inline-block'
+                    }} />
+                    <span style={{ fontSize: '10px', color: jobBotPaused ? '#eab308' : '#10b981', fontWeight: 700 }}>
+                      {jobBotPaused ? 'ROBÔ PAUSADO' : 'STREAM ATIVO'}
+                    </span>
+                  </div>
                 </div>
               </div>
+
+              {/* AVISO QUANDO PAUSADO */}
+              {jobBotPaused && (
+                <div style={{
+                  background: 'rgba(234, 179, 8, 0.1)',
+                  border: '1px solid rgba(234, 179, 8, 0.3)',
+                  borderRadius: '6px',
+                  padding: '8px 12px',
+                  marginBottom: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: '11px',
+                  color: '#fef08a'
+                }}>
+                  <span>⏸️ <b>Robô Pausado</b>: As candidaturas e varreduras automáticas via cron estão temporariamente suspensas na VM.</span>
+                  <button
+                    onClick={handleToggleJobBot}
+                    style={{
+                      background: 'rgba(16, 185, 129, 0.25)',
+                      border: '1px solid rgba(16, 185, 129, 0.6)',
+                      color: '#10b981',
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      fontSize: '10.5px',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Retomar Robô ▶
+                  </button>
+                </div>
+              )}
 
               <div style={{ maxHeight: '240px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px' }}>
                 {botLogs.map((log, index) => (

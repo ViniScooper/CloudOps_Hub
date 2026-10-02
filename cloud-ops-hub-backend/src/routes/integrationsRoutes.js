@@ -347,30 +347,58 @@ async function integrationsRoutes(fastify, options) {
   });
 
   // ==========================================
+  // ==========================================
   // AUTO APPLY JOB BOT (VM CLOUDOPS-MICRO-02)
   // ==========================================
   fastify.get('/api/bots/job-bot/status', async (request, reply) => {
-    try {
-      return {
-        success: true,
-        host: 'cloudops-micro-02',
-        ip: '137.131.187.54',
-        status: 'Ativo (Agendado Cron 4h)',
-        botName: 'Auto Apply Job Bot',
-        targetRoles: ['Database Engineer', 'PostgreSQL DBA', 'Cloud Engineer', 'Backend']
-      };
-    } catch (err) {
-      return reply.status(500).send({ success: false, error: err.message });
-    }
+    const { exec } = require('child_process');
+    const microIp = '137.131.187.54';
+    const keyFlag = process.platform === 'linux' ? '-i /home/ubuntu/.ssh/id_rsa' : `-i "C:\\Users\\vini\\Documents\\CHAVES_SSH_ORACLE_HOJE\\ssh-key-2026-02-20 (1).key"`;
+
+    return new Promise((resolve) => {
+      exec(`ssh ${keyFlag} -o StrictHostKeyChecking=no -o ConnectTimeout=5 ubuntu@${microIp} "[ -f /home/ubuntu/auto_apply_bot/.paused ] && echo 'PAUSED' || echo 'ACTIVE'"`, { timeout: 8000 }, (error, stdout) => {
+        const isPaused = stdout ? stdout.trim().includes('PAUSED') : false;
+        resolve({
+          success: true,
+          host: 'cloudops-micro-02',
+          ip: microIp,
+          paused: isPaused,
+          status: isPaused ? 'Pausado na Nuvem' : 'Ativo (Agendado Cron 4h)',
+          botName: 'Auto Apply Job Bot',
+          targetRoles: ['Database Engineer', 'PostgreSQL DBA', 'Cloud Engineer', 'Backend']
+        });
+      });
+    });
+  });
+
+  fastify.post('/api/bots/job-bot/toggle', async (request, reply) => {
+    const { exec } = require('child_process');
+    const { paused } = request.body || {};
+    const microIp = '137.131.187.54';
+    const keyFlag = process.platform === 'linux' ? '-i /home/ubuntu/.ssh/id_rsa' : `-i "C:\\Users\\vini\\Documents\\CHAVES_SSH_ORACLE_HOJE\\ssh-key-2026-02-20 (1).key"`;
+
+    const remoteCmd = paused 
+      ? 'touch /home/ubuntu/auto_apply_bot/.paused' 
+      : 'rm -f /home/ubuntu/auto_apply_bot/.paused';
+
+    return new Promise((resolve) => {
+      exec(`ssh ${keyFlag} -o StrictHostKeyChecking=no -o ConnectTimeout=5 ubuntu@${microIp} "${remoteCmd}"`, { timeout: 10000 }, (error) => {
+        resolve({
+          success: !error,
+          paused: !!paused,
+          message: paused ? 'Robô pausado na VM com sucesso' : 'Robô retomado na VM com sucesso'
+        });
+      });
+    });
   });
 
   fastify.post('/api/bots/job-bot/scan', async (request, reply) => {
     const { exec } = require('child_process');
-    const keyPath = process.env.VM_SSH_KEY_PATH || 'C:\\Users\\vini\\Documents\\CHAVES_SSH_ORACLE_HOJE\\ssh-key-2026-02-20 (1).key';
     const microIp = '137.131.187.54';
+    const keyFlag = process.platform === 'linux' ? '-i /home/ubuntu/.ssh/id_rsa' : `-i "C:\\Users\\vini\\Documents\\CHAVES_SSH_ORACLE_HOJE\\ssh-key-2026-02-20 (1).key"`;
 
     return new Promise((resolve) => {
-      const cmd = `ssh -i "${keyPath}" -o StrictHostKeyChecking=no ubuntu@${microIp} "python3 /home/ubuntu/auto_apply_bot/bot_runner.py --scan --limit 5"`;
+      const cmd = `ssh ${keyFlag} -o StrictHostKeyChecking=no -o ConnectTimeout=5 ubuntu@${microIp} "python3 /home/ubuntu/auto_apply_bot/bot_runner.py --scan --limit 5"`;
       exec(cmd, { timeout: 45000 }, (error, stdout, stderr) => {
         resolve({
           success: !error,
