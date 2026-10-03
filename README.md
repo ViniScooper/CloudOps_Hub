@@ -2,12 +2,14 @@
 
 <p align="center">
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-BSL_1.1_%7C_Commercial_Protection-e11d48.svg?style=for-the-badge&logo=shield&logoColor=white" alt="License: BSL 1.1 / Commercial Protection" /></a>
+  <img src="https://img.shields.io/badge/Release-v2.0.0-10b981?style=for-the-badge&logo=github&logoColor=white" alt="Release: v2.0.0" />
   <img src="https://img.shields.io/badge/Next.js-16.3-black?style=for-the-badge&logo=next.js" alt="Next.js" />
   <img src="https://img.shields.io/badge/React-19.0-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
   <img src="https://img.shields.io/badge/Node.js-20_LTS-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
   <img src="https://img.shields.io/badge/Docker-Zero_Downtime-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/Multi--Cloud-Oracle_%7C_AWS_%7C_Hostinger-orange?style=for-the-badge" alt="Multi-Cloud" />
-  <img src="https://img.shields.io/badge/AI_Copilot-Odisseu_RAG-8b5cf6?style=for-the-badge&logo=openai&logoColor=white" alt="Odisseu AI" />
+  <img src="https://img.shields.io/badge/AI_Agent-Odisseu_(OpenClaw_Style)-8b5cf6?style=for-the-badge&logo=openai&logoColor=white" alt="Odisseu AI OpenClaw" />
+  <img src="https://img.shields.io/badge/Worker_Bots-24%2F7_Cluster-06b6d4?style=for-the-badge&logo=robot&logoColor=white" alt="Worker Bots 24/7" />
   <img src="https://img.shields.io/badge/Access-Request_Only-blue?style=for-the-badge" alt="Access: Request Only" />
 </p>
 
@@ -51,34 +53,44 @@ Available in English and Portuguese (PT-BR).
 * **Clean State Intelligence:** Fresh or virginal VMs report zero active projects cleanly, eliminating misleading mock data.
 * **1-Click Multi-Cloud Migration:** Automated cutover between Oracle Cloud (OCI), AWS EC2, and VPS providers (Hostinger, Hetzner, DigitalOcean) with automated Terraform script generation.
 
-### 🤖 3. Odisseu AI — Autonomous DevOps & SRE Copilot
+### 🤖 3. Odisseu AI — Autonomous Hands-On DevOps Agent (OpenClaw-Style)
+* **Autonomous Git Clone to Production:** Provide a repository URL to Odisseu and watch the autonomous agent orchestrate the deployment on your target VM:
+  * **Codebase & Stack Inspection:** Intelligently identifies whether the project is Backend (Node.js, Fastify, Express, Python, Go), Frontend (Next.js, Vite, React), APIs, or microservices.
+  * **Environment Mapping:** Parses `.env.example`, dependencies, target ports, and database bindings.
+  * **Automated Zero-Touch Deploy:** Orchestrates `docker-compose` or `pm2`, bridges secure Cloudflare Tunnels, and validates HTTP 200 uptime.
 * **LangChain RAG Architecture:** Retrieval-Augmented Generation indexed on your live infrastructure state, hardware metrics, container status, and telemetry.
-* **Multi-Provider LLM Engine:** Native support for Groq Cloud (GPT-120B / Llama 3.3 70B), Google Gemini, and local Ollama runtimes.
-* **Hardware & Quota Diagnostics:** Real-time token quota tracking, CPU/RAM thresholds, swap memory monitoring, and port collision analysis.
+* **Multi-Provider LLM Engine:** Native support for Groq Cloud (Llama 3.3 70B), Google Gemini (Gemini 2.0 Flash / 1.5 Pro), and local Ollama runtimes.
 * **Interactive Troubleshooting:** Ask questions like *"O que está rodando na VM?"*, *"Como otimizar a memória?"*, or *"Analise os erros dos últimos 15 minutos"*.
 
-### ⚡ 4. Real-Time Telemetry & Hardware Optimization
+### 🤖 4. Autonomous Worker Bots Cluster (24/7 Background Automations)
+* **Isolated Multi-Node Architecture:** Dedicated worker node (`cloudops-micro-02`) running heavy background jobs, scrapers, and automation bots isolated from the production web API.
+* **OCI Capacity Scraper (Ampere A1):** Continuous 24/7 monitor searching for free-tier Ampere A1 capacity (4 OCPUs, 24 GB RAM) in `sa-saopaulo-1` with live telemetry.
+* **Auto Apply Job Bot (International Startups):** Autonomous radar scanning top US startup ATS boards (**Greenhouse** & **Lever**) and remote platforms (**Remotive**). Generates tailored AI pitches in English based on the candidate's engineering background and portfolio.
+* **Developer Bot Ecosystem:** Built-in guide allowing any developer to deploy custom Python or Node.js automation scripts to run 24/7 on the VM cluster.
+* **Live Event Stream & Controls:** Real-time event streaming console with 1-click Pause/Resume and manual instant scan triggers (⚡ Radar ATS).
+
+### ⚡ 5. Real-Time Telemetry & Hardware Optimization
 * **Live Hardware Metrics:** Real-time CPU usage, Memory (used/total), Disk NVMe, and SSH port 22 connectivity status.
 * **1-Click RAM Cache Purge (`drop_caches`):** Safely release inactive Linux kernel page caches, dentries, and inodes without restarting containers or interrupting active connections.
 * **Zero Overhead:** Metrics are gathered on-demand via lightweight SSH commands rather than heavy persistent background daemons.
 
-### 🌐 5. Vercel & Render Cloud Integrations
-* **Vercel Edge & Frontend:** Real-time visibility into production edge builds, domains, commit references, and deployment status.
-* **Render Backend & Anti-Sleep Heartbeats:** Monitor backend microservices on Render and configure automated cron heartbeats to prevent free-tier instances from going to sleep.
+### 🌐 6. Vercel & Render Cloud Integrations (Anti-Sleep Guard)
+* **Vercel Edge & Frontend:** 1-click production Redeploy with multi-project selection, real-time build logs, domains, and deployment status.
+* **Render Anti-Sleep Heartbeat Guard:** Monitor backend microservices on Render and run automated cron heartbeats to prevent free-tier instances from entering inactive spin-down.
 
-### 🐳 6. Visual Docker Orchestration & Full Lifecycle Control
+### 🐳 7. Visual Docker Orchestration & Full Lifecycle Control
 * **Complete Lifecycle Management:** Start (▶️), Stop (⏹️), and Restart (🔄) microservices directly from the web or mobile interface without SSHing manually into the machine.
 * **Live Streaming Logs:** Inspect real-time stdout/stderr streams (`docker logs --tail 100 --timestamps`) with instant search, syntax highlighting, and 1-click clipboard copying.
 * **Automatic Log Rotation (`max-size: 10m`):** 1-click Docker daemon log configuration to prevent disk exhaustion from unmanaged container outputs.
 
-### 🐕 7. 24/7 SRE Guard Watchdog & WhatsApp Alerts
-* **Autonomous Telemetry Loop:** Periodic background monitor running every 3 minutes directly on the primary Oracle VM (`instance-bytedata`).
+### 🐕 8. 24/7 SRE Guard Watchdog with Self-Healing (Auto-Cura) & WhatsApp Alerts
+* **Self-Healing (Auto-Cura):** Performs automated HTTP probes every 3 minutes. If any critical container or microservice crashes or stops responding, the Watchdog executes an automatic restart and logs the recovery event in the system audit trail.
 * **Critical Memory Thresholds:** Automatically detects if physical RAM usage hits or exceeds **90%** and triggers an emergency alert to prevent Linux Out-Of-Memory (OOM) killer crashes.
 * **Service Crash Detection:** Monitors critical production containers (`boteco_tunnel`, `boteco_db`, `nginx-manager-nginx-1`) and alerts immediately if any microservice exits or disappears.
 * **Anti-Flood Cooldown:** Smart rate limiting (15 to 30 min cooldown) via CallMeBot WhatsApp API and email notifications.
 * **Dashboard Widget:** Live watchdog health badge with a 1-click `[ 🧪 Testar WhatsApp ]` verification button.
 
-### 💾 8. Automated MySQL 8.0 Backups & Gzip Retention
+### 💾 9. Automated MySQL 8.0 Backups & Gzip Retention
 * **Zero-Downtime Database Dumps:** Generates transactional MySQL dumps (`boteco_db`) piped on the fly to `gzip -9`, producing compact `.sql.gz` archives in `/home/ubuntu/backups/`.
 * **Rolling 7-Day Retention:** Automatically purges dumps older than 7 days (`find -mtime +7 -delete`) to conserve NVMe storage on Always Free cloud instances.
 * **1-Click Snapshot:** Instant snapshot trigger directly from the dashboard and Storage Explorer.
