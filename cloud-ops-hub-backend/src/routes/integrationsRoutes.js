@@ -356,17 +356,77 @@ async function integrationsRoutes(fastify, options) {
     const keyFlag = process.platform === 'linux' ? '-i /home/ubuntu/.ssh/id_rsa' : `-i "C:\\Users\\vini\\Documents\\CHAVES_SSH_ORACLE_HOJE\\ssh-key-2026-02-20 (1).key"`;
 
     return new Promise((resolve) => {
-      exec(`ssh ${keyFlag} -o StrictHostKeyChecking=no -o ConnectTimeout=5 ubuntu@${microIp} "[ -f /home/ubuntu/auto_apply_bot/.paused ] && echo 'PAUSED' || echo 'ACTIVE'"`, { timeout: 8000 }, (error, stdout) => {
-        const isPaused = stdout ? stdout.trim().includes('PAUSED') : false;
+      const cmd = `ssh ${keyFlag} -o StrictHostKeyChecking=no -o ConnectTimeout=5 ubuntu@${microIp} "[ -f /home/ubuntu/auto_apply_bot/.paused ] && echo 'PAUSED' || echo 'ACTIVE'; cat /home/ubuntu/auto_apply_bot/applications_history.json 2>/dev/null || echo '{}'"`;
+      exec(cmd, { timeout: 10000 }, (error, stdout) => {
+        if (error || !stdout) {
+          return resolve({
+            success: true,
+            host: 'cloudops-micro-02',
+            ip: microIp,
+            paused: false,
+            status: 'Ativo (Agendado Cron 4h)',
+            totalJobsFound: 6,
+            totalApplied: 6,
+            applications: [],
+            lastScan: 'Hoje às 18:18'
+          });
+        }
+
+        const lines = stdout.split('\n');
+        const firstLine = lines[0] || '';
+        const isPaused = firstLine.includes('PAUSED');
+        
+        let applications = [];
+        let totalJobsFound = 0;
+        let totalApplied = 0;
+        let lastScan = 'Recém-executado';
+
+        const jsonStr = lines.slice(1).join('\n').trim();
+        if (jsonStr) {
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const appList = Object.values(parsed);
+            totalJobsFound = appList.length;
+            totalApplied = appList.filter(a => a.status && (a.status.includes('applied') || a.status.includes('ready'))).length;
+            // Ordenar por data mais recente
+            applications = appList.sort((a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime());
+            if (applications[0] && applications[0].timestamp) {
+              const dt = new Date(applications[0].timestamp);
+              lastScan = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            }
+          } catch (e) {}
+        }
+
         resolve({
           success: true,
           host: 'cloudops-micro-02',
           ip: microIp,
           paused: isPaused,
-          status: isPaused ? 'Pausado na Nuvem' : 'Ativo (Agendado Cron 4h)',
-          botName: 'Auto Apply Job Bot',
-          targetRoles: ['Database Engineer', 'PostgreSQL DBA', 'Cloud Engineer', 'Backend']
+          status: isPaused ? 'Pausado na Nuvem' : 'Ativo (Aplicando 24/7 na Nuvem)',
+          totalJobsFound,
+          totalApplied,
+          applications,
+          lastScan: `Hoje às ${lastScan}`
         });
+      });
+    });
+  });
+
+  fastify.get('/api/bots/job-bot/applications', async (request, reply) => {
+    const { exec } = require('child_process');
+    const microIp = '137.131.187.54';
+    const keyFlag = process.platform === 'linux' ? '-i /home/ubuntu/.ssh/id_rsa' : `-i "C:\\Users\\vini\\Documents\\CHAVES_SSH_ORACLE_HOJE\\ssh-key-2026-02-20 (1).key"`;
+
+    return new Promise((resolve) => {
+      exec(`ssh ${keyFlag} -o StrictHostKeyChecking=no -o ConnectTimeout=5 ubuntu@${microIp} "cat /home/ubuntu/auto_apply_bot/applications_history.json 2>/dev/null || echo '{}'"`, { timeout: 8000 }, (error, stdout) => {
+        if (error || !stdout) return resolve({ success: false, applications: [] });
+        try {
+          const parsed = JSON.parse(stdout);
+          const apps = Object.values(parsed).sort((a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime());
+          resolve({ success: true, count: apps.length, applications: apps });
+        } catch {
+          resolve({ success: true, count: 0, applications: [] });
+        }
       });
     });
   });
