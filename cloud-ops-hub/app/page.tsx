@@ -283,8 +283,7 @@ export default function Page() {
           }
         }
 
-        const isProdTarget = targetServer?.id === 'oracle-prod' || targetServer?.ip === '137.131.185.243'
-        if (isProdTarget) {
+        if (targetServer) {
           fetchLiveSystemMetrics(targetServer)
           fetchLiveContainers(targetServer)
           fetchLiveNginxHosts(targetServer)
@@ -351,34 +350,69 @@ export default function Page() {
     const isVirgin = item.id === 'oracle-micro-02' || item.ip === '137.131.187.54' || item.name === 'cloudops-micro-02'
 
     if (isVirgin) {
-      setContainers([
-        {
-          name: 'nginx-proxy',
-          image: 'nginx:alpine',
-          port: '80:80, 443:443',
-          status: 'Running',
-          cpu: '0.1%',
-          memory: '6.5 MB',
-          color: 'emerald'
+      const savedContainers = localStorage.getItem(`cloudops_containers_${item.id}`)
+      if (savedContainers) {
+        try { setContainers(JSON.parse(savedContainers)) } catch (e) {
+          setContainers([
+            {
+              name: 'nginx-proxy',
+              image: 'nginx:alpine',
+              port: '80:80, 443:443',
+              status: 'Running',
+              cpu: '0.1%',
+              memory: '6.5 MB',
+              color: 'emerald'
+            }
+          ])
         }
-      ])
-      setProxyHosts([
-        {
-          domain: '137.131.187.54',
-          forward: '127.0.0.1:80',
-          ssl: 'Nginx Edge Proxy',
-          status: 'Active'
+      } else {
+        setContainers([
+          {
+            name: 'nginx-proxy',
+            image: 'nginx:alpine',
+            port: '80:80, 443:443',
+            status: 'Running',
+            cpu: '0.1%',
+            memory: '6.5 MB',
+            color: 'emerald'
+          }
+        ])
+      }
+
+      const savedProxies = localStorage.getItem(`cloudops_proxies_${item.id}`)
+      if (savedProxies) {
+        try { setProxyHosts(JSON.parse(savedProxies)) } catch (e) {
+          setProxyHosts([
+            {
+              domain: '137.131.187.54',
+              forward: '127.0.0.1:80',
+              ssl: 'Nginx Edge Proxy',
+              status: 'Active'
+            }
+          ])
         }
-      ])
+      } else {
+        setProxyHosts([
+          {
+            domain: '137.131.187.54',
+            forward: '127.0.0.1:80',
+            ssl: 'Nginx Edge Proxy',
+            status: 'Active'
+          }
+        ])
+      }
       setBuckets([])
+      fetchLiveContainers(item)
+      fetchLiveSystemMetrics(item)
+      fetchLiveNginxHosts(item)
     } else {
-      const savedContainers = localStorage.getItem(`cloudops_containers_${item.id}`) || localStorage.getItem('cloudops_containers')
+      const savedContainers = localStorage.getItem(`cloudops_containers_${item.id}`)
       if (savedContainers) {
         try { setContainers(JSON.parse(savedContainers)) } catch (e) { setContainers(initialContainers) }
       } else {
         setContainers(initialContainers)
       }
-      const savedProxies = localStorage.getItem(`cloudops_proxies_${item.id}`) || localStorage.getItem('cloudops_proxies')
+      const savedProxies = localStorage.getItem(`cloudops_proxies_${item.id}`)
       if (savedProxies) {
         try { setProxyHosts(JSON.parse(savedProxies)) } catch (e) { setProxyHosts(initialProxies) }
       } else {
@@ -393,14 +427,14 @@ export default function Page() {
 
   async function fetchLiveContainers(targetServer?: ServerType | null) {
     const s = targetServer || server
-    const isProd = s?.id === 'oracle-prod' || s?.ip === '137.131.185.243'
-    if (!isProd) return
+    if (!s) return
+    const ipParam = s.ip ? `?ip=${encodeURIComponent(s.ip)}` : ''
 
     try {
-      const res = await fetch(getApiUrl('/api/docker/containers'))
+      const res = await fetch(getApiUrl(`/api/docker/containers${ipParam}`))
       if (res.ok) {
         const data = await res.json()
-        if (data.success && Array.isArray(data.containers) && data.containers.length > 0) {
+        if (data.success && Array.isArray(data.containers)) {
           setContainers(data.containers)
           if (typeof window !== 'undefined' && s?.id) {
             localStorage.setItem(`cloudops_containers_${s.id}`, JSON.stringify(data.containers))
@@ -412,17 +446,17 @@ export default function Page() {
 
   async function fetchLiveSystemMetrics(targetServer?: ServerType | null) {
     const s = targetServer || server
-    const isProd = s?.id === 'oracle-prod' || s?.ip === '137.131.185.243'
-    if (!isProd) return
+    if (!s) return
+    const ipParam = s.ip ? `?ip=${encodeURIComponent(s.ip)}` : ''
 
     try {
-      const res = await fetch(getApiUrl('/api/system/metrics'))
+      const res = await fetch(getApiUrl(`/api/system/metrics${ipParam}`))
       if (res.ok) {
         const data = await res.json()
         if (data.success && data.metrics) {
           const m = data.metrics
           setServer((prev: any) => {
-            if (!prev) return prev
+            if (!prev || (prev.id !== s.id && prev.ip !== s.ip)) return prev
             return {
               ...prev,
               cpu: m.cpu,
@@ -440,7 +474,7 @@ export default function Page() {
           })
           setServerList((prevList: any[]) =>
             prevList.map(srv => {
-              if (srv.id === 'oracle-prod' || srv.ip === '137.131.185.243') {
+              if (srv.id === s.id || srv.ip === s.ip) {
                 return {
                   ...srv,
                   cpu: m.cpu,
@@ -466,14 +500,14 @@ export default function Page() {
 
   async function fetchLiveNginxHosts(targetServer?: ServerType | null) {
     const s = targetServer || server
-    const isProd = s?.id === 'oracle-prod' || s?.ip === '137.131.185.243'
-    if (!isProd) return
+    if (!s) return
+    const ipParam = s.ip ? `?ip=${encodeURIComponent(s.ip)}` : ''
 
     try {
-      const res = await fetch(getApiUrl('/api/nginx/hosts'))
+      const res = await fetch(getApiUrl(`/api/nginx/hosts${ipParam}`))
       if (res.ok) {
         const data = await res.json()
-        if (data.success && Array.isArray(data.proxies) && data.proxies.length > 0) {
+        if (data.success && Array.isArray(data.proxies)) {
           setProxyHosts(data.proxies)
           if (typeof window !== 'undefined' && s?.id) {
             localStorage.setItem(`cloudops_proxies_${s.id}`, JSON.stringify(data.proxies))
@@ -485,8 +519,6 @@ export default function Page() {
 
   useEffect(() => {
     if (!server) return
-    const isProd = server?.id === 'oracle-prod' || server?.ip === '137.131.185.243'
-    if (!isProd) return
 
     if (active === 'Dashboard') {
       fetchLiveSystemMetrics(server)
@@ -500,7 +532,7 @@ export default function Page() {
     } else if (active === 'Nginx') {
       fetchLiveNginxHosts(server)
     }
-  }, [active, server?.id])
+  }, [active, server?.id, server?.ip])
 
   useEffect(() => {
     const checkRequests = () => {
@@ -526,7 +558,7 @@ export default function Page() {
       const res = await fetch(getApiUrl('/api/docker/action'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ container: containerName, action })
+        body: JSON.stringify({ container: containerName, action, ip: server?.ip })
       })
       const data = await res.json()
       if (data.success) {
@@ -1067,6 +1099,7 @@ export default function Page() {
           {server && active === 'Dashboard' && (
             <>
               <DashboardView
+                key={`dash-${server.id || server.ip}`}
                 server={server}
                 serverList={serverList}
                 containers={containers}
@@ -1075,6 +1108,7 @@ export default function Page() {
                 doAction={doAction}
               />
               <TerminalView 
+                key={`term-dash-${server.id || server.ip}`}
                 server={server}
                 isFullTab={false}
                 doAction={doAction}
@@ -1084,19 +1118,21 @@ export default function Page() {
           )}
 
           {active === 'Odisseu AI' && (
-            <OdisseuChatView server={server} doAction={doAction} />
+            <OdisseuChatView key={`odisseu-${server?.id || server?.ip || 'none'}`} server={server} doAction={doAction} />
           )}
 
           {(active === 'VM Scraper' || active === 'Robôs & Bots da VM') && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div key={`bots-wrap-${server?.id || server?.ip || 'none'}`} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {server && (
                 <VmBotsSection
+                  key={`bots-sec-${server.id || server.ip}`}
                   server={server}
                   doAction={doAction}
                   onOpenScraperModal={() => {}}
                 />
               )}
               <VmScraper
+                key={`scraper-${server?.id || server?.ip || 'none'}`}
                 scraperData={scraperData}
                 scraperLoading={scraperLoading}
                 doAction={doAction}
@@ -1107,11 +1143,11 @@ export default function Page() {
           )}
 
           {active === 'Deploy' && (
-            <DeployView server={server} doAction={doAction} />
+            <DeployView key={`deploy-${server?.id || server?.ip || 'none'}`} server={server} doAction={doAction} />
           )}
 
           {active === 'Monitoramento & Logs' && (
-            <LogsTelemetryView doAction={doAction} />
+            <LogsTelemetryView key={`logs-${server?.id || server?.ip || 'none'}`} server={server} doAction={doAction} />
           )}
 
           {active === 'Vercel Frontend' && (
@@ -1123,11 +1159,11 @@ export default function Page() {
           )}
 
           {active === 'Migração Multi-Cloud' && (
-            <MigrationWorkspaceView server={server} doAction={doAction} />
+            <MigrationWorkspaceView key={`migration-${server?.id || server?.ip || 'none'}`} server={server} doAction={doAction} />
           )}
 
           {active === 'Variáveis (.env)' && (
-            <EnvManagerView server={server} doAction={doAction} />
+            <EnvManagerView key={`env-${server?.id || server?.ip || 'none'}`} server={server} doAction={doAction} />
           )}
 
           {(active === 'Usuários & Aprovações' || active === 'Aprovações & Usuários') && (
@@ -1148,6 +1184,7 @@ export default function Page() {
 
           {active === 'Docker' && (
             <DockerView
+              key={`docker-${server?.id || server?.ip || 'none'}`}
               server={server}
               containers={containers}
               fetchLiveContainers={fetchLiveContainers}
@@ -1159,6 +1196,7 @@ export default function Page() {
 
           {active === 'Nginx' && (
             <NginxView
+              key={`nginx-${server?.id || server?.ip || 'none'}`}
               server={server}
               proxyHosts={proxyHosts}
               setProxyHosts={setProxyHosts}
@@ -1169,7 +1207,7 @@ export default function Page() {
 
           {active === 'Tunnels' && (
             server ? (
-              <CloudflareTunnelView server={server} doAction={doAction} />
+              <CloudflareTunnelView key={`tunnels-${server.id || server.ip}`} server={server} doAction={doAction} />
             ) : (
               <div>
                 <div className="section-heading">
@@ -1196,7 +1234,7 @@ export default function Page() {
 
           {active === 'Storage' && (
             server ? (
-              <StorageExplorerView server={server} doAction={doAction} />
+              <StorageExplorerView key={`storage-${server.id || server.ip}`} server={server} doAction={doAction} />
             ) : (
               <div>
                 <div className="section-heading">
@@ -1223,6 +1261,7 @@ export default function Page() {
 
           {active === 'Terminal' && (
             <TerminalView
+              key={`term-full-${server?.id || server?.ip || 'none'}`}
               server={server}
               isFullTab={true}
               doAction={doAction}

@@ -34,6 +34,16 @@ export function TerminalView({
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [terminalHistory])
 
+  useEffect(() => {
+    if (!server) return
+    const now = new Date().toTimeString().split(' ')[0]
+    setTerminalHistory([
+      { time: now, type: 'info', text: `CloudOps Hub Zero Trust SSH Session connected to ${server.name} (${server.ip})` },
+      { time: now, type: 'info', text: `Sessão SSH Zero Trust autenticada e ativa na porta 22 para ubuntu@${server.ip}.` },
+      { time: now, type: 'info', text: 'Sessão pronta. Experimente: uptime, free -m, df -h, docker ps' },
+    ])
+  }, [server?.id, server?.ip])
+
   if (!server && isFullTab) {
     return (
       <div>

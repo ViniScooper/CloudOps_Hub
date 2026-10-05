@@ -31,9 +31,14 @@ const DEFAULT_CONTAINERS: ContainerInfo[] = [
   { name: 'financeiro_tunnel', status: 'running' }
 ]
 
-export function LiveContainerLogs({ doAction }: { doAction?: (msg: string) => void }) {
-  const [containers, setContainers] = useState<ContainerInfo[]>(DEFAULT_CONTAINERS)
-  const [selectedContainer, setSelectedContainer] = useState<string>('financeiro_backend')
+export function LiveContainerLogs({ server, doAction }: { server?: any; doAction?: (msg: string) => void }) {
+  const isMicro = server?.id === 'oracle-micro-02' || server?.ip === '137.131.187.54' || server?.name === 'cloudops-micro-02'
+  const initialList = isMicro
+    ? [{ name: 'nginx-proxy', status: 'running' }]
+    : DEFAULT_CONTAINERS
+
+  const [containers, setContainers] = useState<ContainerInfo[]>(initialList)
+  const [selectedContainer, setSelectedContainer] = useState<string>(isMicro ? 'nginx-proxy' : 'financeiro_backend')
   const [tailLines, setTailLines] = useState<number>(100)
   const [rawLogs, setRawLogs] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
@@ -43,10 +48,11 @@ export function LiveContainerLogs({ doAction }: { doAction?: (msg: string) => vo
 
   const terminalRef = useRef<HTMLDivElement>(null)
 
-  // Buscar lista de containers da VM
+  // Buscar lista de containers da VM selecionada
   const fetchContainers = async () => {
     try {
-      const res = await fetch(getApiUrl('/api/docker/containers'))
+      const ipParam = server?.ip ? `?ip=${encodeURIComponent(server.ip)}` : ''
+      const res = await fetch(getApiUrl(`/api/docker/containers${ipParam}`))
       if (res.ok) {
         const data = await res.json()
         if (data.containers && Array.isArray(data.containers) && data.containers.length > 0) {
@@ -57,6 +63,9 @@ export function LiveContainerLogs({ doAction }: { doAction?: (msg: string) => vo
           })).filter((c: ContainerInfo) => !!c.name)
           if (mapped.length > 0) {
             setContainers(mapped)
+            if (!mapped.some((c: any) => c.name === selectedContainer)) {
+              setSelectedContainer(mapped[0].name)
+            }
           }
         }
       }
@@ -65,12 +74,13 @@ export function LiveContainerLogs({ doAction }: { doAction?: (msg: string) => vo
     }
   }
 
-  // Buscar logs do container selecionado
+  // Buscar logs do container selecionado na VM correta
   const fetchLogs = async (silent = false) => {
     if (!selectedContainer) return
     if (!silent) setLoading(true)
     try {
-      const res = await fetch(getApiUrl(`/api/docker/logs/${encodeURIComponent(selectedContainer)}?tail=${tailLines}`))
+      const ipParam = server?.ip ? `&ip=${encodeURIComponent(server.ip)}` : ''
+      const res = await fetch(getApiUrl(`/api/docker/logs/${encodeURIComponent(selectedContainer)}?tail=${tailLines}${ipParam}`))
       const data = await res.json()
       if (data.success && typeof data.logs === 'string') {
         setRawLogs(data.logs)
@@ -86,11 +96,11 @@ export function LiveContainerLogs({ doAction }: { doAction?: (msg: string) => vo
 
   useEffect(() => {
     fetchContainers()
-  }, [])
+  }, [server?.id, server?.ip])
 
   useEffect(() => {
     fetchLogs()
-  }, [selectedContainer, tailLines])
+  }, [selectedContainer, tailLines, server?.id, server?.ip])
 
   // Timer para Auto-Refresh
   useEffect(() => {
