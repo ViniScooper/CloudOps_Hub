@@ -38,7 +38,7 @@ interface TelemetryLog {
   userAgent?: string
 }
 
-export function LogsTelemetryView({ doAction }: { doAction: (msg: string) => void }) {
+export function LogsTelemetryView({ server, doAction }: { server?: any; doAction: (msg: string) => void }) {
   const [logs, setLogs] = useState<TelemetryLog[]>([])
   const [metrics, setMetrics] = useState({ total: 0, errors: 0, warnings: 0, info: 0 })
   const [loading, setLoading] = useState(false)
@@ -232,7 +232,7 @@ export function LogsTelemetryView({ doAction }: { doAction: (msg: string) => voi
       </div>
 
       {activeTab === 'docker' ? (
-        <LiveContainerLogs doAction={doAction} />
+        <LiveContainerLogs server={server} doAction={doAction} />
       ) : (
         <>
       {/* CARDS DE MÉTRICAS */}

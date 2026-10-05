@@ -20,7 +20,7 @@ interface ProjectConfig {
   defaultEnvs: Array<{ key: string; value: string; isSecret: boolean; description: string }>
 }
 
-const AVAILABLE_PROJECTS: ProjectConfig[] = [
+const PROD_PROJECTS: ProjectConfig[] = [
   {
     id: 'cloudops_hub',
     name: 'CloudOps Hub (Console DevOps & API)',
@@ -76,8 +76,31 @@ const AVAILABLE_PROJECTS: ProjectConfig[] = [
   }
 ]
 
+const WORKER_PROJECTS: ProjectConfig[] = [
+  {
+    id: 'auto_apply_bot',
+    name: 'Auto Apply Bot (Candidaturas Automáticas 24/7)',
+    containerName: 'auto-apply-bot',
+    path: '/home/ubuntu/auto_apply_bot/.env',
+    port: '3000',
+    tag: 'WORKER BOT',
+    defaultEnvs: [
+      { key: 'CANDIDATE_NAME', value: 'José Vinicius Lourenço', isSecret: false, description: 'Nome do candidato nos formulários ATS' },
+      { key: 'CANDIDATE_EMAIL', value: 'vviniciuslourenco@gmail.com', isSecret: false, description: 'E-mail para contato e recrutadores' },
+      { key: 'PORTFOLIO_URL', value: 'https://portfolio-dusky-phi-38.vercel.app/', isSecret: false, description: 'URL do Portfólio oficial' },
+      { key: 'LINKEDIN_URL', value: 'https://www.linkedin.com/in/jose-vinicius-louren%C3%A7o-1a6b9014a/', isSecret: false, description: 'LinkedIn do candidato' },
+      { key: 'AUTO_APPLY_MODE', value: 'true', isSecret: false, description: 'Modo automático ativo 24/7' },
+      { key: 'GROQ_API_KEY', value: '••••••••', isSecret: true, description: 'Chave Groq Cloud para IA de varredura' },
+      { key: 'GEMINI_API_KEY', value: '••••••••', isSecret: true, description: 'Chave Gemini AI Studio' }
+    ]
+  }
+]
+
 export function EnvManagerView({ server, doAction, onConnect }: EnvManagerViewProps) {
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('cloudops_hub')
+  const isWorker = server?.id === 'oracle-micro-02' || server?.ip === '137.131.187.54' || server?.name === 'cloudops-micro-02'
+  const availableProjects = isWorker ? WORKER_PROJECTS : PROD_PROJECTS
+
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(availableProjects[0].id)
   const [showSecrets, setShowSecrets] = useState<{ [key: string]: boolean }>({})
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -85,7 +108,7 @@ export function EnvManagerView({ server, doAction, onConnect }: EnvManagerViewPr
   const [newValue, setNewValue] = useState('')
   const [newIsSecret, setNewIsSecret] = useState(false)
 
-  const currentProject = AVAILABLE_PROJECTS.find(p => p.id === selectedProjectId) || AVAILABLE_PROJECTS[0]
+  const currentProject = availableProjects.find(p => p.id === selectedProjectId) || availableProjects[0]
 
   const [envVars, setEnvVars] = useState<any[]>(() => {
     if (typeof window !== 'undefined') {
@@ -102,9 +125,10 @@ export function EnvManagerView({ server, doAction, onConnect }: EnvManagerViewPr
 
   const fetchEnv = async (projectId: string) => {
     setIsLoading(true)
-    const targetProj = AVAILABLE_PROJECTS.find(p => p.id === projectId) || currentProject
+    const targetProj = availableProjects.find(p => p.id === projectId) || currentProject
     try {
-      const res = await fetch(getApiUrl(`/api/env?project=${encodeURIComponent(projectId)}`))
+      const ipParam = server?.ip ? `&ip=${encodeURIComponent(server.ip)}` : ''
+      const res = await fetch(getApiUrl(`/api/env?project=${encodeURIComponent(projectId)}${ipParam}`))
       const data = await res.json()
       if (data.envVars && Array.isArray(data.envVars) && data.envVars.length > 0) {
         setEnvVars(data.envVars)
@@ -132,6 +156,11 @@ export function EnvManagerView({ server, doAction, onConnect }: EnvManagerViewPr
     setSelectedProjectId(id)
     fetchEnv(id)
   }
+
+  useEffect(() => {
+    setSelectedProjectId(availableProjects[0].id)
+    fetchEnv(availableProjects[0].id)
+  }, [server?.id, server?.ip])
 
   useEffect(() => {
     if (server?.ip) {
@@ -221,7 +250,7 @@ export function EnvManagerView({ server, doAction, onConnect }: EnvManagerViewPr
       const res = await fetch(getApiUrl('/api/env'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ project: currentProject.id, envVars })
+        body: JSON.stringify({ project: currentProject.id, envVars, ip: server?.ip })
       })
       const data = await res.json()
       doAction(`✅ ${data.message || `Variáveis aplicadas no container ${currentProject.containerName}!`}`)
@@ -257,7 +286,7 @@ export function EnvManagerView({ server, doAction, onConnect }: EnvManagerViewPr
 
       {/* SELETOR DE PROJETO / APLICAÇÃO */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-        {AVAILABLE_PROJECTS.map(proj => {
+        {availableProjects.map(proj => {
           const isSelected = proj.id === selectedProjectId
           return (
             <button

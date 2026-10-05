@@ -68,6 +68,10 @@ export function StorageExplorerView({
   const [newFileUrl, setNewFileUrl] = useState('')
 
   const fetchRealStorageFiles = async () => {
+    if (isVirginVM) {
+      setFiles([])
+      return
+    }
     setIsLoading(true)
     try {
       const res = await fetch(getApiUrl('/api/storage/objects'))
@@ -76,8 +80,7 @@ export function StorageExplorerView({
         if (data.success && Array.isArray(data.files)) {
           setFiles(data.files)
           if (typeof window !== 'undefined') {
-            const storageKey = isVirginVM ? 'cloudops_storage_files_micro02' : 'cloudops_storage_files'
-            localStorage.setItem(storageKey, JSON.stringify(data.files))
+            localStorage.setItem('cloudops_storage_files', JSON.stringify(data.files))
           }
           doAction(`Arquivos reais do bucket ${currentBucket} carregados! (${data.files.length} objetos)`)
         }
@@ -91,7 +94,7 @@ export function StorageExplorerView({
 
   useEffect(() => {
     fetchRealStorageFiles()
-  }, [])
+  }, [server?.id, server?.ip, isVirginVM])
 
   const categories = ['Todos', 'Pratos', 'Bebidas', 'Sobremesas', 'Banners', 'Backups']
 
