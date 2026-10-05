@@ -16,14 +16,20 @@ function getSshKey() {
   return null;
 }
 
-function runRemoteSsh(command) {
+function runRemoteSsh(command, targetIp) {
   const secCheck = sanitizeBashCommand(command);
   if (!secCheck.safe) {
     return Promise.reject(new Error(`[Security Check] Comando bloqueado: ${secCheck.error}`));
   }
+
+  const isRemote = targetIp && targetIp !== '127.0.0.1' && targetIp !== 'localhost' && targetIp !== '137.131.185.243';
+
   if (process.platform === 'linux') {
+    const finalCmd = isRemote
+      ? `ssh -i /home/ubuntu/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=5 ubuntu@${targetIp} "${command.replace(/"/g, '\\"')}"`
+      : command;
     return new Promise((resolve) => {
-      exec(command, { maxBuffer: 1024 * 1024 * 10 }, (err, stdout, stderr) => {
+      exec(finalCmd, { maxBuffer: 1024 * 1024 * 10 }, (err, stdout, stderr) => {
         resolve({
           stdout: stdout ? stdout.trim() : '',
           stderr: stderr ? stderr.trim() : '',
@@ -39,6 +45,7 @@ function runRemoteSsh(command) {
       return reject(new Error('Chave SSH da VM nao encontrada no caminho configurado.'));
     }
 
+    const targetHost = isRemote ? targetIp : (process.env.VM_HOST || '137.131.185.243');
     const conn = new Client();
     conn.on('ready', () => {
       conn.exec(command, (err, stream) => {
@@ -62,9 +69,9 @@ function runRemoteSsh(command) {
         });
       });
     }).on('error', err => {
-      reject(new Error('Falha na conexao SSH com a VM: ' + err.message));
+      resolve({ stdout: '', stderr: 'Falha na conexao SSH com a VM: ' + err.message, code: 1 });
     }).connect({
-      host: process.env.VM_HOST || '137.131.185.243',
+      host: targetHost,
       port: Number(process.env.VM_PORT || 22),
       username: process.env.VM_USER || 'ubuntu',
       privateKey: key,

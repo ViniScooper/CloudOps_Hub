@@ -23,7 +23,7 @@ async function executeContainerAction({ container, action, ip, user }) {
   }
 
   const cmd = `docker ${action} ${safeName} && docker inspect -f '{{.State.Status}}' ${safeName}`;
-  const res = await runRemoteSsh(cmd);
+  const res = await runRemoteSsh(cmd, ip);
 
   if (res.code !== 0 && !res.stdout) {
     throw new Error(res.stderr || `Falha ao executar ${action} no container ${safeName}`);
@@ -49,7 +49,7 @@ async function getContainerLogs({ container, tail = 100, ip, user }) {
 
   const safeTail = Math.min(Math.max(parseInt(tail, 10) || 100, 10), 1000);
   const cmd = `docker logs --tail ${safeTail} --timestamps ${safeName}`;
-  const res = await runRemoteSsh(cmd);
+  const res = await runRemoteSsh(cmd, ip);
 
   // docker logs costuma cuspir logs tanto no stdout quanto no stderr
   const logs = (res.stdout || '') + (res.stderr ? '\n' + res.stderr : '');
@@ -63,9 +63,9 @@ async function getContainerLogs({ container, tail = 100, ip, user }) {
 }
 
 // Lista detalhada de todos os containers (ativos e inativos)
-async function listContainersDetailed() {
+async function listContainersDetailed(ip) {
   const cmd = `docker ps -a --format '{"id":"{{.ID}}","name":"{{.Names}}","image":"{{.Image}}","status":"{{.Status}}","state":"{{.State}}","ports":"{{.Ports}}","created":"{{.CreatedAt}}"}'`;
-  const res = await runRemoteSsh(cmd);
+  const res = await runRemoteSsh(cmd, ip);
 
   if (!res.stdout) return [];
 
