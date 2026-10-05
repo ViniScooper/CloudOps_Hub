@@ -42,6 +42,15 @@ async function envRoutes(fastify, options) {
         { key: 'DB_USER', value: process.env.DB_USER || 'app_user', isSecret: false, description: 'Usuário do banco de dados' },
         { key: 'DB_PASSWORD', value: process.env.DB_PASSWORD ? '••••••••' : 'db_password_placeholder', isSecret: true, description: 'Senha criptografada do MySQL' },
         { key: 'JWT_SECRET', value: process.env.JWT_SECRET || 'app_jwt_secret_placeholder', isSecret: true, description: 'Chave de segurança de autenticação' }
+      ],
+      auto_apply_bot: [
+        { key: 'CANDIDATE_NAME', value: 'José Vinicius Lourenço', isSecret: false, description: 'Nome do candidato nos formulários ATS' },
+        { key: 'CANDIDATE_EMAIL', value: 'vviniciuslourenco@gmail.com', isSecret: false, description: 'E-mail para contato e recrutadores' },
+        { key: 'PORTFOLIO_URL', value: 'https://portfolio-dusky-phi-38.vercel.app/', isSecret: false, description: 'URL do Portfólio oficial' },
+        { key: 'LINKEDIN_URL', value: 'https://www.linkedin.com/in/jose-vinicius-louren%C3%A7o-1a6b9014a/', isSecret: false, description: 'LinkedIn do candidato' },
+        { key: 'AUTO_APPLY_MODE', value: 'true', isSecret: false, description: 'Modo automático ativo 24/7' },
+        { key: 'GROQ_API_KEY', value: process.env.GROQ_API_KEY ? '••••••••' : 'gsk_placeholder', isSecret: true, description: 'Chave Groq Cloud para IA de varredura' },
+        { key: 'GEMINI_API_KEY', value: process.env.GEMINI_API_KEY ? '••••••••' : 'AIzaSy_placeholder', isSecret: true, description: 'Chave Gemini AI Studio' }
       ]
     };
 

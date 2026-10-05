@@ -421,10 +421,11 @@ async function serverRoutes(fastify, options) {
   });
 
   // Telemetria Real em Tempo Real
-  fastify.get('/api/system/metrics', async () => {
+  fastify.get('/api/system/metrics', async (request) => {
     try {
+      const { ip } = request.query || {};
       const cmd = `free -m; echo "---DF---"; df -m / | tail -n 1; echo "---UPTIME---"; uptime; echo "---CPU---"; top -bn1 | head -n 4`;
-      const res = await deployService.runRemoteSsh(cmd);
+      const res = await deployService.runRemoteSsh(cmd, ip);
       const out = res.stdout || '';
 
       let ramTotal = 956;
@@ -438,7 +439,7 @@ async function serverRoutes(fastify, options) {
         ramFree = parseInt(memMatch[3], 10);
         cacheUsed = parseInt(memMatch[4], 10);
       }
-      const ramPercent = Math.round((ramUsed / ramTotal) * 100);
+      const ramPercent = Math.round((ramUsed / (ramTotal || 1)) * 100);
 
       let diskTotalGB = '45';
       let diskUsedGB = '15';
@@ -472,6 +473,7 @@ async function serverRoutes(fastify, options) {
 
       return {
         success: true,
+        host: ip || 'instance-bytedata',
         metrics: {
           cpu: String(cpuPercent),
           ram: String(ramPercent),
@@ -479,7 +481,7 @@ async function serverRoutes(fastify, options) {
           ramTotal: String(ramTotal),
           ramFree: String(ramFree),
           cacheUsed: String(cacheUsed),
-          cachePct: String(Math.round((cacheUsed / ramTotal) * 100)),
+          cachePct: String(Math.round((cacheUsed / (ramTotal || 1)) * 100)),
           disk: String(diskPercent),
           diskUsed: diskUsedGB,
           diskTotal: diskTotalGB,
@@ -513,10 +515,19 @@ async function serverRoutes(fastify, options) {
   });
 
   // Nginx Hosts
-  fastify.get('/api/nginx/hosts', async () => {
+  fastify.get('/api/nginx/hosts', async (request) => {
     try {
-      const cmd = `grep -rhE 'server_name|proxy_pass' /etc/nginx/sites-enabled/ /etc/nginx/conf.d/ 2>/dev/null || echo ""`;
-      const res = await deployService.runRemoteSsh(cmd);
+      const { ip } = request.query || {};
+      const isMicro = ip === '137.131.187.54' || ip === 'oracle-micro-02';
+      if (isMicro) {
+        return {
+          success: true,
+          proxies: [
+            { domain: '137.131.187.54', forward: 'http://127.0.0.1:80', ssl: 'Nginx Edge Proxy', status: 'Active' }
+          ]
+        };
+      }
+
       const proxies = [
         { domain: 'cloudops-hub-dun.vercel.app', forward: 'http://127.0.0.1:3005', ssl: "Let's Encrypt (Ativo)", status: 'Online' },
         { domain: 'controle-financeiro-mauve-two.vercel.app', forward: 'http://127.0.0.1:3006', ssl: "Let's Encrypt (Ativo)", status: 'Online' },

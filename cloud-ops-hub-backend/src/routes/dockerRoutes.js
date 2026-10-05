@@ -47,10 +47,10 @@ async function dockerRoutes(fastify, options) {
   // Obter logs pontuais do container via HTTP
   fastify.get('/api/docker/logs/:container', async (request, reply) => {
     const { container } = request.params;
-    const { tail } = request.query || {};
+    const { tail, ip } = request.query || {};
 
     try {
-      const result = await dockerService.getContainerLogs({ container, tail });
+      const result = await dockerService.getContainerLogs({ container, tail, ip });
       return result;
     } catch (err) {
       return reply.code(500).send({ success: false, error: err.message });
@@ -59,8 +59,9 @@ async function dockerRoutes(fastify, options) {
 
   // Listagem detalhada de containers
   fastify.get('/api/docker/containers', async (request, reply) => {
+    const { ip } = request.query || {};
     try {
-      const containers = await dockerService.listContainersDetailed();
+      const containers = await dockerService.listContainersDetailed(ip);
       return { success: true, containers };
     } catch (err) {
       return reply.code(500).send({ success: false, error: err.message });
