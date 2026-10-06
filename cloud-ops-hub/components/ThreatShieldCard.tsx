@@ -82,8 +82,8 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
         continue
       }
 
-      // 2. Access log (IP - - [...] "METHOD /... HTTP/..." 404/400/403)
-      const accMatch = line.match(/([0-9.]+)\s+-\s+-\s+\[([^\]]+)\]\s+"([^"]+)"\s+(404|400|403|405)\s+/i)
+      // 2. Access log (IP - - [...] "METHOD /... HTTP/..." 404/400/403/502)
+      const accMatch = line.match(/([0-9.]+)\s+-\s+-\s+\[([^\]]+)\]\s+"([^"]+)"\s+(\d{3})\s+/i)
       if (accMatch) {
         const clientIp = accMatch[1]
         const rawTime = accMatch[2]
@@ -93,7 +93,8 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
         if (
           req.includes('.env') || req.includes('.git') || req.includes('SDK') ||
           req.includes('login') || req.includes('\\x') || req.includes('php') ||
-          req.includes('wp-') || status === 404 || status === 400
+          req.includes('wp-') || req.includes('yml') || req.includes('yaml') ||
+          status === 404 || status === 400 || status === 502
         ) {
           if (!realTime) {
             const dateParts = rawTime.split(':')
@@ -109,7 +110,7 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
             org: 'Varredura Web / Crawler',
             path: req.slice(0, 50),
             status,
-            statusText: status === 404 ? '404 Barrado' : `${status} Rejeitado`,
+            statusText: status === 502 ? '502 Bloqueado' : status === 404 ? '404 Barrado' : `${status} Rejeitado`,
             time: realTime || 'Recente',
             banned: bannedIps.includes(clientIp)
           })
