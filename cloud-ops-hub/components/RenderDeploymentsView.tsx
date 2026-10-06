@@ -73,14 +73,18 @@ export const DEFAULT_RENDER_SERVICES: RenderServiceConfig[] = [
 
 interface RenderDeploymentsViewProps {
   server?: any
+  currentUser?: any
   doAction: (msg: string) => void
 }
 
-export function RenderDeploymentsView({ server, doAction }: RenderDeploymentsViewProps) {
+export function RenderDeploymentsView({ server, currentUser, doAction }: RenderDeploymentsViewProps) {
+  const isMaster = (currentUser?.email || '').trim().toLowerCase() === 'vviniciuslourenco@gmail.com'
+  const defaultMasterKey = isMaster ? 'rnd_GRgsJrifvOkzSSpkKXETxenefs53' : ''
+
   const [activeTab, setActiveTab] = useState<'services' | 'cron' | 'mysql'>('services')
   const [loading, setLoading] = useState(true)
-  const [services, setServices] = useState<any[]>(DEFAULT_RENDER_SERVICES)
-  const [selectedServiceId, setSelectedServiceId] = useState<string>('srv-job-tracker-api')
+  const [services, setServices] = useState<any[]>(isMaster ? DEFAULT_RENDER_SERVICES : [])
+  const [selectedServiceId, setSelectedServiceId] = useState<string>(isMaster ? 'srv-job-tracker-api' : '')
   const [deploysData, setDeploysData] = useState<any>(null)
   const [deploying, setDeploying] = useState(false)
   const [restarting, setRestarting] = useState(false)
@@ -89,11 +93,11 @@ export function RenderDeploymentsView({ server, doAction }: RenderDeploymentsVie
 
   // Configuração da Chave API
   const [configModalOpen, setConfigModalOpen] = useState(false)
-  const [apiKey, setApiKey] = useState('rnd_GRgsJrifvOkzSSpkKXETxenefs53')
+  const [apiKey, setApiKey] = useState('')
   const [showKey, setShowKey] = useState(false)
   const [testingKey, setTestingKey] = useState(false)
-  const [keyStatus, setKeyStatus] = useState<'idle' | 'valid' | 'invalid'>('valid')
-  const [keyUser, setKeyUser] = useState<any>({ name: 'Jose Vinicius Lourenço', email: 'vviniciuslourenco@gmail.com' })
+  const [keyStatus, setKeyStatus] = useState<'idle' | 'valid' | 'invalid'>('idle')
+  const [keyUser, setKeyUser] = useState<any>(null)
   const [saveSuccess, setSaveSuccess] = useState(false)
 
   // Cron Jobs & Anti-Sleep
@@ -122,39 +126,68 @@ export function RenderDeploymentsView({ server, doAction }: RenderDeploymentsVie
   // Carrega configuração e serviços
   useEffect(() => {
     loadInitialConfig()
-  }, [])
+  }, [currentUser])
 
   const loadInitialConfig = async () => {
     try {
       setLoading(true)
-      const defaultKey = 'rnd_GRgsJrifvOkzSSpkKXETxenefs53'
-      if (typeof window !== 'undefined' && !localStorage.getItem('render_api_key')) {
-        localStorage.setItem('render_api_key', defaultKey)
+      const userKeyStorage = currentUser?.id ? `render_api_key_${currentUser.id}` : 'render_api_key'
+      const localKey = typeof window !== 'undefined' ? (localStorage.getItem(userKeyStorage) || (isMaster ? localStorage.getItem('render_api_key') : '')) : null
+
+      let effectiveKey = localKey || ''
+      let serviceId = ''
+
+      if (isMaster && !effectiveKey) {
+        effectiveKey = defaultMasterKey
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('render_api_key', defaultMasterKey)
+        }
       }
 
-      const res = await fetch(`${apiUrl}/api/render/config`).catch(() => null)
-      const cfg = res && res.ok ? await res.json() : null
+      // Se for master ou tiver backend configurado
+      if (isMaster || effectiveKey) {
+        const res = await fetch(`${apiUrl}/api/render/config`).catch(() => null)
+        const cfg = res && res.ok ? await res.json() : null
+        if (cfg?.apiKey && isMaster) {
+          effectiveKey = cfg.apiKey
+        }
+        serviceId = cfg?.serviceId || ''
+      }
 
-      const localKey = typeof window !== 'undefined' ? localStorage.getItem('render_api_key') : null
-      const effectiveKey = cfg?.apiKey || localKey || defaultKey
+      if (effectiveKey) {
+        setApiKey(effectiveKey)
+        setKeyStatus('valid')
+        if (isMaster) {
+          setKeyUser({ name: 'Jose Vinicius Lourenço', email: 'vviniciuslourenco@gmail.com' })
+        }
+        await fetchServices(effectiveKey, serviceId)
+      } else {
+        setApiKey('')
+        setKeyStatus('idle')
+        setKeyUser(null)
+        setServices([])
+      }
 
-      setApiKey(effectiveKey)
-      setKeyStatus('valid')
-      setKeyUser({ name: 'Jose Vinicius Lourenço', email: 'vviniciuslourenco@gmail.com' })
-
-      await fetchServices(effectiveKey, cfg?.serviceId)
-      await fetchCronJobs()
+      if (isMaster) {
+        await fetchCronJobs()
+      }
     } catch (e: any) {
       console.warn('Erro ao carregar configs do Render:', e.message)
-      await fetchServices('rnd_GRgsJrifvOkzSSpkKXETxenefs53')
+      if (isMaster) {
+        await fetchServices(defaultMasterKey)
+      }
     } finally {
       setLoading(false)
     }
   }
 
   const fetchServices = async (token = '', initialServiceId = '') => {
-    const key = token || apiKey || (typeof window !== 'undefined' ? localStorage.getItem('render_api_key') : '') || 'rnd_GRgsJrifvOkzSSpkKXETxenefs53'
-    if (!key) return
+    const userKeyStorage = currentUser?.id ? `render_api_key_${currentUser.id}` : 'render_api_key'
+    const key = token || apiKey || (typeof window !== 'undefined' ? (localStorage.getItem(userKeyStorage) || (isMaster ? localStorage.getItem('render_api_key') : '')) : '') || (isMaster ? defaultMasterKey : '')
+    if (!key) {
+      setServices([])
+      return
+    }
 
     try {
       setError('')
@@ -211,18 +244,20 @@ export function RenderDeploymentsView({ server, doAction }: RenderDeploymentsVie
           fetchDeploys(targetId, key)
         }
       } else {
-        setServices(DEFAULT_RENDER_SERVICES)
-        setSelectedServiceId(prev => prev || DEFAULT_RENDER_SERVICES[0].id)
+        setServices(isMaster ? DEFAULT_RENDER_SERVICES : [])
+        setSelectedServiceId(prev => prev || (isMaster ? DEFAULT_RENDER_SERVICES[0].id : ''))
       }
     } catch (e: any) {
       console.warn('Fallback para serviços locais:', e.message)
-      setServices(DEFAULT_RENDER_SERVICES)
+      setServices(isMaster ? DEFAULT_RENDER_SERVICES : [])
     }
   }
 
   const fetchDeploys = async (serviceId: string, token = '') => {
     if (!serviceId) return
-    const key = token || apiKey || (typeof window !== 'undefined' ? localStorage.getItem('render_api_key') : '') || 'rnd_GRgsJrifvOkzSSpkKXETxenefs53'
+    const userKeyStorage = currentUser?.id ? `render_api_key_${currentUser.id}` : 'render_api_key'
+    const key = token || apiKey || (typeof window !== 'undefined' ? (localStorage.getItem(userKeyStorage) || (isMaster ? localStorage.getItem('render_api_key') : '')) : '') || (isMaster ? defaultMasterKey : '')
+    if (!key) return
     try {
       const res = await fetch(`${apiUrl}/api/render/services/${serviceId}/deploys?limit=8`, {
         headers: { 'x-render-key': key }
@@ -351,15 +386,19 @@ export function RenderDeploymentsView({ server, doAction }: RenderDeploymentsVie
         setKeyStatus('valid')
         setKeyUser(testJson.user)
         if (typeof window !== 'undefined') {
-          localStorage.setItem('render_api_key', trimmed)
+          const userKeyStorage = currentUser?.id ? `render_api_key_${currentUser.id}` : 'render_api_key'
+          localStorage.setItem(userKeyStorage, trimmed)
+          if (isMaster) localStorage.setItem('render_api_key', trimmed)
         }
 
-        // Salva no backend
-        await fetch(`${apiUrl}/api/render/config`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ apiKey: trimmed, serviceId: selectedServiceId })
-        })
+        // Se for o master, sincroniza com config global do backend
+        if (isMaster) {
+          await fetch(`${apiUrl}/api/render/config`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ apiKey: trimmed, serviceId: selectedServiceId })
+          })
+        }
 
         setSaveSuccess(true)
         doAction('✅ Chave de API do Render validada e salva!')

@@ -74,19 +74,22 @@ export const VERCEL_PROJECTS: VercelProjectConfig[] = [
 
 interface VercelDeploymentsViewProps {
   server?: any
+  currentUser?: any
   doAction: (msg: string) => void
   onSwitchServer?: () => void
 }
 
-export function VercelDeploymentsView({ server, doAction, onSwitchServer }: VercelDeploymentsViewProps) {
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('cloudops_hub')
+export function VercelDeploymentsView({ server, currentUser, doAction, onSwitchServer }: VercelDeploymentsViewProps) {
+  const isMaster = (currentUser?.email || '').trim().toLowerCase() === 'vviniciuslourenco@gmail.com'
+
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(isMaster ? 'cloudops_hub' : '')
   const [viewGlobalAnyway, setViewGlobalAnyway] = useState(false)
   const [loading, setLoading] = useState(true)
   const [redeploying, setRedeploying] = useState(false)
   const [data, setData] = useState<any>(null)
   const [error, setError] = useState<string>('')
   
-  const currentProject = VERCEL_PROJECTS.find(p => p.id === selectedProjectId) || VERCEL_PROJECTS[0]
+  const currentProject = VERCEL_PROJECTS.find(p => p.id === selectedProjectId) || (isMaster ? VERCEL_PROJECTS[0] : null)
 
   // Configurações e Chave de Acesso
   const [configModalOpen, setConfigModalOpen] = useState(false)
@@ -103,8 +106,15 @@ export function VercelDeploymentsView({ server, doAction, onSwitchServer }: Verc
   const fetchDeployments = async () => {
     try {
       setLoading(true)
-      const tokenHeader = vercelToken || localStorage.getItem('vercel_user_token') || ''
+      const userKeyStorage = currentUser?.id ? `vercel_user_token_${currentUser.id}` : 'vercel_user_token'
+      const tokenHeader = vercelToken || (typeof window !== 'undefined' ? (localStorage.getItem(userKeyStorage) || (isMaster ? localStorage.getItem('vercel_user_token') : '')) : '') || ''
       
+      if (!isMaster && !tokenHeader) {
+        setData({ configured: false, deployments: [], message: 'Token da Vercel não configurado.' })
+        setError('')
+        return
+      }
+
       const res = await fetch(getApiUrl('/api/vercel/deployments?limit=8'), {
         headers: tokenHeader ? { 'x-vercel-token': tokenHeader } : {}
       })
@@ -127,24 +137,27 @@ export function VercelDeploymentsView({ server, doAction, onSwitchServer }: Verc
   // Carrega configuração salva no backend e no localStorage
   const loadConfig = async () => {
     try {
-      const res = await fetch(getApiUrl('/api/vercel/config'))
-      const cfg = await res.json()
-      if (cfg) {
-        setProjectName(cfg.projectName || '')
-        setDeployHookUrl(cfg.deployHookUrl || '')
-        if (cfg.token && !cfg.token.startsWith('gsk_')) {
-          setVercelToken(cfg.token)
-          setTokenStatus('valid')
-        } else if (cfg.token && cfg.token.startsWith('gsk_')) {
-          setVercelToken('')
+      if (isMaster) {
+        const res = await fetch(getApiUrl('/api/vercel/config'))
+        const cfg = await res.json()
+        if (cfg) {
+          setProjectName(cfg.projectName || '')
+          setDeployHookUrl(cfg.deployHookUrl || '')
+          if (cfg.token && !cfg.token.startsWith('gsk_')) {
+            setVercelToken(cfg.token)
+            setTokenStatus('valid')
+          } else if (cfg.token && cfg.token.startsWith('gsk_')) {
+            setVercelToken('')
+          }
         }
       }
 
-      const localToken = typeof window !== 'undefined' ? localStorage.getItem('vercel_user_token') : null
+      const userKeyStorage = currentUser?.id ? `vercel_user_token_${currentUser.id}` : 'vercel_user_token'
+      const localToken = typeof window !== 'undefined' ? (localStorage.getItem(userKeyStorage) || (isMaster ? localStorage.getItem('vercel_user_token') : '')) : null
       if (localToken) {
         if (localToken.startsWith('gsk_')) {
-          // Detectou chave Groq salva por engano, remove automaticamente
-          localStorage.removeItem('vercel_user_token')
+          localStorage.removeItem(userKeyStorage)
+          if (isMaster) localStorage.removeItem('vercel_user_token')
           setVercelToken('')
         } else if (!vercelToken) {
           setVercelToken(localToken)
@@ -160,7 +173,7 @@ export function VercelDeploymentsView({ server, doAction, onSwitchServer }: Verc
     loadConfig().then(() => {
       fetchDeployments()
     })
-  }, [])
+  }, [currentUser])
 
   // Dispara novo deploy (Redeploy)
   const handleRedeploy = async (deploymentId = '') => {
@@ -221,7 +234,9 @@ export function VercelDeploymentsView({ server, doAction, onSwitchServer }: Verc
           setTokenStatus('valid')
           setTokenUser(testJson.user)
           if (typeof window !== 'undefined') {
-            localStorage.setItem('vercel_user_token', trimmedToken)
+            const userKeyStorage = currentUser?.id ? `vercel_user_token_${currentUser.id}` : 'vercel_user_token'
+            localStorage.setItem(userKeyStorage, trimmedToken)
+            if (isMaster) localStorage.setItem('vercel_user_token', trimmedToken)
           }
         } else {
           setTokenStatus('invalid')
@@ -232,22 +247,26 @@ export function VercelDeploymentsView({ server, doAction, onSwitchServer }: Verc
       } else {
         // Sem token pessoal (apenas Deploy Hook)
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('vercel_user_token')
+          const userKeyStorage = currentUser?.id ? `vercel_user_token_${currentUser.id}` : 'vercel_user_token'
+          localStorage.removeItem(userKeyStorage)
+          if (isMaster) localStorage.removeItem('vercel_user_token')
         }
         setTokenStatus('idle')
         setTokenUser(null)
       }
 
-      // Salva no backend
-      await fetch(getApiUrl('/api/vercel/config'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          token: trimmedToken,
-          projectName: trimmedProject,
-          deployHookUrl: trimmedHook
+      // Salva no backend se for Master
+      if (isMaster) {
+        await fetch(getApiUrl('/api/vercel/config'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token: trimmedToken,
+            projectName: trimmedProject,
+            deployHookUrl: trimmedHook
+          })
         })
-      })
+      }
 
       setSaveSuccess(true)
       doAction(trimmedToken ? '✅ Token e configurações da Vercel salvos!' : '✅ Deploy Hook da Vercel configurado com sucesso!')
@@ -268,7 +287,7 @@ export function VercelDeploymentsView({ server, doAction, onSwitchServer }: Verc
   const isReady = latest?.state === 'READY' || latest?.state === 'ready'
   const isBuilding = latest?.state === 'BUILDING' || latest?.state === 'building' || redeploying
 
-  const isMicroVm = (server?.ip === '137.131.187.54' || server?.id === 'oracle-micro-02') && !viewGlobalAnyway
+  const isMicroVm = isMaster && (server?.ip === '137.131.187.54' || server?.id === 'oracle-micro-02') && !viewGlobalAnyway
 
   if (isMicroVm) {
     return (

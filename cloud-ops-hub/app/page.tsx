@@ -209,21 +209,23 @@ export default function Page() {
     return () => clearInterval(interval)
   }, [])
 
-  // Carrega os dados salvos do localStorage na inicialização
+  // Carrega os dados salvos do localStorage na inicialização ou login
   useEffect(() => {
     try {
-      const savedUserStr = localStorage.getItem('cloudops_user') || sessionStorage.getItem('cloudops_user')
-      if (savedUserStr) {
-        const u = JSON.parse(savedUserStr)
-        setCurrentUser(u)
+      let u = currentUser
+      if (!u) {
+        const savedUserStr = localStorage.getItem('cloudops_user') || sessionStorage.getItem('cloudops_user')
+        if (savedUserStr) {
+          u = JSON.parse(savedUserStr)
+          setCurrentUser(u)
+        }
       }
 
-      const loggedUser = savedUserStr ? JSON.parse(savedUserStr) : null
-      const isMasterUser = (loggedUser?.email || '').trim().toLowerCase() === 'vviniciuslourenco@gmail.com'
+      const isMasterUser = (u?.email || '').trim().toLowerCase() === 'vviniciuslourenco@gmail.com'
 
       let activeServers = isMasterUser ? initialServers : []
-      const storageKey = isMasterUser ? 'cloudops_servers' : `cloudops_servers_${loggedUser?.id || loggedUser?.email || 'guest'}`
-      const savedServers = localStorage.getItem(storageKey)
+      const storageKey = isMasterUser ? 'cloudops_servers' : `cloudops_servers_${u?.id || u?.email || 'guest'}`
+      const savedServers = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null
       if (savedServers) {
         try {
           const parsed = JSON.parse(savedServers)
@@ -302,7 +304,7 @@ export default function Page() {
     } catch (e) {
       console.error('Erro ao ler localStorage', e)
     }
-  }, [])
+  }, [currentUser])
 
   const handleDropCaches = async () => {
     setIsDroppingCache(true)
@@ -406,19 +408,20 @@ export default function Page() {
       fetchLiveSystemMetrics(item)
       fetchLiveNginxHosts(item)
     } else {
+      const isMasterUser = (currentUser?.email || '').trim().toLowerCase() === 'vviniciuslourenco@gmail.com'
       const savedContainers = localStorage.getItem(`cloudops_containers_${item.id}`)
       if (savedContainers) {
-        try { setContainers(JSON.parse(savedContainers)) } catch (e) { setContainers(initialContainers) }
+        try { setContainers(JSON.parse(savedContainers)) } catch (e) { setContainers(isMasterUser ? initialContainers : []) }
       } else {
-        setContainers(initialContainers)
+        setContainers(isMasterUser ? initialContainers : [])
       }
       const savedProxies = localStorage.getItem(`cloudops_proxies_${item.id}`)
       if (savedProxies) {
-        try { setProxyHosts(JSON.parse(savedProxies)) } catch (e) { setProxyHosts(initialProxies) }
+        try { setProxyHosts(JSON.parse(savedProxies)) } catch (e) { setProxyHosts(isMasterUser ? initialProxies : []) }
       } else {
-        setProxyHosts(initialProxies)
+        setProxyHosts(isMasterUser ? initialProxies : [])
       }
-      setBuckets(initialBuckets)
+      setBuckets(isMasterUser ? initialBuckets : [])
       fetchLiveContainers(item)
       fetchLiveSystemMetrics(item)
       fetchLiveNginxHosts(item)
@@ -1154,6 +1157,7 @@ export default function Page() {
             <VercelDeploymentsView 
               key={`vercel-${server?.id || server?.ip || 'none'}`}
               server={server} 
+              currentUser={currentUser}
               doAction={doAction} 
               onSwitchServer={() => handleSwitchServer(serverList[0])}
             />
@@ -1163,6 +1167,7 @@ export default function Page() {
             <RenderDeploymentsView 
               key={`render-${server?.id || server?.ip || 'none'}`}
               server={server}
+              currentUser={currentUser}
               doAction={doAction} 
             />
           )}
@@ -1305,6 +1310,7 @@ export default function Page() {
           <ConnectModal
             isOpen={connectModalOpen}
             onClose={() => setConnectModalOpen(false)}
+            currentUser={currentUser}
             serverList={serverList}
             setServerList={setServerList}
             setServer={setServer}
