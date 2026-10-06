@@ -44,11 +44,11 @@ async function securityRoutes(fastify, options) {
       const threats = [];
       const lines = output.split('\n');
 
-      for (let i = lines.length - 1; i >= 0 && threats.length < 15; i--) {
+      for (let i = lines.length - 1; i >= 0 && threats.length < 25; i--) {
         const line = lines[i].trim();
         if (!line) continue;
 
-        // Match log HTTP Nginx clássico: IP - - [Data] "METHOD PATH HTTP/..." STATUS ...
+        // 1. Match log HTTP Nginx clássico: IP - - [Data] "METHOD PATH HTTP/..." STATUS ...
         const accessMatch = line.match(/^(\S+)\s+-\s+-\s+\[([^\]]+)\]\s+"([^"]+)"\s+(\d{3})\s+(\d+)/);
         if (accessMatch) {
           const clientIp = accessMatch[1];
@@ -70,13 +70,36 @@ async function securityRoutes(fastify, options) {
               ip: clientIp,
               country: enriched.country,
               org: enriched.org,
-              path: requestText.slice(0, 45),
+              path: requestText.slice(0, 50),
               status: statusCode,
               statusText: statusCode === 404 ? '404 Barrado' : statusCode === 400 ? '400 Rejeitado' : `${statusCode} Bloqueado`,
               time: timeFormatted,
               banned: BANNED_IPS.has(`${targetIp}:${clientIp}`)
             });
+            continue;
           }
+        }
+
+        // 2. Match log de Erro / Scan do Nginx (ex: connect() failed 111: Connection refused while connecting to upstream, client: IP, ..., request: "GET /...")
+        const errorMatch = line.match(/\[error\].*client:\s*([0-9.]+).*request:\s*"([^"]+)"/);
+        if (errorMatch) {
+          const clientIp = errorMatch[1];
+          const requestText = errorMatch[2];
+          const timeMatch = line.match(/^(\d{4}[-/]\d{2}[-/]\d{2}[T\s](\d{2}:\d{2}:\d{2}))/);
+          const timeFormatted = timeMatch ? timeMatch[2] : 'Hoje';
+          const enriched = enrichIpInfo(clientIp);
+
+          threats.push({
+            id: `err-${clientIp}-${i}`,
+            ip: clientIp,
+            country: enriched.country,
+            org: enriched.org,
+            path: requestText.slice(0, 50),
+            status: 502,
+            statusText: line.includes('Connection refused') ? 'Scan / Refused' : '502 Upstream Erro',
+            time: timeFormatted,
+            banned: BANNED_IPS.has(`${targetIp}:${clientIp}`)
+          });
         }
       }
 
