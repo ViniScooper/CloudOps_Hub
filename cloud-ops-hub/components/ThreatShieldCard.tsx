@@ -77,7 +77,7 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
           ip: clientIp,
           country: 'Internacional 🌐',
           org: 'Scanner de Portas / Botnet',
-          path: req.slice(0, 50),
+          path: req,
           status: line.includes('Connection refused') ? 502 : 400,
           statusText: line.includes('Connection refused') ? 'Scan / Refused' : 'Bloqueado',
           time: realTime,
@@ -117,7 +117,7 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
             ip: clientIp,
             country: 'Internacional 🌐',
             org: 'Varredura Web / Crawler',
-            path: req.slice(0, 50),
+            path: req,
             status,
             statusText: status === 502 ? '502 Bloqueado' : status === 404 ? '404 Barrado' : `${status} Rejeitado`,
             time: realTime || 'Recente',
@@ -420,7 +420,7 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
       }}>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '1.1fr 1fr 1.3fr 0.9fr 1.1fr 90px',
+          gridTemplateColumns: '130px 140px 1fr 110px 120px 85px',
           padding: '10px 16px',
           background: '#0d161a',
           fontSize: '11px',
@@ -432,13 +432,13 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
         }}>
           <span>IP Atacante</span>
           <span>País / Scanner</span>
-          <span>Alvo Tentado</span>
+          <span>Alvo Tentado (Caminho Completo)</span>
           <span>Resposta</span>
           <span>Data / Horário</span>
           <span style={{ textAlign: 'right' }}>Ação</span>
         </div>
 
-        <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
+        <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
           {threats.length === 0 ? (
             <div style={{ padding: '30px', textAlign: 'center', color: '#88a6aa', fontSize: '12px' }}>
               <ShieldCheck size={28} style={{ color: '#10b981', margin: '0 auto 8px' }} />
@@ -454,16 +454,17 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
                   key={t.id || idx}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '1.1fr 1fr 1.3fr 0.9fr 1.1fr 90px',
+                    gridTemplateColumns: '130px 140px 1fr 110px 120px 85px',
                     padding: '10px 16px',
                     fontSize: '12px',
                     alignItems: 'center',
                     borderBottom: '1px solid #111c20',
-                    background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)'
+                    background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)',
+                    gap: '8px'
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f87171' }}></span>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f87171', flexShrink: 0 }}></span>
                     <strong style={{ color: '#f0fdfa', fontFamily: 'monospace' }}>{t.ip}</strong>
                   </div>
 
@@ -472,20 +473,23 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
                     <small style={{ display: 'block', fontSize: '10px', color: '#577378' }}>{t.org}</small>
                   </div>
 
-                  <div>
-                    <code style={{
-                      background: 'rgba(239, 68, 68, 0.12)',
-                      color: '#fca5a5',
-                      padding: '2px 6px',
-                      borderRadius: '4px',
-                      fontSize: '11px',
-                      border: '1px solid rgba(239, 68, 68, 0.25)',
-                      display: 'inline-block',
-                      maxWidth: '180px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}>
+                  <div style={{ minWidth: 0, paddingRight: '8px' }}>
+                    <code
+                      title={t.path}
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.12)',
+                        color: '#fca5a5',
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        border: '1px solid rgba(239, 68, 68, 0.25)',
+                        display: 'inline-block',
+                        maxWidth: '100%',
+                        wordBreak: 'break-all',
+                        whiteSpace: 'normal',
+                        lineHeight: '1.4'
+                      }}
+                    >
                       {t.path}
                     </code>
                   </div>
