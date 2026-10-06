@@ -581,7 +581,7 @@ export function VercelDeploymentsView({ server, doAction, onSwitchServer }: Verc
           </div>
           <div style={{ fontSize: '11px', color: '#88a6aa', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <User size={12} style={{ color: '#20d6c7' }} />
-            <span>Alvo: <b style={{ color: '#fff' }}>Oracle VM instance-bytedata</b></span>
+            <span>Alvo: <b style={{ color: '#fff' }}>{server?.name ? `Oracle VM ${server.name}` : (selectedProjectId === 'job_tracker' ? 'Job Tracker Cloud (Render)' : 'Oracle VM instance-bytedata (Cluster Produção)')}</b></span>
           </div>
         </div>
       </div>

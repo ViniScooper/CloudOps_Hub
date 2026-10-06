@@ -72,10 +72,11 @@ export const DEFAULT_RENDER_SERVICES: RenderServiceConfig[] = [
 ]
 
 interface RenderDeploymentsViewProps {
+  server?: any
   doAction: (msg: string) => void
 }
 
-export function RenderDeploymentsView({ doAction }: RenderDeploymentsViewProps) {
+export function RenderDeploymentsView({ server, doAction }: RenderDeploymentsViewProps) {
   const [activeTab, setActiveTab] = useState<'services' | 'cron' | 'mysql'>('services')
   const [loading, setLoading] = useState(true)
   const [services, setServices] = useState<any[]>(DEFAULT_RENDER_SERVICES)
