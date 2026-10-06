@@ -33,6 +33,8 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
   const [bannedIps, setBannedIps] = useState<string[]>([])
   const [pings, setPings] = useState<any[]>([])
 
+  const [autoRefresh, setAutoRefresh] = useState(true)
+
   const targetIp = server?.ip || '137.131.185.243'
   const isMicro = targetIp === '137.131.187.54' || targetIp.includes('micro')
 
@@ -43,13 +45,28 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
       const line = lines[i].trim()
       if (!line) continue
 
+      // Extrai timestamp real do Docker (ex: 2026-10-06T17:18:57...)
+      const isoMatch = line.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2}:\d{2})/)
+      let realTime = ''
+      if (isoMatch) {
+        const [, year, month, day, time] = isoMatch
+        realTime = `${day}/${month} ${time}`
+      }
+
       // 1. Error log upstream (ex: connect() failed ... client: IP ... request: "GET /...")
       const errMatch = line.match(/client:\s*([0-9.]+).*?request:\s*"([^"]+)"/i)
       if (errMatch) {
         const clientIp = errMatch[1]
         const req = errMatch[2]
-        const timeMatch = line.match(/(\d{4}[-/]\d{2}[-/]\d{2}[T\s](\d{2}:\d{2}:\d{2}))/)
-        const timeStr = timeMatch ? timeMatch[2] : 'Hoje'
+
+        if (!realTime) {
+          const nginxErrTime = line.match(/(\d{4})\/(\d{2})\/(\d{2})\s+(\d{2}:\d{2}:\d{2})/)
+          if (nginxErrTime) {
+            realTime = `${nginxErrTime[3]}/${nginxErrTime[2]} ${nginxErrTime[4]}`
+          } else {
+            realTime = 'Hoje'
+          }
+        }
 
         list.push({
           id: `fe-err-${clientIp}-${i}`,
@@ -59,7 +76,7 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
           path: req.slice(0, 50),
           status: line.includes('Connection refused') ? 502 : 400,
           statusText: line.includes('Connection refused') ? 'Scan / Refused' : 'Bloqueado',
-          time: timeStr,
+          time: realTime,
           banned: bannedIps.includes(clientIp)
         })
         continue
@@ -78,7 +95,13 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
           req.includes('login') || req.includes('\\x') || req.includes('php') ||
           req.includes('wp-') || status === 404 || status === 400
         ) {
-          const timeFormatted = rawTime.split(':').slice(1, 4).join(':').split(' ')[0] || rawTime
+          if (!realTime) {
+            const dateParts = rawTime.split(':')
+            const dayMonth = dateParts[0] || ''
+            const timeStr = dateParts.slice(1, 4).join(':').split(' ')[0] || ''
+            realTime = `${dayMonth.slice(0, 6)} ${timeStr}`.trim()
+          }
+
           list.push({
             id: `fe-acc-${clientIp}-${i}`,
             ip: clientIp,
@@ -87,7 +110,7 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
             path: req.slice(0, 50),
             status,
             statusText: status === 404 ? '404 Barrado' : `${status} Rejeitado`,
-            time: timeFormatted,
+            time: realTime || 'Recente',
             banned: bannedIps.includes(clientIp)
           })
         }
@@ -96,9 +119,9 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
     return list
   }
 
-  const fetchSecurityData = async () => {
+  const fetchSecurityData = async (silent = false) => {
     try {
-      setLoading(true)
+      if (!silent) setLoading(true)
       let threatsFound: ThreatItem[] = []
 
       // 1. Tenta carregar do endpoint dedicado de segurança
@@ -140,13 +163,26 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
     } catch (e: any) {
       console.warn('Fallback segurança:', e.message)
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }
 
   useEffect(() => {
     fetchSecurityData()
   }, [server?.ip])
+
+  // Auto-refresh a cada 5 segundos para refletir novos ataques em tempo real sem mocks
+  useEffect(() => {
+    let timer: any = null
+    if (autoRefresh) {
+      timer = setInterval(() => {
+        fetchSecurityData(true)
+      }, 5000)
+    }
+    return () => {
+      if (timer) clearInterval(timer)
+    }
+  }, [autoRefresh, targetIp])
 
   const handleBanIp = async (ipToBan: string) => {
     try {
@@ -244,7 +280,33 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <button
-            onClick={fetchSecurityData}
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              background: autoRefresh ? 'rgba(32, 214, 199, 0.15)' : '#121e22',
+              border: `1px solid ${autoRefresh ? 'rgba(32, 214, 199, 0.4)' : '#1c2e34'}`,
+              color: autoRefresh ? '#20d6c7' : '#88a6aa',
+              fontSize: '11px',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+            title="Alternar atualização automática a cada 5s"
+          >
+            <span style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              background: autoRefresh ? '#20d6c7' : '#64748b'
+            }} />
+            Auto (5s) {autoRefresh ? 'Ativo' : 'Pausado'}
+          </button>
+
+          <button
+            onClick={() => fetchSecurityData(false)}
             disabled={loading}
             style={{
               display: 'inline-flex',
@@ -259,7 +321,7 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
               fontWeight: 600,
               cursor: loading ? 'not-allowed' : 'pointer'
             }}
-            title="Atualizar lista de varreduras"
+            title="Atualizar lista de varreduras agora"
           >
             <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
             Atualizar
@@ -327,7 +389,7 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
       }}>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '1.2fr 1.2fr 1.4fr 1fr 100px',
+          gridTemplateColumns: '1.1fr 1fr 1.3fr 0.9fr 1.1fr 90px',
           padding: '10px 16px',
           background: '#0d161a',
           fontSize: '11px',
@@ -340,7 +402,8 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
           <span>IP Atacante</span>
           <span>País / Scanner</span>
           <span>Alvo Tentado</span>
-          <span>Resposta Nginx</span>
+          <span>Resposta</span>
+          <span>Data / Horário</span>
           <span style={{ textAlign: 'right' }}>Ação</span>
         </div>
 
@@ -348,7 +411,7 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
           {threats.length === 0 ? (
             <div style={{ padding: '30px', textAlign: 'center', color: '#88a6aa', fontSize: '12px' }}>
               <ShieldCheck size={28} style={{ color: '#10b981', margin: '0 auto 8px' }} />
-              Nenhuma ameaça detectada nos últimos 150 eventos do Nginx nesta VM.
+              Nenhuma ameaça detectada nos eventos recentes do Nginx nesta VM.
             </div>
           ) : (
             threats.map((t, idx) => {
@@ -360,7 +423,7 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
                   key={t.id || idx}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '1.2fr 1.2fr 1.4fr 1fr 100px',
+                    gridTemplateColumns: '1.1fr 1fr 1.3fr 0.9fr 1.1fr 90px',
                     padding: '10px 16px',
                     fontSize: '12px',
                     alignItems: 'center',
@@ -385,7 +448,12 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
                       padding: '2px 6px',
                       borderRadius: '4px',
                       fontSize: '11px',
-                      border: '1px solid rgba(239, 68, 68, 0.25)'
+                      border: '1px solid rgba(239, 68, 68, 0.25)',
+                      display: 'inline-block',
+                      maxWidth: '180px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
                     }}>
                       {t.path}
                     </code>
@@ -402,6 +470,16 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
                       border: `1px solid ${t.status === 404 ? 'rgba(245, 158, 11, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
                     }}>
                       {t.statusText}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span style={{
+                      fontSize: '11px',
+                      fontFamily: 'monospace',
+                      color: '#94a3b8'
+                    }}>
+                      {t.time || 'Recente'}
                     </span>
                   </div>
 
