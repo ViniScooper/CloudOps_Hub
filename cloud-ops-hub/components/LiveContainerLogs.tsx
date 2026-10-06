@@ -12,7 +12,10 @@ import {
   XCircle, 
   Layers, 
   Filter,
-  Check
+  Check,
+  ShieldAlert,
+  ShieldX,
+  Bug
 } from 'lucide-react'
 import { getApiUrl } from '../lib/api'
 
@@ -133,6 +136,54 @@ export function LiveContainerLogs({ server, doAction }: { server?: any; doAction
   const filteredLines = searchTerm.trim()
     ? lines.filter(line => line.toLowerCase().includes(searchTerm.toLowerCase()))
     : lines
+
+  // Análise em tempo real de incidentes e varreduras/ataques nos logs carregados
+  const attackIncidents = React.useMemo(() => {
+    const list: Array<{ ip: string; path: string; reason: string; raw: string }> = []
+    const seenIps = new Set<string>()
+
+    for (const line of lines) {
+      if (!line.trim()) continue
+      const lower = line.toLowerCase()
+
+      // Padrão 1: Nginx error log (connect refused upstream com client IP e request)
+      const errMatch = line.match(/\[error\].*client:\s*([0-9.]+).*request:\s*"([^"]+)"/i)
+      if (errMatch) {
+        const ip = errMatch[1]
+        const req = errMatch[2]
+        seenIps.add(ip)
+        list.push({
+          ip,
+          path: req,
+          reason: line.includes('Connection refused') ? 'Upstream Recusado / Port Scan' : 'Erro Nginx Upstream',
+          raw: line
+        })
+        continue
+      }
+
+      // Padrão 2: Nginx access log com status suspeito (404/400/403 de bots vasculhando rotas)
+      const accMatch = line.match(/^([0-9.]+)\s+-\s+-\s+\[[^\]]+\]\s+"([^"]+)"\s+(404|400|403|405)\s+/i)
+      if (accMatch) {
+        const ip = accMatch[1]
+        const req = accMatch[2]
+        if (req.includes('.env') || req.includes('.git') || req.includes('SDK') || req.includes('login') || req.includes('\\x') || req.includes('php') || req.includes('wp-')) {
+          seenIps.add(ip)
+          list.push({
+            ip,
+            path: req,
+            reason: 'Varredura de Vulnerabilidade (Scan Bot)',
+            raw: line
+          })
+        }
+      }
+    }
+
+    return {
+      count: list.length,
+      uniqueIps: Array.from(seenIps),
+      incidents: list
+    }
+  }, [lines])
 
   // Formatação de cor por linha
   const renderLine = (line: string, idx: number) => {
@@ -304,6 +355,95 @@ export function LiveContainerLogs({ server, doAction }: { server?: any; doAction
           </button>
         </div>
       </div>
+
+      {/* Banner de Ataques / Scans Detectados nos Logs do Container */}
+      {attackIncidents.count > 0 && (
+        <div style={{
+          background: 'linear-gradient(90deg, rgba(239, 68, 68, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%)',
+          border: '1px solid rgba(239, 68, 68, 0.35)',
+          borderRadius: '9px',
+          padding: '10px 14px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '10px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{
+              background: 'rgba(239, 68, 68, 0.2)',
+              color: '#f87171',
+              padding: '6px',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <ShieldAlert size={18} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#fecaca' }}>
+                  🚨 {attackIncidents.count} Tentativa(s) de Varredura / Ataque detectadas
+                </span>
+                <span style={{
+                  fontSize: '10.5px',
+                  background: 'rgba(239, 68, 68, 0.25)',
+                  color: '#f87171',
+                  padding: '1px 7px',
+                  borderRadius: '10px',
+                  fontWeight: 600
+                }}>
+                  {attackIncidents.uniqueIps.length} IP(s) Invasor(es)
+                </span>
+              </div>
+              <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>
+                IPs ativos detectados neste container: {attackIncidents.uniqueIps.slice(0, 4).map(ip => (
+                  <button
+                    key={ip}
+                    onClick={() => setSearchTerm(ip)}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      color: '#fca5a5',
+                      borderRadius: '4px',
+                      padding: '1px 6px',
+                      fontSize: '10.5px',
+                      marginRight: '5px',
+                      cursor: 'pointer'
+                    }}
+                    title={`Filtrar apenas requisições do IP ${ip}`}
+                  >
+                    {ip}
+                  </button>
+                ))}
+                {attackIncidents.uniqueIps.length > 4 && <span>+{attackIncidents.uniqueIps.length - 4} outros</span>}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button
+              onClick={() => setSearchTerm(searchTerm === 'error' ? '' : 'error')}
+              style={{
+                background: searchTerm === 'error' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255, 255, 255, 0.06)',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                color: '#fca5a5',
+                padding: '5px 10px',
+                borderRadius: '6px',
+                fontSize: '11px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <Bug size={12} /> {searchTerm === 'error' ? 'Ver Todos os Logs' : 'Filtrar Ataques & Erros'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Barra de Filtro de Texto / Busca nos Logs */}
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>

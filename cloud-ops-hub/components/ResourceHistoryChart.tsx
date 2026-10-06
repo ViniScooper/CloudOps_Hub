@@ -80,11 +80,11 @@ export function ResourceHistoryChart({ doAction }: ResourceHistoryChartProps) {
   const minVal = values.length > 0 ? Math.min(...values) : 0
   const avgVal = values.length > 0 ? (values.reduce((a, b) => a + b, 0) / values.length) : 0
 
-  // Configuração SVG
+  // Configuração SVG Compacta
   const width = 640
-  const height = 180
+  const height = 115
   const paddingX = 24
-  const paddingY = 24
+  const paddingY = 14
 
   const usableWidth = width - paddingX * 2
   const usableHeight = height - paddingY * 2
@@ -132,19 +132,19 @@ export function ResourceHistoryChart({ doAction }: ResourceHistoryChartProps) {
   const hoveredPoint = hoverIndex !== null && points[hoverIndex] ? points[hoverIndex] : null
 
   return (
-    <section className="panel" style={{ marginTop: '20px', padding: '18px 20px', position: 'relative' }}>
+    <section className="panel" style={{ marginTop: '16px', padding: '14px 16px', position: 'relative' }}>
       {/* Cabeçalho do Card */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '14px', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <TrendingUp size={18} style={{ color: metricColor }} />
-            <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: '#f0fdfa' }}>
+            <TrendingUp size={16} style={{ color: metricColor }} />
+            <h3 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#f0fdfa' }}>
               Telemetria Histórica de Recursos (Oracle ATP)
             </h3>
             <span style={{ 
               fontSize: '10px', 
-              padding: '2px 8px', 
-              borderRadius: '12px', 
+              padding: '1px 6px', 
+              borderRadius: '10px', 
               background: 'rgba(32, 214, 199, 0.12)', 
               color: '#20d6c7', 
               fontWeight: 600,
@@ -152,34 +152,34 @@ export function ResourceHistoryChart({ doAction }: ResourceHistoryChartProps) {
               alignItems: 'center',
               gap: '4px'
             }}>
-              <Database size={11} /> {sourceInfo.source === 'oracle_atp' ? 'Nuvem Oracle ATP' : 'Sincronizado'}
+              <Database size={10} /> {sourceInfo.source === 'oracle_atp' ? 'Nuvem Oracle ATP' : 'Sincronizado'}
             </span>
           </div>
-          <p style={{ margin: '4px 0 0', color: '#829396', fontSize: '12px' }}>
-            Curva temporal persistente de carga na VM. Histórico armazenado sem consumir a RAM do servidor.
+          <p style={{ margin: '2px 0 0', color: '#829396', fontSize: '11px' }}>
+            Curva temporal de carga persistente. Histórico gravado no banco sem consumir a RAM da VM.
           </p>
         </div>
 
         {/* Controles: Abas de Métrica + Botão de Coletar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <div style={{ background: 'rgba(255, 255, 255, 0.04)', padding: '3px', borderRadius: '8px', display: 'flex', gap: '3px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+          <div style={{ background: 'rgba(255, 255, 255, 0.04)', padding: '2px', borderRadius: '6px', display: 'flex', gap: '2px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
             <button
               onClick={() => setSelectedMetric('ram')}
               style={{
                 background: selectedMetric === 'ram' ? 'rgba(32, 214, 199, 0.18)' : 'transparent',
                 color: selectedMetric === 'ram' ? '#20d6c7' : '#9ca3af',
                 border: selectedMetric === 'ram' ? '1px solid rgba(32, 214, 199, 0.35)' : 'none',
-                padding: '4px 10px',
-                borderRadius: '6px',
-                fontSize: '11px',
+                padding: '3px 8px',
+                borderRadius: '5px',
+                fontSize: '10.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px'
+                gap: '3px'
               }}
             >
-              <Activity size={12} /> RAM
+              <Activity size={11} /> RAM
             </button>
             <button
               onClick={() => setSelectedMetric('cpu')}
@@ -187,17 +187,17 @@ export function ResourceHistoryChart({ doAction }: ResourceHistoryChartProps) {
                 background: selectedMetric === 'cpu' ? 'rgba(56, 189, 248, 0.18)' : 'transparent',
                 color: selectedMetric === 'cpu' ? '#38bdf8' : '#9ca3af',
                 border: selectedMetric === 'cpu' ? '1px solid rgba(56, 189, 248, 0.35)' : 'none',
-                padding: '4px 10px',
-                borderRadius: '6px',
-                fontSize: '11px',
+                padding: '3px 8px',
+                borderRadius: '5px',
+                fontSize: '10.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px'
+                gap: '3px'
               }}
             >
-              <Cpu size={12} /> CPU
+              <Cpu size={11} /> CPU
             </button>
             <button
               onClick={() => setSelectedMetric('disk')}
@@ -205,17 +205,17 @@ export function ResourceHistoryChart({ doAction }: ResourceHistoryChartProps) {
                 background: selectedMetric === 'disk' ? 'rgba(245, 158, 11, 0.18)' : 'transparent',
                 color: selectedMetric === 'disk' ? '#f59e0b' : '#9ca3af',
                 border: selectedMetric === 'disk' ? '1px solid rgba(245, 158, 11, 0.35)' : 'none',
-                padding: '4px 10px',
-                borderRadius: '6px',
-                fontSize: '11px',
+                padding: '3px 8px',
+                borderRadius: '5px',
+                fontSize: '10.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px'
+                gap: '3px'
               }}
             >
-              <HardDrive size={12} /> Disco
+              <HardDrive size={11} /> Disco
             </button>
           </div>
 
@@ -226,46 +226,46 @@ export function ResourceHistoryChart({ doAction }: ResourceHistoryChartProps) {
               background: 'rgba(32, 214, 199, 0.1)',
               border: '1px solid rgba(32, 214, 199, 0.3)',
               color: '#20d6c7',
-              padding: '5px 11px',
-              borderRadius: '7px',
-              fontSize: '11px',
+              padding: '4px 9px',
+              borderRadius: '6px',
+              fontSize: '10.5px',
               fontWeight: 600,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '5px'
+              gap: '4px'
             }}
             title="Solicitar snapshot instantâneo e gravar no Oracle ATP agora"
           >
-            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
+            <RefreshCw size={11} className={loading ? 'animate-spin' : ''} />
             Snapshot Agora
           </button>
         </div>
       </div>
 
-      {/* Estatísticas Rápidas (Cards) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginBottom: '16px' }}>
-        <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '8px', padding: '10px 14px' }}>
-          <div style={{ fontSize: '11px', color: '#829396', marginBottom: '4px' }}>Atual</div>
-          <div style={{ fontSize: '18px', fontWeight: 800, color: metricColor }}>
+      {/* Estatísticas Rápidas (Compacto) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '12px' }}>
+        <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '6px', padding: '6px 10px' }}>
+          <div style={{ fontSize: '10px', color: '#829396', marginBottom: '2px' }}>Atual</div>
+          <div style={{ fontSize: '15px', fontWeight: 800, color: metricColor }}>
             {currentVal.toFixed(1)}%
           </div>
         </div>
-        <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '8px', padding: '10px 14px' }}>
-          <div style={{ fontSize: '11px', color: '#829396', marginBottom: '4px' }}>Média Período</div>
-          <div style={{ fontSize: '18px', fontWeight: 700, color: '#e5e7eb' }}>
+        <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '6px', padding: '6px 10px' }}>
+          <div style={{ fontSize: '10px', color: '#829396', marginBottom: '2px' }}>Média</div>
+          <div style={{ fontSize: '15px', fontWeight: 700, color: '#e5e7eb' }}>
             {avgVal.toFixed(1)}%
           </div>
         </div>
-        <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '8px', padding: '10px 14px' }}>
-          <div style={{ fontSize: '11px', color: '#829396', marginBottom: '4px' }}>Pico Máximo</div>
-          <div style={{ fontSize: '18px', fontWeight: 700, color: maxVal > 85 ? '#ef4444' : '#e5e7eb' }}>
+        <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '6px', padding: '6px 10px' }}>
+          <div style={{ fontSize: '10px', color: '#829396', marginBottom: '2px' }}>Pico</div>
+          <div style={{ fontSize: '15px', fontWeight: 700, color: maxVal > 85 ? '#ef4444' : '#e5e7eb' }}>
             {maxVal.toFixed(1)}%
           </div>
         </div>
-        <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '8px', padding: '10px 14px' }}>
-          <div style={{ fontSize: '11px', color: '#829396', marginBottom: '4px' }}>Amostras Gravadas</div>
-          <div style={{ fontSize: '18px', fontWeight: 700, color: '#9ca3af' }}>
+        <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '6px', padding: '6px 10px' }}>
+          <div style={{ fontSize: '10px', color: '#829396', marginBottom: '2px' }}>Amostras</div>
+          <div style={{ fontSize: '15px', fontWeight: 700, color: '#9ca3af' }}>
             {history.length} pts
           </div>
         </div>
