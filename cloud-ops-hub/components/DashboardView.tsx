@@ -7,6 +7,7 @@ import {
 import { getApiUrl } from '../lib/api'
 import { ResourceHistoryChart } from './ResourceHistoryChart'
 import { VmBotsSection } from './VmBotsSection'
+import { ThreatShieldCard } from './ThreatShieldCard'
 
 interface DashboardViewProps {
   server: any
@@ -61,6 +62,8 @@ export function DashboardView({
       </div>
     )
   }
+
+  const isMicro = server?.ip === '137.131.187.54' || server?.name?.includes('micro') || server?.id === 'oracle-micro-02'
 
   return (
     <>
@@ -132,6 +135,13 @@ export function DashboardView({
         </button>
       </section>
 
+      {/* Threat Shield & Defesa de Borda (Dedicado e isolado por VM) */}
+      <ThreatShieldCard 
+        server={server} 
+        doAction={doAction} 
+        onNavigateToLogs={() => setActive('Docker')} 
+      />
+
       {/* Robôs & Automações da VM Ativa */}
       <VmBotsSection 
         server={server} 
@@ -139,15 +149,18 @@ export function DashboardView({
         onOpenScraperModal={() => setActive('VM Scraper')} 
       />
 
-      <div className="section-heading lower-heading">
-        <div>
-          <h2>Bancos de Dados & Armazenamento</h2>
-          <p>MySQL 8.0, dumps contínuos e Oracle Cloud Object Storage.</p>
-        </div>
-        <button className="text-action" title="Ir para o gerenciamento de buckets do Oracle Object Storage" onClick={() => setActive('Storage')}>
-          Gerenciar Buckets <ArrowUpRight size={13} />
-        </button>
-      </div>
+      {/* Bancos de Dados & Histórico ATP (Apenas na VM Principal de Produção) */}
+      {!isMicro && (
+        <>
+          <div className="section-heading lower-heading">
+            <div>
+              <h2>Bancos de Dados & Armazenamento</h2>
+              <p>MySQL 8.0, dumps contínuos e Oracle Cloud Object Storage.</p>
+            </div>
+            <button className="text-action" title="Ir para o gerenciamento de buckets do Oracle Object Storage" onClick={() => setActive('Storage')}>
+              Gerenciar Buckets <ArrowUpRight size={13} />
+            </button>
+          </div>
 
       <div className="overview-grid lower-grid">
         <section className="panel containers-panel">
@@ -370,7 +383,9 @@ export function DashboardView({
         </section>
       </div>
 
-      <ResourceHistoryChart doAction={doAction} />
+          <ResourceHistoryChart doAction={doAction} />
+        </>
+      )}
     </>
   )
 }

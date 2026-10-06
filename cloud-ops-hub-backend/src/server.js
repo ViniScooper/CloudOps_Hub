@@ -17,6 +17,7 @@ const envRoutes = require('./routes/envRoutes');
 const odisseuRoutes = require('./routes/odisseuRoutes');
 const telemetryRoutes = require('./routes/telemetryRoutes');
 const integrationsRoutes = require('./routes/integrationsRoutes');
+const securityRoutes = require('./routes/securityRoutes');
 
 async function buildServer() {
   // 1. CORS
@@ -54,6 +55,7 @@ async function buildServer() {
   await fastify.register(odisseuRoutes);
   await fastify.register(telemetryRoutes);
   await fastify.register(integrationsRoutes);
+  await fastify.register(securityRoutes);
 
   return fastify;
 }
