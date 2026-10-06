@@ -53,14 +53,28 @@ async function securityRoutes(fastify, options) {
         const line = lines[i].trim();
         if (!line) continue;
 
+        // Extrai timestamp real do Docker (ex: 2026-10-06T17:18:57...)
+        const isoMatch = line.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2}:\d{2})/);
+        let realTime = '';
+        if (isoMatch) {
+          const [, year, month, day, time] = isoMatch;
+          realTime = `${day}/${month} ${time}`;
+        }
+
         // 1. Match log de Erro / Scan do Nginx (ex: connect() failed 111: Connection refused while connecting to upstream, client: IP, ..., request: "GET /...")
-        // Suporta tanto formato com timestamps quanto sem timestamps
         const errorMatch = line.match(/client:\s*([0-9.]+).*?request:\s*"([^"]+)"/i);
         if (errorMatch) {
           const clientIp = errorMatch[1];
           const requestText = errorMatch[2];
-          const timeMatch = line.match(/(\d{4}[-/]\d{2}[-/]\d{2}[T\s](\d{2}:\d{2}:\d{2}))/);
-          const timeFormatted = timeMatch ? timeMatch[2] : 'Hoje';
+          
+          if (!realTime) {
+            const nginxErrTime = line.match(/(\d{4})\/(\d{2})\/(\d{2})\s+(\d{2}:\d{2}:\d{2})/);
+            if (nginxErrTime) {
+              realTime = `${nginxErrTime[3]}/${nginxErrTime[2]} ${nginxErrTime[4]}`;
+            } else {
+              realTime = 'Hoje';
+            }
+          }
           const enriched = enrichIpInfo(clientIp);
 
           threats.push({
@@ -71,7 +85,7 @@ async function securityRoutes(fastify, options) {
             path: requestText.slice(0, 50),
             status: line.includes('Connection refused') ? 502 : 400,
             statusText: line.includes('Connection refused') ? 'Scan / Refused' : 'Bloqueado',
-            time: timeFormatted,
+            time: realTime,
             banned: BANNED_IPS.has(`${targetIp}:${clientIp}`)
           });
           continue;
@@ -81,7 +95,7 @@ async function securityRoutes(fastify, options) {
         const accessMatch = line.match(/([0-9.]+)\s+-\s+-\s+\[([^\]]+)\]\s+"([^"]+)"\s+(\d{3})\s+(\d+)/);
         if (accessMatch) {
           const clientIp = accessMatch[1];
-          const rawTime = accessMatch[2];
+          const rawTime = accessMatch[2]; // ex: 06/Oct/2026:15:42:00 +0000
           const requestText = accessMatch[3];
           const statusCode = parseInt(accessMatch[4], 10);
 
@@ -92,7 +106,13 @@ async function securityRoutes(fastify, options) {
             requestText.includes('php') || requestText.includes('wp-');
 
           if (isSuspicious) {
-            const timeFormatted = rawTime.split(':').slice(1, 4).join(':').split(' ')[0] || rawTime;
+            if (!realTime) {
+              // Converte 06/Oct/2026:15:42:00 para 06/10 15:42:00
+              const dateParts = rawTime.split(':');
+              const dayMonth = dateParts[0] || '';
+              const timeStr = dateParts.slice(1, 4).join(':').split(' ')[0] || '';
+              realTime = `${dayMonth.slice(0, 6)} ${timeStr}`.trim();
+            }
             const enriched = enrichIpInfo(clientIp);
 
             threats.push({
@@ -103,7 +123,7 @@ async function securityRoutes(fastify, options) {
               path: requestText.slice(0, 50),
               status: statusCode,
               statusText: statusCode === 404 ? '404 Barrado' : statusCode === 400 ? '400 Rejeitado' : `${statusCode} Bloqueado`,
-              time: timeFormatted,
+              time: realTime || 'Recente',
               banned: BANNED_IPS.has(`${targetIp}:${clientIp}`)
             });
             continue;
