@@ -306,12 +306,12 @@ export default function Page() {
 
   const handleDropCaches = async () => {
     setIsDroppingCache(true)
-    doAction('Otimizando memória... executando drop_caches na VM')
+    doAction(`Otimizando memória... executando drop_caches na VM ${server?.name || server?.ip || ''}`)
     try {
       const res = await fetch(getApiUrl('/api/servers/drop-caches'), { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
+        body: JSON.stringify({ ip: server?.ip })
       })
       const data = await res.json()
       if (data.success && data.server) {

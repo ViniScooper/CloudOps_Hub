@@ -156,8 +156,11 @@ async function dockerRoutes(fastify, options) {
         privateKey = fs.readFileSync(sshKeyPath, 'utf8');
       }
 
+      const urlObj = new URL(req.url, 'http://localhost');
+      const targetIp = urlObj.searchParams.get('ip') || process.env.VM_IP || '137.131.185.243';
+
       conn.connect({
-        host: process.env.VM_IP || '137.131.185.243',
+        host: targetIp,
         port: Number(process.env.VM_PORT) || 22,
         username: process.env.VM_USER || 'ubuntu',
         privateKey: privateKey.trim()
@@ -216,8 +219,11 @@ async function dockerRoutes(fastify, options) {
         privateKey = fs.readFileSync(sshKeyPath, 'utf8');
       }
 
+      const urlObj = new URL(req.url, 'http://localhost');
+      const targetIp = urlObj.searchParams.get('ip') || process.env.VM_IP || '137.131.185.243';
+
       conn.connect({
-        host: process.env.VM_IP || '137.131.185.243',
+        host: targetIp,
         port: Number(process.env.VM_PORT) || 22,
         username: process.env.VM_USER || 'ubuntu',
         privateKey: privateKey.trim()

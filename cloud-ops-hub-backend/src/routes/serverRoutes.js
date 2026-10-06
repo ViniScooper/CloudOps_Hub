@@ -176,7 +176,7 @@ async function serverRoutes(fastify, options) {
     const { ip, port = 22, user = 'ubuntu', privateKey } = request.body || {};
 
     if (process.platform === 'linux' && (!ip || ip === '127.0.0.1' || ip === 'localhost' || ip === '137.131.185.243' || ip === '137.131.187.54')) {
-      const res = await deployService.runRemoteSsh('free -m && df -h / && docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"');
+      const res = await deployService.runRemoteSsh('free -m && df -h / && docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"', ip);
       return parseServerOutput(res.stdout || '', ip || '137.131.185.243', user || 'ubuntu');
     }
 
@@ -292,7 +292,7 @@ async function serverRoutes(fastify, options) {
     }
 
     if (process.platform === 'linux' && (!ip || ip === '127.0.0.1' || ip === 'localhost' || ip === '137.131.185.243' || ip === '137.131.187.54')) {
-      const res = await deployService.runRemoteSsh(command);
+      const res = await deployService.runRemoteSsh(command, ip);
       return { success: true, command, output: res.stdout || res.stderr };
     }
 
@@ -331,16 +331,17 @@ async function serverRoutes(fastify, options) {
     handler: async (request, reply) => {
       try {
         const clientIp = extractClientIp(request);
+        const targetIp = request.body?.ip || request.query?.ip || '137.131.185.243';
         auditService.logEvent({
           user: 'operator',
           action: 'DROP_CACHES',
-          target: 'instance-bytedata',
+          target: targetIp,
           ip: clientIp,
           status: 'SUCCESS',
           details: 'Executado sync && drop_caches'
         });
 
-        const res = await deployService.runRemoteSsh('sync && echo 3 | sudo tee /proc/sys/vm/drop_caches && free -m');
+        const res = await deployService.runRemoteSsh('sync && echo 3 | sudo tee /proc/sys/vm/drop_caches && free -m', targetIp);
         const out = res.stdout || '';
 
         const memMatch = out.match(/Mem:\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/);
