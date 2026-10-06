@@ -36,14 +36,100 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
   const targetIp = server?.ip || '137.131.185.243'
   const isMicro = targetIp === '137.131.187.54' || targetIp.includes('micro')
 
+  const parseThreatsFromLogs = (rawLogs: string): ThreatItem[] => {
+    const list: ThreatItem[] = []
+    const lines = rawLogs.split('\n')
+    for (let i = lines.length - 1; i >= 0 && list.length < 50; i--) {
+      const line = lines[i].trim()
+      if (!line) continue
+
+      // 1. Error log upstream (ex: connect() failed ... client: IP ... request: "GET /...")
+      const errMatch = line.match(/client:\s*([0-9.]+).*?request:\s*"([^"]+)"/i)
+      if (errMatch) {
+        const clientIp = errMatch[1]
+        const req = errMatch[2]
+        const timeMatch = line.match(/(\d{4}[-/]\d{2}[-/]\d{2}[T\s](\d{2}:\d{2}:\d{2}))/)
+        const timeStr = timeMatch ? timeMatch[2] : 'Hoje'
+
+        list.push({
+          id: `fe-err-${clientIp}-${i}`,
+          ip: clientIp,
+          country: 'Internacional 🌐',
+          org: 'Scanner de Portas / Botnet',
+          path: req.slice(0, 50),
+          status: line.includes('Connection refused') ? 502 : 400,
+          statusText: line.includes('Connection refused') ? 'Scan / Refused' : 'Bloqueado',
+          time: timeStr,
+          banned: bannedIps.includes(clientIp)
+        })
+        continue
+      }
+
+      // 2. Access log (IP - - [...] "METHOD /... HTTP/..." 404/400/403)
+      const accMatch = line.match(/([0-9.]+)\s+-\s+-\s+\[([^\]]+)\]\s+"([^"]+)"\s+(404|400|403|405)\s+/i)
+      if (accMatch) {
+        const clientIp = accMatch[1]
+        const rawTime = accMatch[2]
+        const req = accMatch[3]
+        const status = parseInt(accMatch[4], 10)
+
+        if (
+          req.includes('.env') || req.includes('.git') || req.includes('SDK') ||
+          req.includes('login') || req.includes('\\x') || req.includes('php') ||
+          req.includes('wp-') || status === 404 || status === 400
+        ) {
+          const timeFormatted = rawTime.split(':').slice(1, 4).join(':').split(' ')[0] || rawTime
+          list.push({
+            id: `fe-acc-${clientIp}-${i}`,
+            ip: clientIp,
+            country: 'Internacional 🌐',
+            org: 'Varredura Web / Crawler',
+            path: req.slice(0, 50),
+            status,
+            statusText: status === 404 ? '404 Barrado' : `${status} Rejeitado`,
+            time: timeFormatted,
+            banned: bannedIps.includes(clientIp)
+          })
+        }
+      }
+    }
+    return list
+  }
+
   const fetchSecurityData = async () => {
     try {
       setLoading(true)
-      const res = await fetch(getApiUrl(`/api/security/threats?ip=${targetIp}`))
-      const data = await res.json()
-      if (data.threats && Array.isArray(data.threats)) {
-        setThreats(data.threats)
+      let threatsFound: ThreatItem[] = []
+
+      // 1. Tenta carregar do endpoint dedicado de segurança
+      try {
+        const res = await fetch(getApiUrl(`/api/security/threats?ip=${targetIp}`))
+        const data = await res.json()
+        if (data.threats && Array.isArray(data.threats) && data.threats.length > 0) {
+          threatsFound = data.threats
+        }
+      } catch (err) {
+        console.warn('Endpoint /api/security/threats indisponível, buscando via logs do container:', err)
       }
+
+      // 2. Se não encontrou ameaças pelo endpoint de segurança, consome diretamente os logs do Nginx
+      if (threatsFound.length === 0) {
+        try {
+          const containerName = isMicro ? 'nginx-proxy' : 'nginx-manager-nginx-1'
+          const logRes = await fetch(getApiUrl(`/api/docker/logs/${encodeURIComponent(containerName)}?tail=200&ip=${encodeURIComponent(targetIp)}`))
+          const logData = await logRes.json()
+          if (logData.success && typeof logData.logs === 'string') {
+            const parsed = parseThreatsFromLogs(logData.logs)
+            if (parsed.length > 0) {
+              threatsFound = parsed
+            }
+          }
+        } catch (logErr) {
+          console.warn('Erro ao ler logs de container para segurança:', logErr)
+        }
+      }
+
+      setThreats(threatsFound)
 
       // Busca pings de rede
       const pingRes = await fetch(getApiUrl(`/api/network/pings?ip=${targetIp}`))
