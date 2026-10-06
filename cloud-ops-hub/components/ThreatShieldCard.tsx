@@ -49,9 +49,11 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
       // Extrai timestamp real do Docker (ex: 2026-10-06T17:18:57...)
       const isoMatch = line.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2}:\d{2})/)
       let realTime = ''
+      let epoch = 0
       if (isoMatch) {
         const [, year, month, day, time] = isoMatch
         realTime = `${day}/${month} ${time}`
+        epoch = new Date(`${year}-${month}-${day}T${time}Z`).getTime() || 0
       }
 
       // 1. Error log upstream (ex: connect() failed ... client: IP ... request: "GET /...")
@@ -64,6 +66,7 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
           const nginxErrTime = line.match(/(\d{4})\/(\d{2})\/(\d{2})\s+(\d{2}:\d{2}:\d{2})/)
           if (nginxErrTime) {
             realTime = `${nginxErrTime[3]}/${nginxErrTime[2]} ${nginxErrTime[4]}`
+            epoch = new Date(`${nginxErrTime[1]}-${nginxErrTime[2]}-${nginxErrTime[3]}T${nginxErrTime[4]}Z`).getTime() || 0
           } else {
             realTime = 'Hoje'
           }
@@ -78,6 +81,7 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
           status: line.includes('Connection refused') ? 502 : 400,
           statusText: line.includes('Connection refused') ? 'Scan / Refused' : 'Bloqueado',
           time: realTime,
+          epoch,
           banned: bannedIps.includes(clientIp)
         })
         continue
@@ -102,6 +106,10 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
             const dayMonth = dateParts[0] || ''
             const timeStr = dateParts.slice(1, 4).join(':').split(' ')[0] || ''
             realTime = `${dayMonth.slice(0, 6)} ${timeStr}`.trim()
+            try {
+              const d = new Date(rawTime.replace(':', ' '))
+              if (!isNaN(d.getTime())) epoch = d.getTime()
+            } catch {}
           }
 
           list.push({
@@ -113,6 +121,7 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
             status,
             statusText: status === 502 ? '502 Bloqueado' : status === 404 ? '404 Barrado' : `${status} Rejeitado`,
             time: realTime || 'Recente',
+            epoch,
             banned: bannedIps.includes(clientIp)
           })
         }
@@ -155,6 +164,23 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
       }
 
       // Garante ordenação rigorosa: os mais recentes sempre no topo da tabela
+      threatsFound.forEach(t => {
+        if (!t.epoch) {
+          // Tenta extrair hora "DD/MM HH:mm:ss" ou "HH:mm:ss"
+          const m = t.time?.match(/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/)
+          if (m) {
+            const now = new Date()
+            t.epoch = new Date(now.getFullYear(), parseInt(m[2], 10) - 1, parseInt(m[1], 10), parseInt(m[3], 10), parseInt(m[4], 10), parseInt(m[5], 10)).getTime()
+          } else {
+            const timeOnly = t.time?.match(/(\d{2}):(\d{2}):(\d{2})/)
+            if (timeOnly) {
+              const now = new Date()
+              t.epoch = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(timeOnly[1], 10), parseInt(timeOnly[2], 10), parseInt(timeOnly[3], 10)).getTime()
+            }
+          }
+        }
+      })
+
       threatsFound.sort((a, b) => (b.epoch || 0) - (a.epoch || 0))
 
       setThreats(threatsFound)
