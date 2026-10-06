@@ -1151,11 +1151,20 @@ export default function Page() {
           )}
 
           {active === 'Vercel Frontend' && (
-            <VercelDeploymentsView doAction={doAction} />
+            <VercelDeploymentsView 
+              key={`vercel-${server?.id || server?.ip || 'none'}`}
+              server={server} 
+              doAction={doAction} 
+              onSwitchServer={() => handleSwitchServer(serverList[0])}
+            />
           )}
 
           {active === 'Render Backend' && (
-            <RenderDeploymentsView doAction={doAction} />
+            <RenderDeploymentsView 
+              key={`render-${server?.id || server?.ip || 'none'}`}
+              server={server}
+              doAction={doAction} 
+            />
           )}
 
           {active === 'Migração Multi-Cloud' && (
