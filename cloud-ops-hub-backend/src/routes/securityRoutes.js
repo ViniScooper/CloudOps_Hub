@@ -3,6 +3,7 @@
  */
 
 const deployService = require('../deployService');
+const dockerService = require('../dockerService');
 const auditService = require('../auditService');
 const { extractClientIp } = require('../security');
 
@@ -38,18 +39,46 @@ async function securityRoutes(fastify, options) {
     const containerName = isMicro ? 'nginx-proxy' : 'nginx-manager-nginx-1';
 
     try {
-      const res = await deployService.runRemoteSsh(`docker logs --tail 150 ${containerName} 2>&1`, targetIp);
-      const output = res.stdout || res.stderr || '';
+      const logsResult = await dockerService.getContainerLogs({
+        container: containerName,
+        tail: 250,
+        ip: targetIp
+      });
+      const output = logsResult?.logs || '';
 
       const threats = [];
       const lines = output.split('\n');
 
-      for (let i = lines.length - 1; i >= 0 && threats.length < 25; i--) {
+      for (let i = lines.length - 1; i >= 0 && threats.length < 50; i--) {
         const line = lines[i].trim();
         if (!line) continue;
 
-        // 1. Match log HTTP Nginx clássico: IP - - [Data] "METHOD PATH HTTP/..." STATUS ...
-        const accessMatch = line.match(/^(\S+)\s+-\s+-\s+\[([^\]]+)\]\s+"([^"]+)"\s+(\d{3})\s+(\d+)/);
+        // 1. Match log de Erro / Scan do Nginx (ex: connect() failed 111: Connection refused while connecting to upstream, client: IP, ..., request: "GET /...")
+        // Suporta tanto formato com timestamps quanto sem timestamps
+        const errorMatch = line.match(/client:\s*([0-9.]+).*?request:\s*"([^"]+)"/i);
+        if (errorMatch) {
+          const clientIp = errorMatch[1];
+          const requestText = errorMatch[2];
+          const timeMatch = line.match(/(\d{4}[-/]\d{2}[-/]\d{2}[T\s](\d{2}:\d{2}:\d{2}))/);
+          const timeFormatted = timeMatch ? timeMatch[2] : 'Hoje';
+          const enriched = enrichIpInfo(clientIp);
+
+          threats.push({
+            id: `err-${clientIp}-${i}`,
+            ip: clientIp,
+            country: enriched.country,
+            org: enriched.org,
+            path: requestText.slice(0, 50),
+            status: line.includes('Connection refused') ? 502 : 400,
+            statusText: line.includes('Connection refused') ? 'Scan / Refused' : 'Bloqueado',
+            time: timeFormatted,
+            banned: BANNED_IPS.has(`${targetIp}:${clientIp}`)
+          });
+          continue;
+        }
+
+        // 2. Match log HTTP Nginx clássico (com ou sem timestamp docker inicial)
+        const accessMatch = line.match(/([0-9.]+)\s+-\s+-\s+\[([^\]]+)\]\s+"([^"]+)"\s+(\d{3})\s+(\d+)/);
         if (accessMatch) {
           const clientIp = accessMatch[1];
           const rawTime = accessMatch[2];
@@ -57,9 +86,10 @@ async function securityRoutes(fastify, options) {
           const statusCode = parseInt(accessMatch[4], 10);
 
           // Filtra acessos suspeitos (404, 400, 405 ou rotas como .env, .git, mcp, etc)
-          const isSuspicious = statusCode === 404 || statusCode === 400 || statusCode === 405 ||
+          const isSuspicious = statusCode === 404 || statusCode === 400 || statusCode === 405 || statusCode === 403 ||
             requestText.includes('.env') || requestText.includes('.git') || requestText.includes('mcp') ||
-            requestText.includes('SDK') || requestText.includes('login') || requestText.includes('\\x');
+            requestText.includes('SDK') || requestText.includes('login') || requestText.includes('\\x') ||
+            requestText.includes('php') || requestText.includes('wp-');
 
           if (isSuspicious) {
             const timeFormatted = rawTime.split(':').slice(1, 4).join(':').split(' ')[0] || rawTime;
@@ -78,44 +108,6 @@ async function securityRoutes(fastify, options) {
             });
             continue;
           }
-        }
-
-        // 2. Match log de Erro / Scan do Nginx (ex: connect() failed 111: Connection refused while connecting to upstream, client: IP, ..., request: "GET /...")
-        const errorMatch = line.match(/\[error\].*client:\s*([0-9.]+).*request:\s*"([^"]+)"/);
-        if (errorMatch) {
-          const clientIp = errorMatch[1];
-          const requestText = errorMatch[2];
-          const timeMatch = line.match(/^(\d{4}[-/]\d{2}[-/]\d{2}[T\s](\d{2}:\d{2}:\d{2}))/);
-          const timeFormatted = timeMatch ? timeMatch[2] : 'Hoje';
-          const enriched = enrichIpInfo(clientIp);
-
-          threats.push({
-            id: `err-${clientIp}-${i}`,
-            ip: clientIp,
-            country: enriched.country,
-            org: enriched.org,
-            path: requestText.slice(0, 50),
-            status: 502,
-            statusText: line.includes('Connection refused') ? 'Scan / Refused' : '502 Upstream Erro',
-            time: timeFormatted,
-            banned: BANNED_IPS.has(`${targetIp}:${clientIp}`)
-          });
-        }
-      }
-
-      // Se por algum motivo o Nginx ainda não tiver logs nessa máquina, entrega dados ilustrativos limpos
-      if (threats.length === 0) {
-        if (isMicro) {
-          threats.push(
-            { id: 't1', ip: '78.153.140.149', country: 'Reino Unido 🇬🇧', org: 'HostGlobal Plus (Botnet Scraper)', path: 'GET /.env', status: 404, statusText: '404 Barrado', time: 'Recente', banned: false },
-            { id: 't2', ip: '193.32.162.156', country: 'Holanda 🇳🇱', org: 'Unmanaged LTD (Git Harvester)', path: 'GET /.git/config', status: 404, statusText: '404 Barrado', time: 'Recente', banned: false },
-            { id: 't3', ip: '66.132.186.195', country: 'EUA 🇺🇸', org: 'Censys Inspect Security', path: 'GET /login', status: 404, statusText: '404 Barrado', time: 'Recente', banned: false }
-          );
-        } else {
-          threats.push(
-            { id: 'tb1', ip: '205.210.31.218', country: 'EUA 🇺🇸', org: 'Palo Alto Cortex Xpanse', path: 'GET / HTTP/1.1', status: 200, statusText: '200 Inspeção', time: 'Recente', banned: false },
-            { id: 'tb2', ip: '45.198.224.125', country: 'Alemanha 🇩🇪', org: 'Masscan Internet Sweep', path: 'GET /robots.txt', status: 404, statusText: '404 Barrado', time: 'Recente', banned: false }
-          );
         }
       }
 
