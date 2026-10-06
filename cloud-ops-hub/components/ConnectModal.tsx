@@ -8,6 +8,7 @@ import { Server as ServerType, ContainerItem, ProxyHost } from '../types'
 interface ConnectModalProps {
   isOpen: boolean
   onClose: () => void
+  currentUser?: any
   serverList: ServerType[]
   setServerList: React.Dispatch<React.SetStateAction<ServerType[]>>
   setServer: React.Dispatch<React.SetStateAction<ServerType | null>>
@@ -19,6 +20,7 @@ interface ConnectModalProps {
 export function ConnectModal({
   isOpen,
   onClose,
+  currentUser,
   serverList,
   setServerList,
   setServer,
@@ -26,6 +28,7 @@ export function ConnectModal({
   setProxyHosts,
   doAction
 }: ConnectModalProps) {
+  const isMaster = (currentUser?.email || '').trim().toLowerCase() === 'vviniciuslourenco@gmail.com'
   const [vmIp, setVmIp] = useState('')
   const [vmUser, setVmUser] = useState('ubuntu')
   const [vmPort, setVmPort] = useState('22')
@@ -49,7 +52,7 @@ export function ConnectModal({
       const isNewVm = vmIp === '137.131.187.54'
       const newServer: ServerType = {
         id: isNewVm ? 'oracle-micro-02' : `srv-${Date.now()}`,
-        name: isNewVm ? 'cloudops-micro-02' : (vmIp === '137.131.185.243' ? 'instance-bytedata' : `vm-${vmIp}`),
+        name: isNewVm ? 'cloudops-micro-02' : (vmIp === '137.131.185.243' ? 'instance-bytedata' : `vm-${vmIp.replace(/[^a-zA-Z0-9]/g, '-')}`),
         ip: vmIp,
         provider: 'oracle',
         region: 'sa-saopaulo-1',
@@ -67,19 +70,19 @@ export function ConnectModal({
         color: 'oracle'
       }
 
-      const defaultProxies: ProxyHost[] = isNewVm ? [] : [
+      const defaultProxies: ProxyHost[] = isMaster && !isNewVm ? [
         { domain: 'cardapio.botecosivirino.com.br', forward: 'http://127.0.0.1:3002', ssl: 'Let\'s Encrypt (Ativo)', status: 'Online' },
         { domain: 'api.lottus.com.br', forward: 'http://127.0.0.1:3001', ssl: 'Let\'s Encrypt (Ativo)', status: 'Online' }
-      ]
+      ] : []
 
-      const newContainers: ContainerItem[] = isNewVm ? [] : (data.containers && data.containers.length > 0 ? data.containers : [
-        { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.0%', memory: '33.6 MB', color: 'emerald' },
-        { name: 'boteco_db', image: 'mysql:8.0 (Buffer 64M)', status: 'Running', port: '3306:3306', cpu: '0.5%', memory: '9.2 MB', color: 'emerald' },
-        { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.1%', memory: '31.3 MB', color: 'emerald' },
-        { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.0%', memory: '1.5 MB', color: 'emerald' },
-        { name: 'plataforma_ingles_api', image: 'node:18', status: 'Running', port: '3003:3002', cpu: '0.0%', memory: '23.8 MB', color: 'emerald' },
-        { name: 'lottus-api (PM2)', image: 'node/pm2', status: 'Online', port: '3001', cpu: '0.0%', memory: '35.5 MB', color: 'emerald' },
-      ])
+      const newContainers: ContainerItem[] = (data.containers && data.containers.length > 0)
+        ? data.containers
+        : (isMaster && !isNewVm ? [
+            { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.0%', memory: '33.6 MB', color: 'emerald' },
+            { name: 'boteco_db', image: 'mysql:8.0 (Buffer 64M)', status: 'Running', port: '3306:3306', cpu: '0.5%', memory: '9.2 MB', color: 'emerald' },
+            { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.1%', memory: '31.3 MB', color: 'emerald' },
+            { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.0%', memory: '1.5 MB', color: 'emerald' }
+          ] : [])
 
       const updatedList = [...serverList, newServer]
       setServerList(updatedList)
@@ -88,10 +91,14 @@ export function ConnectModal({
       setProxyHosts(defaultProxies)
 
       if (typeof window !== 'undefined') {
-        localStorage.setItem('cloudops_servers', JSON.stringify(updatedList))
-        localStorage.setItem('cloudops_containers', JSON.stringify(newContainers))
-        localStorage.setItem('cloudops_proxies', JSON.stringify(defaultProxies))
-        if (vmKey) localStorage.setItem('cloudops_ssh_key', vmKey)
+        const storageKey = isMaster ? 'cloudops_servers' : `cloudops_servers_${currentUser?.id || currentUser?.email || 'guest'}`
+        localStorage.setItem(storageKey, JSON.stringify(updatedList))
+        localStorage.setItem(`cloudops_containers_${newServer.id}`, JSON.stringify(newContainers))
+        localStorage.setItem(`cloudops_proxies_${newServer.id}`, JSON.stringify(defaultProxies))
+        if (vmKey) {
+          const keyStorage = isMaster ? 'cloudops_ssh_key' : `cloudops_ssh_key_${currentUser?.id || 'guest'}`
+          localStorage.setItem(keyStorage, vmKey)
+        }
       }
 
       onClose()
@@ -100,7 +107,7 @@ export function ConnectModal({
     } catch (err: any) {
       const newServer: ServerType = {
         id: `srv-${Date.now()}`,
-        name: `instance-bytedata`,
+        name: isMaster ? 'instance-bytedata' : `vm-${vmIp.replace(/[^a-zA-Z0-9]/g, '-') || 'server'}`,
         ip: vmIp,
         provider: 'oracle',
         region: 'sa-saopaulo-1',
@@ -116,19 +123,17 @@ export function ConnectModal({
         color: 'oracle'
       }
 
-      const defaultContainers: ContainerItem[] = [
+      const defaultContainers: ContainerItem[] = isMaster ? [
         { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.8%', memory: '45 MB', color: 'emerald' },
         { name: 'boteco_db', image: 'mysql:8.0', status: 'Running', port: '3306:3306', cpu: '1.4%', memory: '182 MB', color: 'emerald' },
         { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.2%', memory: '24 MB', color: 'emerald' },
-        { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.4%', memory: '18 MB', color: 'emerald' },
-        { name: 'plataforma_ingles_api', image: 'node:18', status: 'Unhealthy', port: '3003:3002', cpu: '0.1%', memory: '38 MB', color: 'red' },
-        { name: 'lottus-api (PM2)', image: 'node/pm2', status: 'Online', port: '3001', cpu: '0.0%', memory: '14.7 MB', color: 'emerald' },
-      ]
+        { name: 'nginx-manager-nginx-1', image: 'nginx:alpine', status: 'Running', port: '80:80', cpu: '0.4%', memory: '18 MB', color: 'emerald' }
+      ] : []
 
-      const defaultProxies: ProxyHost[] = [
+      const defaultProxies: ProxyHost[] = isMaster ? [
         { domain: 'cardapio.botecosivirino.com.br', forward: 'http://127.0.0.1:3002', ssl: 'Let\'s Encrypt (Ativo)', status: 'Online' },
         { domain: 'api.lottus.com.br', forward: 'http://127.0.0.1:3001', ssl: 'Let\'s Encrypt (Ativo)', status: 'Online' }
-      ]
+      ] : []
 
       const updatedList = [...serverList, newServer]
       setServerList(updatedList)
@@ -137,15 +142,19 @@ export function ConnectModal({
       setProxyHosts(defaultProxies)
 
       if (typeof window !== 'undefined') {
-        localStorage.setItem('cloudops_servers', JSON.stringify(updatedList))
-        localStorage.setItem('cloudops_containers', JSON.stringify(defaultContainers))
-        localStorage.setItem('cloudops_proxies', JSON.stringify(defaultProxies))
-        if (vmKey) localStorage.setItem('cloudops_ssh_key', vmKey)
+        const storageKey = isMaster ? 'cloudops_servers' : `cloudops_servers_${currentUser?.id || currentUser?.email || 'guest'}`
+        localStorage.setItem(storageKey, JSON.stringify(updatedList))
+        localStorage.setItem(`cloudops_containers_${newServer.id}`, JSON.stringify(defaultContainers))
+        localStorage.setItem(`cloudops_proxies_${newServer.id}`, JSON.stringify(defaultProxies))
+        if (vmKey) {
+          const keyStorage = isMaster ? 'cloudops_ssh_key' : `cloudops_ssh_key_${currentUser?.id || 'guest'}`
+          localStorage.setItem(keyStorage, vmKey)
+        }
       }
 
       onClose()
       setVmKey('')
-      doAction(`VM ${vmIp} conectada e persistida com sucesso! 🎉`)
+      doAction(`VM ${vmIp} cadastrada no painel com sucesso! 🎉`)
     } finally {
       setIsConnecting(false)
     }
