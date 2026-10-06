@@ -99,11 +99,11 @@ async function securityRoutes(fastify, options) {
           const requestText = accessMatch[3];
           const statusCode = parseInt(accessMatch[4], 10);
 
-          // Filtra acessos suspeitos (404, 400, 405 ou rotas como .env, .git, mcp, etc)
+          // Filtra acessos suspeitos (502, 404, 400, 405 ou rotas como .env, .git, mcp, etc)
           const isSuspicious = statusCode === 404 || statusCode === 400 || statusCode === 405 || statusCode === 403 ||
-            requestText.includes('.env') || requestText.includes('.git') || requestText.includes('mcp') ||
+            statusCode === 502 || requestText.includes('.env') || requestText.includes('.git') || requestText.includes('mcp') ||
             requestText.includes('SDK') || requestText.includes('login') || requestText.includes('\\x') ||
-            requestText.includes('php') || requestText.includes('wp-');
+            requestText.includes('php') || requestText.includes('wp-') || requestText.includes('yml') || requestText.includes('yaml');
 
           if (isSuspicious) {
             if (!realTime) {
@@ -122,7 +122,7 @@ async function securityRoutes(fastify, options) {
               org: enriched.org,
               path: requestText.slice(0, 50),
               status: statusCode,
-              statusText: statusCode === 404 ? '404 Barrado' : statusCode === 400 ? '400 Rejeitado' : `${statusCode} Bloqueado`,
+              statusText: statusCode === 502 ? '502 Bloqueado' : statusCode === 404 ? '404 Barrado' : statusCode === 400 ? '400 Rejeitado' : `${statusCode} Bloqueado`,
               time: realTime || 'Recente',
               banned: BANNED_IPS.has(`${targetIp}:${clientIp}`)
             });
