@@ -11,6 +11,7 @@ import { ThreatShieldCard } from './ThreatShieldCard'
 
 interface DashboardViewProps {
   server: any
+  currentUser?: any
   serverList: any[]
   containers: any[]
   setServer: (server: any) => void
@@ -20,6 +21,7 @@ interface DashboardViewProps {
 
 export function DashboardView({
   server,
+  currentUser,
   serverList,
   containers,
   setServer,
@@ -63,7 +65,8 @@ export function DashboardView({
     )
   }
 
-  const isMicro = server?.ip === '137.131.187.54' || server?.name?.includes('micro') || server?.id === 'oracle-micro-02'
+  const isMaster = (currentUser?.email || '').trim().toLowerCase() === 'vviniciuslourenco@gmail.com'
+  const isMicro = isMaster && (server?.ip === '137.131.187.54' || server?.name?.includes('micro') || server?.id === 'oracle-micro-02')
 
   return (
     <>
@@ -142,15 +145,17 @@ export function DashboardView({
         onNavigateToLogs={() => setActive('Docker')} 
       />
 
-      {/* Robôs & Automações da VM Ativa */}
-      <VmBotsSection 
-        server={server} 
-        doAction={doAction} 
-        onOpenScraperModal={() => setActive('VM Scraper')} 
-      />
+      {/* Robôs & Automações da VM Ativa (Exclusivo da conta Master) */}
+      {isMaster && (
+        <VmBotsSection 
+          server={server} 
+          doAction={doAction} 
+          onOpenScraperModal={() => setActive('VM Scraper')} 
+        />
+      )}
 
-      {/* Bancos de Dados & Histórico ATP (Apenas na VM Principal de Produção) */}
-      {!isMicro && (
+      {/* Bancos de Dados & Histórico ATP (Apenas na VM Principal do Administrador Master) */}
+      {isMaster && !isMicro && (
         <>
           <div className="section-heading lower-heading">
             <div>

@@ -12,6 +12,7 @@ import { getApiUrl } from '../lib/api'
 
 interface DeployViewProps {
   server: any
+  currentUser?: any
   doAction: (msg: string) => void
 }
 
@@ -28,7 +29,8 @@ interface DeployRecord {
   status: 'Sucesso' | 'Falha'
 }
 
-export function DeployView({ server, doAction }: DeployViewProps) {
+export function DeployView({ server, currentUser, doAction }: DeployViewProps) {
+  const isMaster = (currentUser?.email || '').trim().toLowerCase() === 'vviniciuslourenco@gmail.com'
   const [isDeploying, setIsDeploying] = useState(false)
   const [isMerging, setIsMerging] = useState(false)
   const [isRollingBack, setIsRollingBack] = useState(false)
@@ -371,14 +373,16 @@ export function DeployView({ server, doAction }: DeployViewProps) {
             Conecte sua máquina virtual para gerenciar pipelines de CI/CD, deploys contínuos e rollbacks de emergência.
           </p>
         </div>
-      ) : server?.ip === '137.131.187.54' || server?.id === 'oracle-micro-02' ? (
+      ) : !isMaster || server?.ip === '137.131.187.54' || server?.id === 'oracle-micro-02' ? (
         <div className="panel" style={{ padding: '36px 20px', textAlign: 'center', marginBottom: '20px' }}>
           <div style={{ display: 'inline-flex', padding: '12px', borderRadius: '50%', background: 'rgba(32, 214, 199, 0.08)', marginBottom: '12px', color: '#20d6c7' }}>
             <Rocket size={28} />
           </div>
           <h3 style={{ margin: '0 0 6px', fontSize: '16px', color: '#d9e2e1' }}>Nenhuma Aplicação em Execução</h3>
           <p style={{ margin: '0 0 18px', fontSize: '12px', color: '#6f8387', maxWidth: '460px', marginInline: 'auto' }}>
-            A instância <b>cloudops-micro-02</b> é nova e 100% virgem. Use o botão abaixo para clonar um repositório do GitHub ou configurar o seu primeiro pipeline nesta VM!
+            {isMaster 
+              ? 'A instância cloudops-micro-02 é dedicada a robôs e está limpa. Clone um repositório para criar pipelines nesta VM.'
+              : 'Seu nó conectado está limpo e pronto. Use o botão abaixo para clonar um repositório do seu GitHub e iniciar seu primeiro pipeline!'}
           </p>
           <button 
             className="primary-button"
