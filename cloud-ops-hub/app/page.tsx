@@ -596,6 +596,8 @@ export default function Page() {
     )
   }
 
+  const isMasterUser = (currentUser?.email || '').trim().toLowerCase() === 'vviniciuslourenco@gmail.com'
+
   return (
     <main className="app-shell">
       <button className="mobile-menu" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Abrir menu"><Menu size={20} /></button>
@@ -1104,6 +1106,7 @@ export default function Page() {
               <DashboardView
                 key={`dash-${server.id || server.ip}`}
                 server={server}
+                currentUser={currentUser}
                 serverList={serverList}
                 containers={containers}
                 setServer={handleSwitchServer}
@@ -1125,28 +1128,40 @@ export default function Page() {
           )}
 
           {(active === 'VM Scraper' || active === 'Robôs & Bots da VM') && (
-            <div key={`bots-wrap-${server?.id || server?.ip || 'none'}`} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {server && (
-                <VmBotsSection
-                  key={`bots-sec-${server.id || server.ip}`}
-                  server={server}
+            isMasterUser ? (
+              <div key={`bots-wrap-${server?.id || server?.ip || 'none'}`} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {server && (
+                  <VmBotsSection
+                    key={`bots-sec-${server.id || server.ip}`}
+                    server={server}
+                    doAction={doAction}
+                    onOpenScraperModal={() => {}}
+                  />
+                )}
+                <VmScraper
+                  key={`scraper-${server?.id || server?.ip || 'none'}`}
+                  scraperData={scraperData}
+                  scraperLoading={scraperLoading}
                   doAction={doAction}
-                  onOpenScraperModal={() => {}}
+                  setScraperLoading={setScraperLoading}
+                  server={server}
                 />
-              )}
-              <VmScraper
-                key={`scraper-${server?.id || server?.ip || 'none'}`}
-                scraperData={scraperData}
-                scraperLoading={scraperLoading}
-                doAction={doAction}
-                setScraperLoading={setScraperLoading}
-                server={server}
-              />
-            </div>
+              </div>
+            ) : (
+              <div className="panel" style={{ padding: '48px 24px', textAlign: 'center', borderColor: 'rgba(32, 214, 199, 0.25)', background: 'linear-gradient(145deg, #0d1518, #080c0e)' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(32, 214, 199, 0.1)', display: 'grid', placeItems: 'center', margin: '0 auto 16px', color: '#20d6c7' }}>
+                  <Cpu size={28} />
+                </div>
+                <h3 style={{ margin: '0 0 8px', fontSize: '18px', color: '#edf4f2' }}>Módulo de Automação & Scrapers</h3>
+                <p style={{ margin: '0 auto 20px', fontSize: '13px', color: '#8fa4a8', maxWidth: '520px', lineHeight: 1.6 }}>
+                  Esta seção é dedicada a nós trabalhadores e automações autônomas 24/7. Cadastre seus próprios robôs de automação usando a aba <b>Terminal</b> ou <b>Deploy</b> da sua VM.
+                </p>
+              </div>
+            )
           )}
 
           {active === 'Deploy' && (
-            <DeployView key={`deploy-${server?.id || server?.ip || 'none'}`} server={server} doAction={doAction} />
+            <DeployView key={`deploy-${server?.id || server?.ip || 'none'}`} server={server} currentUser={currentUser} doAction={doAction} />
           )}
 
           {active === 'Monitoramento & Logs' && (
@@ -1177,7 +1192,7 @@ export default function Page() {
           )}
 
           {active === 'Variáveis (.env)' && (
-            <EnvManagerView key={`env-${server?.id || server?.ip || 'none'}`} server={server} doAction={doAction} />
+            <EnvManagerView key={`env-${server?.id || server?.ip || 'none'}`} server={server} currentUser={currentUser} doAction={doAction} />
           )}
 
           {(active === 'Usuários & Aprovações' || active === 'Aprovações & Usuários') && (

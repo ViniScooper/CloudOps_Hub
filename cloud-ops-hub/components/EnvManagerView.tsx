@@ -6,6 +6,7 @@ import { getApiUrl } from '../lib/api'
 
 interface EnvManagerViewProps {
   server: any
+  currentUser?: any
   doAction: (msg: string) => void
   onConnect?: () => void
 }
@@ -96,9 +97,26 @@ const WORKER_PROJECTS: ProjectConfig[] = [
   }
 ]
 
-export function EnvManagerView({ server, doAction, onConnect }: EnvManagerViewProps) {
+export function EnvManagerView({ server, currentUser, doAction, onConnect }: EnvManagerViewProps) {
+  const isMaster = (currentUser?.email || '').trim().toLowerCase() === 'vviniciuslourenco@gmail.com'
   const isWorker = server?.id === 'oracle-micro-02' || server?.ip === '137.131.187.54' || server?.name === 'cloudops-micro-02'
-  const availableProjects = isWorker ? WORKER_PROJECTS : PROD_PROJECTS
+  
+  const guestProjects: ProjectConfig[] = [
+    {
+      id: `app_${server?.id || 'main'}`,
+      name: `${server?.name || 'Servidor VPS'} (Ambiente .env)`,
+      containerName: 'app-service',
+      path: '/etc/environment',
+      port: '80',
+      tag: 'MEU SERVIDOR',
+      defaultEnvs: [
+        { key: 'NODE_ENV', value: 'production', isSecret: false, description: 'Ambiente de execução' },
+        { key: 'PORT', value: '80', isSecret: false, description: 'Porta HTTP padrão' }
+      ]
+    }
+  ]
+
+  const availableProjects = isMaster ? (isWorker ? WORKER_PROJECTS : PROD_PROJECTS) : guestProjects
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>(availableProjects[0].id)
   const [showSecrets, setShowSecrets] = useState<{ [key: string]: boolean }>({})
