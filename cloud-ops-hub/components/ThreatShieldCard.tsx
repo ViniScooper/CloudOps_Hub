@@ -16,6 +16,7 @@ interface ThreatItem {
   status: number
   statusText: string
   time: string
+  epoch?: number
   banned: boolean
 }
 
@@ -152,6 +153,9 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
           console.warn('Erro ao ler logs de container para segurança:', logErr)
         }
       }
+
+      // Garante ordenação rigorosa: os mais recentes sempre no topo da tabela
+      threatsFound.sort((a, b) => (b.epoch || 0) - (a.epoch || 0))
 
       setThreats(threatsFound)
 
