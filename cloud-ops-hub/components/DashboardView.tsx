@@ -183,7 +183,7 @@ export function DashboardView({
             {containers.length === 0 ? (
               <div style={{ padding: '32px 16px', textAlign: 'center', color: '#6f8387' }}>
                 <p style={{ margin: '0 0 6px', fontSize: '13px', color: '#d9e2e1', fontWeight: 600 }}>Nenhum container Docker ativo</p>
-                <small style={{ fontSize: '11px', color: '#6f8387' }}>Esta VM é nova e virgem. Instale o Docker ou faça deploy de novos serviços pelo Hub.</small>
+                <small style={{ fontSize: '11px', color: '#6f8387' }}>Nenhum container em execução nesta VM no momento.</small>
               </div>
             ) : (
               containers.filter(c => c.name.includes('db') || c.name.includes('mysql') || c.name.includes('backend')).map(item => (

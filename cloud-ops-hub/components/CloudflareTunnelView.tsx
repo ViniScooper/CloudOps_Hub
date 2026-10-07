@@ -501,7 +501,7 @@ export function CloudflareTunnelView({ server, doAction }: CloudflareTunnelViewP
               </div>
               <p style={{ margin: '3px 0 0', fontSize: '11px', color: '#68868a' }}>
                 {isVirginVM 
-                  ? `A VM ${server?.name} (${server?.ip}) é um ambiente virgem. O serviço Cloudflare Zero Trust (cloudflared) não está instalado aqui.`
+                  ? `O serviço Cloudflare Zero Trust (cloudflared) não está configurado nesta VM (${server?.name || server?.ip}).`
                   : `${currentTunnel.targetDesc} • Elimina necessidade de abrir portas na Oracle Cloud`}
               </p>
             </div>
