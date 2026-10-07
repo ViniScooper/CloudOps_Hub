@@ -50,7 +50,8 @@ export function NginxView({
     )
   }
 
-  const isVirginMicro = server.ip === '137.131.187.54' || server.id === 'oracle-micro-02'
+  const isMicro = server.ip === '137.131.187.54' || server.id === 'oracle-micro-02' || server.name?.includes('micro')
+  const nginxContainerName = isMicro ? 'nginx-proxy' : 'nginx-manager-nginx-1'
 
   return (
     <>
@@ -77,17 +78,15 @@ export function NginxView({
       <div className="step-box" style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontSize: '11px', fontWeight: 600, color: '#d9e2e1' }}>
-            <span className="live-dot" /> Container Nginx: <b>{isVirginMicro ? 'Nenhum' : 'nginx-manager-nginx-1'}</b>
+            <span className="live-dot" /> Container Nginx: <b>{nginxContainerName}</b>
           </div>
           <div style={{ fontSize: '10px', color: '#6f8387', marginTop: '3px' }}>
-            {isVirginMicro 
-              ? 'Nginx ainda não instalado nesta VM virgem.' 
-              : 'Porta 80/443 exposta e roteando requisições diretamente para as portas internas dos containers.'}
+            Porta 80/443 exposta e roteando requisições diretamente para as portas internas dos containers nesta VM ({server.name || server.ip}).
           </div>
         </div>
         <span className="healthy-label">
-          <span className={`status-dot ${isVirginMicro ? 'amber' : 'emerald'}`} /> 
-          {isVirginMicro ? 'Não Instalado' : 'Roteador Ativo'}
+          <span className="status-dot emerald" /> 
+          Roteador Ativo
         </span>
       </div>
 

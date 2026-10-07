@@ -265,16 +265,16 @@ export function LiveContainerLogs({ server, doAction }: { server?: any; doAction
             ))}
           </select>
 
-          {/* Atalhos Rápidos dos Principais Containers */}
+          {/* Atalhos Rápidos dos Containers Reais desta VM */}
           <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-            {['financeiro_backend', 'boteco_backend', 'boteco_db'].map(name => (
+            {containers.slice(0, 5).map(c => (
               <button
-                key={name}
-                onClick={() => setSelectedContainer(name)}
+                key={c.name}
+                onClick={() => setSelectedContainer(c.name)}
                 style={{
-                  background: selectedContainer === name ? 'rgba(32, 214, 199, 0.2)' : 'rgba(255, 255, 255, 0.04)',
-                  color: selectedContainer === name ? '#20d6c7' : '#9ca3af',
-                  border: selectedContainer === name ? '1px solid rgba(32, 214, 199, 0.4)' : '1px solid transparent',
+                  background: selectedContainer === c.name ? 'rgba(32, 214, 199, 0.2)' : 'rgba(255, 255, 255, 0.04)',
+                  color: selectedContainer === c.name ? '#20d6c7' : '#9ca3af',
+                  border: selectedContainer === c.name ? '1px solid rgba(32, 214, 199, 0.4)' : '1px solid transparent',
                   borderRadius: '5px',
                   padding: '3px 8px',
                   fontSize: '11px',
@@ -282,7 +282,7 @@ export function LiveContainerLogs({ server, doAction }: { server?: any; doAction
                   fontWeight: 600
                 }}
               >
-                {name.replace('_backend', '').replace('_', ' ')}
+                {c.name.replace('_backend', '').replace('nginx-manager-', '').replace('_', ' ')}
               </button>
             ))}
           </div>
