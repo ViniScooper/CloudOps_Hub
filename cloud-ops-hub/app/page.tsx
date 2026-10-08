@@ -209,18 +209,57 @@ export default function Page() {
     return () => clearInterval(interval)
   }, [])
 
-  // Carrega os dados salvos do localStorage na inicialização ou login
+  // Validação ativa da sessão e token com o backend na inicialização
   useEffect(() => {
-    try {
-      let u = currentUser
-      if (!u) {
-        const savedUserStr = localStorage.getItem('cloudops_user') || sessionStorage.getItem('cloudops_user')
-        if (savedUserStr) {
-          u = JSON.parse(savedUserStr)
-          setCurrentUser(u)
-        }
+    const validateActiveSession = async () => {
+      const token = localStorage.getItem('cloudops_token') || sessionStorage.getItem('cloudops_token')
+      const savedUserStr = localStorage.getItem('cloudops_user') || sessionStorage.getItem('cloudops_user')
+
+      if (!token) {
+        // Sem token: garante limpeza e força tela de login
+        setCurrentUser(null)
+        localStorage.removeItem('cloudops_user')
+        sessionStorage.removeItem('cloudops_user')
+        return
       }
 
+      // Se há token, valida com o backend se ainda é legítimo (caso segredos tenham sido rotacionados)
+      try {
+        const res = await fetch(getApiUrl('/api/auth/me'), {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const data = await res.json().catch(() => ({}))
+
+        if (res.ok && data.success && data.user) {
+          // Token e sessão 100% válidos
+          setCurrentUser(data.user)
+          localStorage.setItem('cloudops_user', JSON.stringify(data.user))
+        } else {
+          // Token revogado, expirado ou segredo do servidor alterado -> Força Logout Imediato
+          console.warn('[CloudOps Hub] Sessão expirada ou segredo rotacionado. Forçando logout...')
+          setCurrentUser(null)
+          localStorage.removeItem('cloudops_user')
+          localStorage.removeItem('cloudops_token')
+          sessionStorage.removeItem('cloudops_user')
+          sessionStorage.removeItem('cloudops_token')
+        }
+      } catch (err) {
+        // Em caso de falha de conexão com a API, preserva cache se houver
+        if (savedUserStr && !currentUser) {
+          try {
+            setCurrentUser(JSON.parse(savedUserStr))
+          } catch {}
+        }
+      }
+    }
+
+    validateActiveSession()
+  }, [])
+
+  // Carrega servidores e configurações associadas ao usuário
+  useEffect(() => {
+    try {
+      const u = currentUser
       const isMasterUser = (u?.email || '').trim().toLowerCase() === 'vviniciuslourenco@gmail.com'
 
       let activeServers = isMasterUser ? initialServers : []
