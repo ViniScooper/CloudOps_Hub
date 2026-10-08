@@ -1,7 +1,12 @@
-﻿const crypto = require('crypto');
+const crypto = require('crypto');
 
 const ALGORITHM = 'aes-256-gcm';
-const MASTER_KEY = Buffer.from(process.env.MASTER_KEY || '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', 'hex');
+const OLD_DEFAULT_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+const RAW_KEY = process.env.MASTER_KEY || '';
+if (!/^[0-9a-fA-F]{64}$/.test(RAW_KEY) || RAW_KEY.toLowerCase() === OLD_DEFAULT_KEY) {
+  throw new Error('MASTER_KEY ausente, inválida (precisa de 64 hex) ou igual ao valor padrão antigo. Gere com: node scripts/rotate_secrets.js --generate');
+}
+const MASTER_KEY = Buffer.from(RAW_KEY, 'hex');
 
 function encrypt(text) {
   const iv = crypto.randomBytes(16);

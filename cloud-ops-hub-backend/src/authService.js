@@ -2,10 +2,15 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('./db');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_cloudops_hub_2026';
-const MASTER_EMAIL = 'vviniciuslourenco@gmail.com';
-// Hash bcrypt de 'CloudOps#Master2026!'
-const MASTER_HASH = '$2b$10$Qf.og1E5jN/KInwQbmzBrOHDpBA7.nzPix.lKvccz7i.unnYyBbHO';
+// Segredos obrigatórios via ambiente: sem fallback hardcoded (falha ao subir se ausentes/fracos)
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length < 32 || /super_secret_jwt_cloudops_hub/i.test(JWT_SECRET)) {
+  throw new Error('JWT_SECRET ausente, curto (<32) ou igual ao valor padrão antigo. Defina um segredo forte no .env.');
+}
+
+// Usuário master vem do ambiente (MASTER_EMAIL + MASTER_PASSWORD_HASH em bcrypt); desativado se ausente
+const MASTER_EMAIL = (process.env.MASTER_EMAIL || '').trim().toLowerCase();
+const MASTER_HASH = process.env.MASTER_PASSWORD_HASH || '';
 
 async function login(email, password) {
   if (!email || !password) {
@@ -31,7 +36,7 @@ async function login(email, password) {
   }
 
   // 3. Fallback master para o proprietário da infraestrutura
-  if (!user && cleanEmail === MASTER_EMAIL) {
+  if (!user && MASTER_EMAIL && MASTER_HASH && cleanEmail === MASTER_EMAIL) {
     user = {
       id: 'usr-master-01',
       name: 'Vinicius Lourenco (Master)',
