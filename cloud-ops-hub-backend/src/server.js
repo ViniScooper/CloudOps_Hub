@@ -20,9 +20,17 @@ const integrationsRoutes = require('./routes/integrationsRoutes');
 const securityRoutes = require('./routes/securityRoutes');
 
 async function buildServer() {
-  // 1. CORS
+  // 1. CORS restrito: origens permitidas via CORS_ORIGINS (separadas por vírgula) + localhost em dev
+  const allowedOrigins = (process.env.CORS_ORIGINS || 'https://cloudops-hub-dun.vercel.app')
+    .split(',').map(s => s.trim()).filter(Boolean);
   await fastify.register(cors, {
-    origin: true,
+    origin: (origin, cb) => {
+      // Sem Origin (curl, server-to-server, health checks) é permitido
+      if (!origin) return cb(null, true);
+      const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+      if (allowedOrigins.includes(origin) || isLocal) return cb(null, true);
+      return cb(null, false);
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
   });
 
