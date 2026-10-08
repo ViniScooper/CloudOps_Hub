@@ -88,7 +88,49 @@ function verifyToken(token) {
   }
 }
 
+/**
+ * Troca a senha do usuário autenticado.
+ * Para o master (definido por env), grava um registro persistido que passa a ter
+ * precedência sobre o fallback do ambiente (getUserByEmail é consultado primeiro no login).
+ */
+async function changePassword(email, currentPassword, newPassword) {
+  if (!email || !currentPassword || !newPassword) {
+    return { success: false, status: 400, error: 'Senha atual e nova senha são obrigatórias.' };
+  }
+  if (typeof newPassword !== 'string' || newPassword.length < 12) {
+    return { success: false, status: 400, error: 'A nova senha precisa ter pelo menos 12 caracteres.' };
+  }
+  if (newPassword.length > 72) {
+    return { success: false, status: 400, error: 'A nova senha pode ter no máximo 72 caracteres.' };
+  }
+  if (newPassword === currentPassword) {
+    return { success: false, status: 400, error: 'A nova senha deve ser diferente da atual.' };
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+  let user = await db.getUserByEmail(cleanEmail);
+  if (!user && MASTER_EMAIL && MASTER_HASH && cleanEmail === MASTER_EMAIL) {
+    user = { id: 'usr-master-01', name: 'Vinicius Lourenco (Master)', email: MASTER_EMAIL, password_hash: MASTER_HASH, role: 'admin' };
+  }
+  if (!user || !bcrypt.compareSync(currentPassword, user.password_hash)) {
+    return { success: false, status: 401, error: 'Senha atual incorreta.' };
+  }
+
+  const saved = await db.saveUser({
+    id: user.id,
+    name: user.name,
+    email: cleanEmail,
+    role: user.role,
+    password_hash: bcrypt.hashSync(newPassword, 12)
+  });
+  if (!saved) {
+    return { success: false, status: 500, error: 'Não foi possível salvar a nova senha.' };
+  }
+  return { success: true };
+}
+
 module.exports = {
   login,
-  verifyToken
+  verifyToken,
+  changePassword
 };
