@@ -38,8 +38,43 @@ export function SettingsView({
   const [discordWebhookUrl, setDiscordWebhookUrl] = useState(savedNotifs.discordWebhookUrl || '')
   const [isTestingWhatsapp, setIsTestingWhatsapp] = useState(false)
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Se o usuário preencheu a nova senha, troca de verdade no backend
+    if (newPassword || currentPassword) {
+      if (!currentPassword || !newPassword) {
+        doAction('Preencha a senha atual e a nova senha para alterar a credencial.')
+        return
+      }
+      if (newPassword.length < 12) {
+        doAction('A nova senha precisa ter pelo menos 12 caracteres.')
+        return
+      }
+      const token = typeof window !== 'undefined'
+        ? (localStorage.getItem('cloudops_token') || sessionStorage.getItem('cloudops_token'))
+        : null
+      if (!token) {
+        doAction('Sessão expirada. Faça login novamente para alterar a senha.')
+        return
+      }
+      try {
+        const res = await fetch(getApiUrl('/api/auth/change-password'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ currentPassword, newPassword })
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || !data.success) {
+          doAction(`Não foi possível alterar a senha: ${data.error || 'erro ' + res.status}`)
+          return
+        }
+      } catch (err: any) {
+        doAction('Erro de conexão ao alterar a senha: ' + err.message)
+        return
+      }
+    }
+
     const updated = {
       ...currentUser,
       name: name.trim() || currentUser?.name,
@@ -49,9 +84,10 @@ export function SettingsView({
     if (typeof window !== 'undefined') {
       localStorage.setItem('cloudops_user', JSON.stringify(updated))
     }
+    const changedPassword = !!newPassword
     setCurrentPassword('')
     setNewPassword('')
-    doAction('Dados do perfil salvos com sucesso! 🛡️')
+    doAction(changedPassword ? 'Senha alterada e perfil salvo com sucesso! 🛡️' : 'Dados do perfil salvos com sucesso! 🛡️')
   }
 
   const handleSaveNotifications = () => {

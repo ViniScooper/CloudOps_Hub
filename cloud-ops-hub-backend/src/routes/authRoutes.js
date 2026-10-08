@@ -82,6 +82,37 @@ async function authRoutes(fastify, options) {
     return { success: true, user };
   });
 
+  // Troca de senha do próprio usuário autenticado (rate limit estrito: 5 req/min por IP)
+  fastify.post('/api/auth/change-password', {
+    config: { rateLimit: { max: 5, timeWindow: '1 minute' } }
+  }, async (request, reply) => {
+    const authHeader = request.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return reply.code(401).send({ success: false, error: 'Token não fornecido.' });
+    }
+    const tokenUser = authService.verifyToken(authHeader.split(' ')[1]);
+    if (!tokenUser) {
+      return reply.code(401).send({ success: false, error: 'Token inválido ou expirado.' });
+    }
+
+    const { currentPassword, newPassword } = request.body || {};
+    const res = await authService.changePassword(tokenUser.email, currentPassword, newPassword);
+
+    auditService.logEvent({
+      user: tokenUser.email,
+      action: 'AUTH_CHANGE_PASSWORD',
+      target: 'cloudops-hub',
+      ip: extractClientIp(request),
+      status: res.success ? 'SUCCESS' : 'FAILED',
+      details: res.success ? 'Senha alterada com sucesso' : (res.error || 'Falha ao alterar senha')
+    });
+
+    if (!res.success) {
+      return reply.code(res.status || 400).send({ success: false, error: res.error });
+    }
+    return { success: true, message: 'Senha alterada com sucesso.' };
+  });
+
   // Gerenciamento Administrativo de Solicitações de Acesso
   fastify.get('/api/admin/requests', async (request, reply) => {
     const list = await userManagementService.getPendingRequests();
