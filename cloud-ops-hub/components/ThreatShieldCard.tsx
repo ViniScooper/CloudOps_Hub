@@ -418,135 +418,148 @@ export function ThreatShieldCard({ server, doAction, onNavigateToLogs }: ThreatS
         borderRadius: '12px',
         overflow: 'hidden'
       }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '130px 140px 1fr 110px 120px 85px',
-          padding: '10px 16px',
-          background: '#0d161a',
-          fontSize: '11px',
-          fontWeight: 700,
-          color: '#68868a',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-          borderBottom: '1px solid #162428'
-        }}>
-          <span>IP Atacante</span>
-          <span>País / Scanner</span>
-          <span>Alvo Tentado (Caminho Completo)</span>
-          <span>Resposta</span>
-          <span>Data / Horário</span>
-          <span style={{ textAlign: 'right' }}>Ação</span>
-        </div>
-
-        <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
-          {threats.length === 0 ? (
-            <div style={{ padding: '30px', textAlign: 'center', color: '#88a6aa', fontSize: '12px' }}>
-              <ShieldCheck size={28} style={{ color: '#10b981', margin: '0 auto 8px' }} />
-              Nenhuma ameaça detectada nos eventos recentes do Nginx nesta VM.
+        {/* Container com scroll horizontal em telas menores para garantir que nada esmague */}
+        <div style={{ overflowX: 'auto', width: '100%', WebkitOverflowScrolling: 'touch' }}>
+          <div style={{ minWidth: '760px' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '135px 145px 1fr 110px 125px 90px',
+              padding: '10px 16px',
+              background: '#0d161a',
+              fontSize: '11px',
+              fontWeight: 700,
+              color: '#68868a',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              borderBottom: '1px solid #162428',
+              gap: '10px',
+              alignItems: 'center'
+            }}>
+              <span>IP Atacante</span>
+              <span>País / Scanner</span>
+              <span>Alvo Tentado (Caminho Completo)</span>
+              <span>Resposta</span>
+              <span>Data / Horário</span>
+              <span style={{ textAlign: 'right' }}>Ação</span>
             </div>
-          ) : (
-            threats.map((t, idx) => {
-              const isBanned = t.banned || bannedIps.includes(t.ip)
-              const isCurrentlyBanning = banningIp === t.ip
 
-              return (
-                <div
-                  key={t.id || idx}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '130px 140px 1fr 110px 120px 85px',
-                    padding: '10px 16px',
-                    fontSize: '12px',
-                    alignItems: 'center',
-                    borderBottom: '1px solid #111c20',
-                    background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)',
-                    gap: '8px'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f87171', flexShrink: 0 }}></span>
-                    <strong style={{ color: '#f0fdfa', fontFamily: 'monospace' }}>{t.ip}</strong>
-                  </div>
+            <div style={{ maxHeight: '380px', overflowY: 'auto' }}>
+              {threats.length === 0 ? (
+                <div style={{ padding: '30px', textAlign: 'center', color: '#88a6aa', fontSize: '12px' }}>
+                  <ShieldCheck size={28} style={{ color: '#10b981', margin: '0 auto 8px' }} />
+                  Nenhuma ameaça detectada nos eventos recentes do Nginx nesta VM.
+                </div>
+              ) : (
+                threats.map((t, idx) => {
+                  const isBanned = t.banned || bannedIps.includes(t.ip)
+                  const isCurrentlyBanning = banningIp === t.ip
 
-                  <div style={{ color: '#8faab0', fontSize: '11.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    <span>{t.country}</span>
-                    <small style={{ display: 'block', fontSize: '10px', color: '#577378' }}>{t.org}</small>
-                  </div>
-
-                  <div style={{ minWidth: 0, paddingRight: '8px' }}>
-                    <code
-                      title={t.path}
+                  return (
+                    <div
+                      key={t.id || idx}
+                      className="ts-row"
                       style={{
-                        background: 'rgba(239, 68, 68, 0.12)',
-                        color: '#fca5a5',
-                        padding: '3px 8px',
-                        borderRadius: '4px',
-                        fontSize: '11px',
-                        border: '1px solid rgba(239, 68, 68, 0.25)',
-                        display: 'inline-block',
-                        maxWidth: '100%',
-                        wordBreak: 'break-all',
-                        whiteSpace: 'normal',
-                        lineHeight: '1.4'
+                        display: 'grid',
+                        gridTemplateColumns: '135px 145px 1fr 110px 125px 90px',
+                        padding: '10px 16px',
+                        fontSize: '12px',
+                        alignItems: 'center',
+                        borderBottom: '1px solid #111c20',
+                        background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)',
+                        gap: '10px'
                       }}
                     >
-                      {t.path}
-                    </code>
-                  </div>
+                      <div data-label="IP Atacante" style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f87171', flexShrink: 0 }}></span>
+                        <strong style={{ color: '#f0fdfa', fontFamily: 'monospace', fontSize: '11.5px', wordBreak: 'break-all' }}>{t.ip}</strong>
+                      </div>
 
-                  <div>
-                    <span style={{
-                      fontSize: '10px',
-                      fontWeight: 700,
-                      padding: '2px 8px',
-                      borderRadius: '8px',
-                      background: t.status === 404 ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                      color: t.status === 404 ? '#fbbf24' : '#f87171',
-                      border: `1px solid ${t.status === 404 ? 'rgba(245, 158, 11, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
-                    }}>
-                      {t.statusText}
-                    </span>
-                  </div>
+                      <div data-label="País / Scanner" className="ts-cell-country" style={{ color: '#8faab0', fontSize: '11px', minWidth: 0 }}>
+                        <span style={{ fontWeight: 600, display: 'block', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{t.country}</span>
+                        <small style={{ display: 'block', fontSize: '10px', color: '#577378', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{t.org}</small>
+                      </div>
 
-                  <div>
-                    <span style={{
-                      fontSize: '11px',
-                      fontFamily: 'monospace',
-                      color: '#94a3b8'
-                    }}>
-                      {t.time || 'Recente'}
-                    </span>
-                  </div>
+                      <div data-label="Alvo Tentado" className="ts-cell-path" style={{ minWidth: 0, paddingRight: '4px' }}>
+                        <code
+                          title={t.path}
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.12)',
+                            color: '#fca5a5',
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            border: '1px solid rgba(239, 68, 68, 0.25)',
+                            display: 'inline-block',
+                            maxWidth: '100%',
+                            wordBreak: 'break-all',
+                            whiteSpace: 'normal',
+                            lineHeight: '1.4'
+                          }}
+                        >
+                          {t.path}
+                        </code>
+                      </div>
 
-                  <div style={{ textAlign: 'right' }}>
-                    {isBanned ? (
-                      <span style={{ fontSize: '10.5px', color: '#ef4444', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <Ban size={12} /> Banido
-                      </span>
-                    ) : (
-                      <button
-                        onClick={() => handleBanIp(t.ip)}
-                        disabled={isCurrentlyBanning}
-                        style={{
-                          background: 'rgba(239, 68, 68, 0.15)',
-                          border: '1px solid rgba(239, 68, 68, 0.35)',
-                          color: '#f87171',
-                          borderRadius: '6px',
-                          padding: '3px 8px',
+                      <div data-label="Resposta">
+                        <span style={{
                           fontSize: '10px',
                           fontWeight: 700,
-                          cursor: isCurrentlyBanning ? 'not-allowed' : 'pointer'
-                        }}
-                        title={`Bloqueia o IP ${t.ip} no iptables do Linux`}
-                      >
-                        {isCurrentlyBanning ? '...' : '🚫 Banir'}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )
-            })
-          )}
+                          padding: '2px 8px',
+                          borderRadius: '8px',
+                          display: 'inline-block',
+                          whiteSpace: 'nowrap',
+                          background: t.status === 404 ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                          color: t.status === 404 ? '#fbbf24' : '#f87171',
+                          border: `1px solid ${t.status === 404 ? 'rgba(245, 158, 11, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
+                        }}>
+                          {t.statusText}
+                        </span>
+                      </div>
+
+                      <div data-label="Data / Horário">
+                        <span style={{
+                          fontSize: '11px',
+                          fontFamily: 'monospace',
+                          color: '#94a3b8',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {t.time || 'Recente'}
+                        </span>
+                      </div>
+
+                      <div className="ts-cell-action" style={{ textAlign: 'right' }}>
+                        {isBanned ? (
+                          <span style={{ fontSize: '10.5px', color: '#ef4444', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
+                            <Ban size={12} /> Banido
+                          </span>
+                        ) : (
+                          <button
+                            className="ts-ban"
+                            onClick={() => handleBanIp(t.ip)}
+                            disabled={isCurrentlyBanning}
+                            style={{
+                              background: 'rgba(239, 68, 68, 0.15)',
+                              border: '1px solid rgba(239, 68, 68, 0.35)',
+                              color: '#f87171',
+                              borderRadius: '6px',
+                              padding: '4px 9px',
+                              fontSize: '10px',
+                              fontWeight: 700,
+                              cursor: isCurrentlyBanning ? 'not-allowed' : 'pointer',
+                              whiteSpace: 'nowrap'
+                            }}
+                            title={`Bloqueia o IP ${t.ip} no iptables do Linux`}
+                          >
+                            {isCurrentlyBanning ? '...' : '🚫 Banir'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </section>
