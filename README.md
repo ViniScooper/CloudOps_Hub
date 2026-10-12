@@ -1,7 +1,7 @@
 # 🚀 CloudOps Hub — Self-Hosted Multi-Cloud DevOps Control Plane
 
 <p align="center">
-  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-BSL_1.1_%7C_Commercial_Protection-e11d48.svg?style=for-the-badge&logo=shield&logoColor=white" alt="License: BSL 1.1 / Commercial Protection" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-Proprietary_%7C_All_Rights_Reserved-e11d48.svg?style=for-the-badge&logo=shield&logoColor=white" alt="License: Proprietary / All Rights Reserved" /></a>
   <img src="https://img.shields.io/badge/Release-v2.0.0-10b981?style=for-the-badge&logo=github&logoColor=white" alt="Release: v2.0.0" />
   <img src="https://img.shields.io/badge/Next.js-16.3-black?style=for-the-badge&logo=next.js" alt="Next.js" />
   <img src="https://img.shields.io/badge/React-19.0-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />

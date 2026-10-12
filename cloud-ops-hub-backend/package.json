@@ -8,8 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "José Vinícius Lourenço Marques de Sousa",
+  "license": "SEE LICENSE IN ../LICENSE",
   "description": "",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1139.0",
