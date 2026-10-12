@@ -459,8 +459,12 @@ async function integrationsRoutes(fastify, options) {
     const keyFlag = process.platform === 'linux' ? '-i /home/ubuntu/.ssh/id_rsa' : `-i "C:\\Users\\vini\\Documents\\CHAVES_SSH_ORACLE_HOJE\\ssh-key-2026-02-20 (1).key"`;
 
     const flag = mode === 'ats' ? '--ats' : '--scan';
+    const safeLimit = Math.min(Math.max(parseInt(limit, 10) || 6, 1), 50); // Limita entre 1 e 50 estritamente numérico
+
     return new Promise((resolve) => {
-      const cmd = `ssh ${keyFlag} -o StrictHostKeyChecking=no -o ConnectTimeout=5 ubuntu@${microIp} "python3 /home/ubuntu/auto_apply_bot/bot_runner.py ${flag} --limit ${limit}"`;
+      const innerCmd = `python3 /home/ubuntu/auto_apply_bot/bot_runner.py ${flag} --limit ${safeLimit}`;
+      const escapedCmd = `'${innerCmd.replace(/'/g, "'\\''")}'`;
+      const cmd = `ssh ${keyFlag} -o StrictHostKeyChecking=no -o ConnectTimeout=5 ubuntu@${microIp} ${escapedCmd}`;
       exec(cmd, { timeout: 45000 }, (error, stdout, stderr) => {
         resolve({
           success: !error,

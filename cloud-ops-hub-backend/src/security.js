@@ -51,7 +51,21 @@ function extractClientIp(request) {
   return request.headers['x-real-ip'] || request.ip || (request.socket && request.socket.remoteAddress) || '127.0.0.1';
 }
 
+/**
+ * Valida estritamente se uma string é um endereço IPv4 legítimo ou localhost
+ * @param {string} ip
+ * @returns {boolean}
+ */
+function isValidHostAddress(ip) {
+  if (!ip || typeof ip !== 'string') return false;
+  const trimmed = ip.trim();
+  if (trimmed === 'localhost') return true;
+  const ipv4Regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  return ipv4Regex.test(trimmed);
+}
+
 module.exports = {
   sanitizeBashCommand,
-  extractClientIp
+  extractClientIp,
+  isValidHostAddress
 };

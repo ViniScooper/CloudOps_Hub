@@ -24,9 +24,8 @@ function loadDomains() {
 
 function saveDomains(domains) {
   try {
-    const dir = path.dirname(DOMAINS_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(DOMAINS_FILE, JSON.stringify(domains, null, 2), 'utf8');
+    const { writeJsonAtomic } = require('./storageHelper');
+    writeJsonAtomic(DOMAINS_FILE, domains);
   } catch (err) {
     console.error('Erro ao salvar cloudflare_domains.json:', err.message);
   }
