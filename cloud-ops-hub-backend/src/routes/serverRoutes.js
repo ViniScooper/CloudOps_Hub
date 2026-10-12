@@ -383,7 +383,7 @@ async function serverRoutes(fastify, options) {
     if (!user) {
       return reply.code(401).send({ success: false, error: 'Token inválido.' });
     }
-    const servers = await userServerService.getUserServers(user.id);
+    const servers = await userServerService.listUserServers(user.id);
     return { success: true, servers };
   });
 
@@ -403,7 +403,7 @@ async function serverRoutes(fastify, options) {
       return reply.code(400).send({ success: false, error: 'Nome, IP, Usuário e Chave Privada são obrigatórios.' });
     }
 
-    const res = await userServerService.addUserServer(user.id, { name, ip, port, username, privateKey, provider });
+    const res = await userServerService.addServer({ userId: user.id, name, ip, port, user: username, privateKey, provider });
     return res;
   });
 
@@ -417,7 +417,7 @@ async function serverRoutes(fastify, options) {
     if (!user) {
       return reply.code(401).send({ success: false, error: 'Token inválido.' });
     }
-    const res = await userServerService.deleteUserServer(request.params.id, user.id);
+    const res = await userServerService.deleteUserServer(user.id, request.params.id);
     return res;
   });
 

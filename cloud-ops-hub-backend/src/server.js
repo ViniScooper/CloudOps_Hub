@@ -7,6 +7,7 @@ const websocket = require('@fastify/websocket');
 // Serviços de Inicialização
 const cronService = require('./cronService');
 const watchdogService = require('./watchdogService');
+const { authGuard, securityHeaders } = require('./authGuard');
 
 // Módulos de Rotas
 const authRoutes = require('./routes/authRoutes');
@@ -45,6 +46,11 @@ async function buildServer() {
   await fastify.register(websocket, {
     options: { maxPayload: 1048576 } // 1MB payload
   });
+
+  // 3.1 Guarda global de autenticação/autorização (deny-by-default) e headers de segurança.
+  // Deve ser registrada ANTES das rotas para que o hook valha para todas elas.
+  fastify.addHook('onRequest', authGuard);
+  fastify.addHook('onSend', securityHeaders);
 
   // 4. Verificação de Saúde
   fastify.get('/api/health', async () => ({

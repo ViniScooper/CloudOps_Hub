@@ -193,6 +193,8 @@ export default function Page() {
   // Polling do status do Scraper
   useEffect(() => {
     const fetchScraperStatus = async () => {
+      // Rota protegida: só consulta quando há sessão ativa
+      if (!localStorage.getItem('cloudops_token') && !sessionStorage.getItem('cloudops_token')) return
       try {
         const res = await fetch(getApiUrl('/api/oracle/scraper/status'))
         if (res.ok) {
