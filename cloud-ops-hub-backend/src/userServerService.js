@@ -18,12 +18,11 @@ function loadServersJson() {
   return [];
 }
 
-// Salva servidores em JSON
+// Salva servidores em JSON atomicamente
 function saveServersJson(list) {
   try {
-    const dir = path.dirname(SERVERS_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(SERVERS_FILE, JSON.stringify(list, null, 2), 'utf8');
+    const { writeJsonAtomic } = require('./storageHelper');
+    writeJsonAtomic(SERVERS_FILE, list);
   } catch (err) {
     console.error('Erro ao salvar user_servers.json:', err.message);
   }

@@ -22,11 +22,20 @@ function runRemoteSsh(command, targetIp) {
     return Promise.reject(new Error(`[Security Check] Comando bloqueado: ${secCheck.error}`));
   }
 
-  const isRemote = targetIp && targetIp !== '127.0.0.1' && targetIp !== 'localhost' && targetIp !== '137.131.185.243';
+  // Validação estrita de IP para evitar command injection via targetIp
+  const { isValidHostAddress } = require('./security');
+  const safeTargetIp = (targetIp || '137.131.185.243').trim();
+  if (!isValidHostAddress(safeTargetIp)) {
+    return Promise.reject(new Error('[Security Check] Endereço de IP remoto inválido.'));
+  }
+
+  const isRemote = safeTargetIp !== '127.0.0.1' && safeTargetIp !== 'localhost' && safeTargetIp !== '137.131.185.243';
 
   if (process.platform === 'linux') {
+    // Escapa aspas simples e protege a string do comando completamente
+    const escapedCmd = `'${command.replace(/'/g, "'\\''")}'`;
     const finalCmd = isRemote
-      ? `ssh -i /home/ubuntu/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=5 ubuntu@${targetIp} "${command.replace(/"/g, '\\"')}"`
+      ? `ssh -i /home/ubuntu/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=5 ubuntu@${safeTargetIp} ${escapedCmd}`
       : command;
     return new Promise((resolve) => {
       exec(finalCmd, { maxBuffer: 1024 * 1024 * 10 }, (err, stdout, stderr) => {
@@ -168,9 +177,8 @@ function loadHistory() {
 
 function saveHistory(history) {
   try {
-    const dir = path.dirname(HISTORY_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(HISTORY_FILE, JSON.stringify(history.slice(0, 15), null, 2), 'utf8');
+    const { writeJsonAtomic } = require('./storageHelper');
+    writeJsonAtomic(HISTORY_FILE, history.slice(0, 15));
   } catch (err) {
     console.error('Erro ao salvar deploy_history.json:', err.message);
   }

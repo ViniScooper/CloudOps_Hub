@@ -48,11 +48,8 @@ function getJobs() {
 }
 
 function saveJobs(jobs) {
-  const dir = path.dirname(CRON_FILE);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  fs.writeFileSync(CRON_FILE, JSON.stringify(jobs, null, 2), 'utf8');
+  const { writeJsonAtomic } = require('./storageHelper');
+  writeJsonAtomic(CRON_FILE, jobs);
 }
 
 // Executa um job específico imediatamente
