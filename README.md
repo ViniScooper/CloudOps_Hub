@@ -26,6 +26,20 @@
 > Para garantir estabilidade, segurança e evitar conflitos em máquinas de baixa memória (1 GB RAM), o acesso e instalação assistida são liberados diretamente pelo autor:  
 > 📩 **Solicite seu acesso / Agende auxílio de instalação:** Envie um e-mail para **[vviniciuslourenco@gmail.com](mailto:vviniciuslourenco@gmail.com)** com o assunto `[CloudOps Hub] Solicitação de Acesso` ou mande mensagem direta no [GitHub](https://github.com/ViniScooper).
 
+<p align="center">
+  <img src="./docs/screenshots/01-dashboard-overview.png" alt="CloudOps Hub - Painel de Controle Principal e Threat Shield" width="100%" />
+</p>
+
+---
+
+## 📸 Interface & Capabilities Gallery
+
+| 🚀 CI/CD & Deploy 1-Click (GitFlow) | 🤖 Robôs & Cluster de Background 24/7 |
+|:---:|:---:|
+| <img src="./docs/screenshots/04-cicd-deploy.png" alt="CI/CD Deploy" width="100%" /> | <img src="./docs/screenshots/02-bots-cluster.png" alt="Worker Bots Cluster" width="100%" /> |
+| **🤖 Odisseu AI DevOps Copilot (RAG)** | **⚙️ Gerenciamento e Segurança** |
+| <img src="./docs/screenshots/05-odisseu-ai-copilot.png" alt="Odisseu AI" width="100%" /> | <img src="./docs/screenshots/06-settings-security.png" alt="Settings & Security" width="100%" /> |
+
 ---
 
 ## ⚡ Overview
@@ -205,15 +219,18 @@ npm run dev
 # Dashboard accessible on http://localhost:3000
 ```
 
----
+## 🛡️ Enterprise Security & Hardening Architecture
 
-## 🔒 Security & Privacy
+CloudOps Hub implements defensive engineering and strict zero-trust principles across all layers:
 
-* **No Hardcoded Credentials:** Private SSH keys, API tokens, and passwords are never tracked in Git.
-* **Encrypted Credential Vault:** All sensitive inputs are kept strictly in client-side memory or encrypted local storage via AES-256.
-* **Self-Hosted Privacy:** Telemetry and deployment audits are saved locally on your server. No analytical telemetry is transmitted to third parties.
-
----
+* **Deny-by-Default API Perimeter:** 100% of internal endpoints (93 routes) and WebSockets (`/ws/terminal`) require valid 256-bit HMAC-SHA256 JWT tokens. Only `/api/health`, `/api/auth/login`, and `/api/auth/request-access` are publicly reachable.
+* **Strict RBAC & Tenant Sandboxing:** Non-administrative accounts (`viewer`) are isolated in pristine workspaces and cryptographically barred from invoking operations against core master cluster nodes (`137.131.185.243`, `137.131.187.54`).
+* **Remote SSH Command Injection Mitigation:** Every remote target host is verified against strict IPv4 regex patterns (`isValidHostAddress`), and arguments pass through POSIX-compliant single-quote isolation (`'${cmd.replace(/'/g, "'\\''")}'`), eliminating arbitrary shell execution vectors.
+* **Atomic JSON Storage Engine:** Critical system states (`cron_jobs.json`, `cloudflare_domains.json`, `user_servers.json`, `deploy_history.json`) utilize atomic temp-file creation and OS-level renaming (`writeJsonAtomic`), preventing database corruption from process crashes or race conditions.
+* **Brute-Force & Rate Limiting Guard:** Critical authentication routes implement strict rate limiting via `@fastify/rate-limit` (5 requests/minute per IP) with bcrypt password hashing (cost factor 12).
+* **Defensive HTTP Headers:** Enforced `X-Frame-Options: DENY` (anti-clickjacking), `X-Content-Type-Options: nosniff` (anti-MIME-sniffing), and `Cache-Control: no-store` on all API responses.
+* **24/7 SRE Watchdog Self-Healing:** Automated background probes monitor container availability and RAM saturation (>90%), executing automated container restarts and dispatching instant WhatsApp telemetry alerts.
+* **28/28 Automated Test Suite:** Continuous automated validation covering unauthorized token rejections, role isolation, master VM protection, and security headers.
 
 ## 🇧🇷 Sobre o Projeto (Resumo em Português)
 
