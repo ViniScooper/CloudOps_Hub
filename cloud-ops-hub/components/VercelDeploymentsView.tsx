@@ -69,6 +69,15 @@ export const VERCEL_PROJECTS: VercelProjectConfig[] = [
     url: 'https://job-tracker-lac-five.vercel.app/',
     branch: 'main',
     framework: 'React 19 Vite SPA'
+  },
+  {
+    id: 'dataprev_redes',
+    name: 'DATAPREV Redes & Infraestrutura Hub',
+    repo: 'ViniScooper/dataprev-redes-hub',
+    domain: 'dataprev-redes-hub.vercel.app',
+    url: 'https://dataprev-redes-hub.vercel.app/',
+    branch: 'main',
+    framework: 'Vanilla JS / HTML5 / CSS3'
   }
 ]
 
