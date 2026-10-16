@@ -120,6 +120,11 @@ Available in English and Portuguese (PT-BR).
 * **Oracle ATP Integration:** Direct monitoring and 1-click launch of Oracle Autonomous Transaction Processing (Exadata 20GB NVMe, mTLS :1522) with SQL Developer Web Console.
 * **Cloudflare Zero Trust Anycast:** Tunnel bridge (`trycloudflare.com`) eliminating open inbound ports on the cloud firewall.
 
+### 🔐 11. Enterprise Secrets Vault & No-Plaintext Execution (OCI Vault)
+* **Zero Plaintext on Disk:** Elimination of raw `.env` files in filesystem storage. Credentials and API tokens are encrypted at rest with **AES-256-GCM** (authenticated tags) or synchronized directly with **OCI Vault (KMS)**.
+* **Direct In-Memory Stream Injection:** Microservices, workers, and Docker containers receive decrypted configuration variables directly in process memory at boot time without intermediate plaintext files.
+* **Console Masking & Protection:** The web console automatically applies security masks (`••••••••`) to tokens, API keys, and database passwords, preventing shoulder-surfing and accidental video leaks.
+
 ---
 
 ## 🏛️ System Architecture
@@ -168,13 +173,14 @@ flowchart TD
 │   │   ├── VercelDeploymentsView.tsx # Edge frontend status & deployments
 │   │   ├── RenderDeploymentsView.tsx # Backend services & anti-sleep crons
 │   │   ├── StorageExplorerView.tsx   # Oracle Object Storage & MySQL Gzip Backups
-│   │   ├── EnvManagerView.tsx        # Secure environment variables manager
+│   │   ├── EnvManagerView.tsx        # Enterprise Secrets Vault (OCI Vault / AES-256-GCM)
 │   │   └── HelpView.tsx              # Documentation & quick onboarding
 │   └── lib/                   # API clients, auth helpers, and encryption utilities
 │
 ├── cloud-ops-hub-backend/     # Automation & Telemetry Engine (Fastify + SSH)
 │   ├── src/
 │   │   ├── server.js                 # API Gateway, routes & middleware
+│   │   ├── secretProvider.js         # Unified secret manager (OCI Vault + AES-256-GCM fallback)
 │   │   ├── dockerService.js          # Lifecycle control (start, stop, restart, live logs)
 │   │   ├── watchdogService.js        # 24/7 RAM and container health monitoring
 │   │   ├── backupService.js          # Automated MySQL dumps & 7-day gzip rotation
@@ -224,7 +230,8 @@ npm run dev
 CloudOps Hub implements defensive engineering and strict zero-trust principles across all layers:
 
 * **Deny-by-Default API Perimeter:** 100% of internal endpoints (93 routes) and WebSockets (`/ws/terminal`) require valid 256-bit HMAC-SHA256 JWT tokens. Only `/api/health`, `/api/auth/login`, and `/api/auth/request-access` are publicly reachable.
-* **Strict RBAC & Tenant Sandboxing:** Non-administrative accounts (`viewer`) are isolated in pristine workspaces and cryptographically barred from invoking operations against core master cluster nodes (`137.131.185.243`, `137.131.187.54`).
+* **Strict RBAC & Tenant Sandboxing:** Non-administrative accounts (`viewer`) are isolated in pristine workspaces and cryptographically barred from invoking operations against core master cluster infrastructure.
+* **Zero-Plaintext Secret Architecture (OCI Vault & AES-256-GCM):** Production environments do not store plaintext `.env` files on disk. Secrets are maintained in Oracle Cloud Infrastructure (OCI) Vault or local envelope encryption using AES-256-GCM, streaming configuration directly to container runtimes in-memory.
 * **Remote SSH Command Injection Mitigation:** Every remote target host is verified against strict IPv4 regex patterns (`isValidHostAddress`), and arguments pass through POSIX-compliant single-quote isolation (`'${cmd.replace(/'/g, "'\\''")}'`), eliminating arbitrary shell execution vectors.
 * **Atomic JSON Storage Engine:** Critical system states (`cron_jobs.json`, `cloudflare_domains.json`, `user_servers.json`, `deploy_history.json`) utilize atomic temp-file creation and OS-level renaming (`writeJsonAtomic`), preventing database corruption from process crashes or race conditions.
 * **Brute-Force & Rate Limiting Guard:** Critical authentication routes implement strict rate limiting via `@fastify/rate-limit` (5 requests/minute per IP) with bcrypt password hashing (cost factor 12).
@@ -240,10 +247,11 @@ Desenvolvido para oferecer a desenvolvedores solo, startups e equipes ágeis o m
 
 ### Principais Diferenciais:
 1. **Deploy Contínuo 1-Clique com Rollback:** Merge de PRs e deploys atômicos via SSH sem derrubar conexões ativas.
-2. **Migração Multi-Cloud:** Detecta serviços em execução na VM e gera scripts Terraform para migrar entre provedores em 1 clique.
-3. **Copiloto Odisseu AI:** Assistente de DevOps autônomo com LangChain RAG integrado à telemetria real do seu servidor.
-4. **Otimização Ativa de Memória:** Botão para liberar cache inativo do kernel Linux (`drop_caches`) instantaneamente.
-5. **Monitoramento Integrado:** Suporte a Vercel Frontend, Render Backend (com cron anti-sleep) e Oracle Object Storage.
+2. **Cofre de Segredos & No-Plaintext Execution:** Variáveis sensíveis e credenciais gerenciadas via OCI Vault e criptografia AES-256-GCM, injetadas diretamente na memória dos containers sem gravar arquivos `.env` abertos em disco.
+3. **Migração Multi-Cloud:** Detecta serviços em execução na VM e gera scripts Terraform para migrar entre provedores em 1 clique.
+4. **Copiloto Odisseu AI:** Assistente de DevOps autônomo com LangChain RAG integrado à telemetria real do seu servidor.
+5. **Otimização Ativa de Memória:** Botão para liberar cache inativo do kernel Linux (`drop_caches`) instantaneamente.
+6. **Monitoramento Integrado:** Suporte a Vercel Frontend, Render Backend (com cron anti-sleep), Live Docker Logs e Oracle Object Storage.
 
 ---
 
