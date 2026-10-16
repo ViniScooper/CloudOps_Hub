@@ -117,10 +117,22 @@ export function HelpView({ onNavigate }: HelpViewProps) {
       desc: 'Nó trabalhador dedicado a rodar scrapers e bots 24/7. Qualquer pessoa pode criar um script no PC, enviar via git push para o GitHub, puxar na VM e gerenciar com botão de pausar/continuar.',
       actionLabel: 'Ver Robôs da VM',
       targetTab: 'Robôs & Bots da VM'
+    },
+    {
+      num: '13',
+      title: 'Cofre de Segredos & OCI Vault',
+      icon: Lock,
+      desc: 'Segurança corporativa sem arquivos .env em texto puro no disco. Suas credenciais são encriptadas em repouso com AES-256-GCM ou OCI Vault e injetadas diretamente na memória RAM dos containers.',
+      actionLabel: 'Abrir Cofre',
+      targetTab: 'Cofre & Variáveis'
     }
   ]
 
   const faqs = [
+    {
+      q: 'Como funciona a segurança do Cofre & Variáveis (OCI Vault)? Onde ficam salvas minhas senhas e chaves?',
+      a: 'O CloudOps Hub adota o padrão corporativo No-Plaintext: suas variáveis e senhas não ficam expostas em arquivos de texto no disco da VM. Elas são criptografadas com AES-256-GCM ou sincronizadas com o OCI Vault da Oracle Cloud. No momento em que os containers e microserviços iniciam, as variáveis são descriptografadas e injetadas diretamente na memória RAM do processo via streams seguros. Se alguém invadir a VM ou clonar o disco rígido, encontrará apenas arquivos cifrados indecifráveis sem a chave criptográfica.'
+    },
     {
       q: 'Como qualquer pessoa pode criar um robô (script) e colocar para rodar 24/7 na VM? O fluxo é do Git para a VM?',
       a: 'Sim, exatamente! Esse é o padrão mundial da engenharia de Cloud e DevOps: 1) O desenvolvedor cria o script localmente no PC (Python, Node.js, Go ou Bash) para executar a tarefa desejada; 2) Envia o código para o GitHub com "git push"; 3) A VM na Oracle baixa o código com "git pull" (você pode fazer isso pela aba Deploy do CloudOps Hub ou via terminal); 4) A VM executa o robô em segundo plano usando Systemd (se for um serviço 24/7 contínuo) ou Crontab (se for agendado a cada X horas); 5) O CloudOps Hub gerencia o robô: exibe o stream de eventos em tempo real, métricas de memória/CPU e botões para Pausar e Continuar a execução em 1 clique.'
