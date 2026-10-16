@@ -38,7 +38,17 @@ function runRemoteSsh(command, targetIp) {
       ? `ssh -i /home/ubuntu/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=5 ubuntu@${safeTargetIp} ${escapedCmd}`
       : command;
     return new Promise((resolve) => {
-      exec(finalCmd, { maxBuffer: 1024 * 1024 * 10 }, (err, stdout, stderr) => {
+      const systemPath = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin';
+      const currentPath = process.env.PATH || '';
+      const finalPath = currentPath.includes('/usr/bin') ? currentPath : `${currentPath}:${systemPath}`;
+
+      exec(finalCmd, {
+        maxBuffer: 1024 * 1024 * 10,
+        env: {
+          ...process.env,
+          PATH: finalPath
+        }
+      }, (err, stdout, stderr) => {
         resolve({
           stdout: stdout ? stdout.trim() : '',
           stderr: stderr ? stderr.trim() : '',

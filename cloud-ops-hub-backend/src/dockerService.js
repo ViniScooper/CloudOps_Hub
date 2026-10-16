@@ -1,4 +1,7 @@
+const fs = require('fs');
 const { runRemoteSsh } = require('./deployService');
+
+const DOCKER_BIN = fs.existsSync('/usr/bin/docker') ? '/usr/bin/docker' : 'docker';
 
 // Valida nome de container seguro (apenas letras, números, traços e underscores)
 function sanitizeContainerName(name) {
@@ -22,7 +25,7 @@ async function executeContainerAction({ container, action, ip, user }) {
     throw new Error(`Ação não suportada. Ações permitidas: ${allowedActions.join(', ')}`);
   }
 
-  const cmd = `docker ${action} ${safeName} && docker inspect -f '{{.State.Status}}' ${safeName}`;
+  const cmd = `${DOCKER_BIN} ${action} ${safeName} && ${DOCKER_BIN} inspect -f '{{.State.Status}}' ${safeName}`;
   const res = await runRemoteSsh(cmd, ip);
 
   if (res.code !== 0 && !res.stdout) {
@@ -48,7 +51,7 @@ async function getContainerLogs({ container, tail = 100, ip, user }) {
   }
 
   const safeTail = Math.min(Math.max(parseInt(tail, 10) || 100, 10), 1000);
-  const cmd = `docker logs --tail ${safeTail} --timestamps ${safeName}`;
+  const cmd = `${DOCKER_BIN} logs --tail ${safeTail} --timestamps ${safeName}`;
   const res = await runRemoteSsh(cmd, ip);
 
   // docker logs costuma cuspir logs tanto no stdout quanto no stderr
@@ -64,7 +67,7 @@ async function getContainerLogs({ container, tail = 100, ip, user }) {
 
 // Lista detalhada de todos os containers (ativos e inativos)
 async function listContainersDetailed(ip) {
-  const cmd = `docker ps -a --format '{"id":"{{.ID}}","name":"{{.Names}}","image":"{{.Image}}","status":"{{.Status}}","state":"{{.State}}","ports":"{{.Ports}}","created":"{{.CreatedAt}}"}'`;
+  const cmd = `${DOCKER_BIN} ps -a --format '{"id":"{{.ID}}","name":"{{.Names}}","image":"{{.Image}}","status":"{{.Status}}","state":"{{.State}}","ports":"{{.Ports}}","created":"{{.CreatedAt}}"}'`;
   const res = await runRemoteSsh(cmd, ip);
 
   if (!res.stdout) return [];

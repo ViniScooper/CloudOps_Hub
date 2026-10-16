@@ -54,7 +54,7 @@ const navSections = [
       { label: 'Tunnels', icon: Shield, badge: 'Zero Trust' },
       { label: 'Storage', icon: HardDrive },
       { label: 'Terminal', icon: TerminalSquare },
-      { label: 'Variáveis (.env)', icon: KeyRound },
+      { label: 'Cofre & Variáveis', icon: KeyRound, badge: 'Vault' },
     ]
   },
   {
@@ -1232,7 +1232,7 @@ export default function Page() {
             <MigrationWorkspaceView key={`migration-${server?.id || server?.ip || 'none'}`} server={server} doAction={doAction} />
           )}
 
-          {active === 'Variáveis (.env)' && (
+          {(active === 'Cofre & Variáveis' || active === 'Variáveis (.env)') && (
             <EnvManagerView key={`env-${server?.id || server?.ip || 'none'}`} server={server} currentUser={currentUser} doAction={doAction} />
           )}
 
