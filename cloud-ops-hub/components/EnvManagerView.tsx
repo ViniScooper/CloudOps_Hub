@@ -26,9 +26,9 @@ const PROD_PROJECTS: ProjectConfig[] = [
     id: 'cloudops_hub',
     name: 'CloudOps Hub (Console DevOps & API)',
     containerName: 'cloudops-backend',
-    path: '/home/ubuntu/cloudops_hub/cloud-ops-hub-backend/.env',
+    path: 'Cofre OCI Vault: cloudops_hub (In-Memory)',
     port: '3005',
-    tag: 'SISTEMA PRINCIPAL',
+    tag: 'OCI VAULT • SISTEMA PRINCIPAL',
     defaultEnvs: [
       { key: 'PORT', value: '3005', isSecret: false, description: 'Porta HTTP do servidor Fastify' },
       { key: 'FASTIFY_ADDRESS', value: '0.0.0.0', isSecret: false, description: 'Interface de escuta na VM' },
@@ -45,9 +45,9 @@ const PROD_PROJECTS: ProjectConfig[] = [
     id: 'controle_financeiro',
     name: 'FinControl (Gestão Financeira & Dívidas)',
     containerName: 'financeiro_backend',
-    path: '/home/ubuntu/controle-financeiro/backend/.env',
+    path: 'Cofre OCI Vault: fincontrol (In-Memory)',
     port: '3006',
-    tag: 'DOCKER CONTAINER',
+    tag: 'OCI VAULT • DOCKER INJECTION',
     defaultEnvs: [
       { key: 'PORT', value: '3006', isSecret: false, description: 'Porta HTTP do container financeiro_backend' },
       { key: 'NODE_ENV', value: 'production', isSecret: false, description: 'Ambiente de execução do container' },
@@ -62,9 +62,9 @@ const PROD_PROJECTS: ProjectConfig[] = [
     id: 'cardapio_digital',
     name: 'Boteco Sivirino (Cardápio Digital)',
     containerName: 'boteco_backend',
-    path: '/home/ubuntu/cardapio_digital/.env',
+    path: 'Cofre OCI Vault: boteco_backend (In-Memory)',
     port: '3002',
-    tag: 'DOCKER CONTAINER',
+    tag: 'OCI VAULT • DOCKER INJECTION',
     defaultEnvs: [
       { key: 'PORT', value: '3002', isSecret: false, description: 'Porta do container boteco_backend' },
       { key: 'NODE_ENV', value: 'production', isSecret: false, description: 'Ambiente de execução' },
@@ -82,9 +82,9 @@ const WORKER_PROJECTS: ProjectConfig[] = [
     id: 'auto_apply_bot',
     name: 'Auto Apply Bot (Candidaturas Automáticas 24/7)',
     containerName: 'auto-apply-bot',
-    path: '/home/ubuntu/auto_apply_bot/.env',
+    path: 'Cofre OCI Vault: auto_apply_bot (In-Memory)',
     port: '3000',
-    tag: 'WORKER BOT',
+    tag: 'OCI VAULT • WORKER BOT 24/7',
     defaultEnvs: [
       { key: 'CANDIDATE_NAME', value: 'José Vinicius Lourenço', isSecret: false, description: 'Nome do candidato nos formulários ATS' },
       { key: 'CANDIDATE_EMAIL', value: 'vviniciuslourenco@gmail.com', isSecret: false, description: 'E-mail para contato e recrutadores' },
@@ -286,18 +286,18 @@ export function EnvManagerView({ server, currentUser, doAction, onConnect }: Env
         <div>
           <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <KeyRound size={20} style={{ color: '#20d6c7' }} />
-            Gerenciador Visual de Variáveis de Ambiente (.env)
+            Cofre de Segredos & Variáveis de Ambiente (OCI Vault)
           </h2>
           <p>
-            Edite credenciais, portas e chaves por aplicação com injeção segura e reinicialização direcionada.
+            Edite credenciais, portas e chaves por aplicação com criptografia em repouso (OCI Vault / AES-256-GCM) e injeção direta em memória RAM nos containers.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button className="refresh-button" onClick={() => fetchEnv(selectedProjectId)} disabled={isLoading}>
-            <RotateCcw size={13} className={isLoading ? 'spinning' : ''} /> Recarregar .env
+            <RotateCcw size={13} className={isLoading ? 'spinning' : ''} /> Recarregar Cofre
           </button>
           <button className="primary-button" onClick={saveVariables} disabled={isSaving} style={{ fontWeight: 600 }}>
-            <Save size={14} /> {isSaving ? 'Aplicando...' : `Salvar & Reiniciar (${currentProject.containerName})`}
+            <Save size={14} /> {isSaving ? 'Gravando no Cofre...' : `Salvar no Cofre & Injetar (${currentProject.containerName})`}
           </button>
         </div>
       </div>
@@ -337,15 +337,26 @@ export function EnvManagerView({ server, currentUser, doAction, onConnect }: Env
               }}>
                 Porta {proj.port}
               </span>
+              <span style={{
+                fontSize: '8.5px',
+                fontWeight: 800,
+                padding: '1px 5px',
+                borderRadius: '4px',
+                background: 'rgba(32, 214, 199, 0.1)',
+                color: '#20d6c7',
+                border: '1px solid rgba(32, 214, 199, 0.25)'
+              }}>
+                🔒 NO COFRE
+              </span>
             </button>
           )
         })}
       </div>
 
-      {/* Banner Informativo da Aplicação Selecionada */}
+      {/* Banner Informativo da Aplicação Selecionada com Selo OCI Vault */}
       <div style={{
-        background: '#070c0e',
-        border: '1px solid #142023',
+        background: 'linear-gradient(90deg, #070c0e, #0c1518)',
+        border: '1px solid rgba(32, 214, 199, 0.25)',
         borderRadius: '8px',
         padding: '10px 14px',
         marginBottom: '16px',
@@ -357,28 +368,39 @@ export function EnvManagerView({ server, currentUser, doAction, onConnect }: Env
         fontSize: '11px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Server size={14} style={{ color: '#20d6c7' }} />
+          <ShieldCheck size={15} style={{ color: '#20d6c7' }} />
           <span style={{ color: '#d9e2e1' }}>
-            Arquivo Alvo na VM: <code style={{ color: '#38bdf8', fontFamily: 'monospace' }}>{currentProject.path}</code>
+            Armazenamento Seguro: <strong style={{ color: '#38bdf8' }}>OCI Vault / In-Memory (Zero Plaintext)</strong>
+          </span>
+          <span style={{
+            fontSize: '9px',
+            fontWeight: 800,
+            padding: '2px 6px',
+            borderRadius: '4px',
+            background: 'rgba(32, 214, 199, 0.15)',
+            color: '#20d6c7',
+            border: '1px solid rgba(32, 214, 199, 0.3)'
+          }}>
+            AES-256-GCM
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ color: '#8ca6a5' }}>Container / Processo:</span>
+          <span style={{ color: '#8ca6a5' }}>Destino na VM:</span>
           <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', padding: '2px 7px', borderRadius: '4px', fontWeight: 700, fontSize: '10px' }}>
-            {currentProject.containerName}
+            Injeção Direta em RAM ({currentProject.containerName})
           </span>
         </div>
       </div>
 
-      {/* Tabela de Variáveis */}
+      {/* Tabela de Segredos em Memória */}
       <section className="panel" style={{ marginBottom: '20px' }}>
         <div className="panel-header">
           <div>
-            <h3>Variáveis Ativas (.env) — {currentProject.name}</h3>
-            <p>Mapeadas e injetadas no serviço {currentProject.containerName} (Porta {currentProject.port})</p>
+            <h3>Segredos Ativos (Em Memória) — {currentProject.name}</h3>
+            <p>Injetados diretamente em RAM no container {currentProject.containerName} (Porta {currentProject.port}) via OCI Vault</p>
           </div>
           <span style={{ fontSize: '11px', color: '#34d399', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <ShieldCheck size={14} /> Criptografia em Trânsito
+            <ShieldCheck size={14} /> Criptografia OCI Vault / AES-256-GCM
           </span>
         </div>
 
