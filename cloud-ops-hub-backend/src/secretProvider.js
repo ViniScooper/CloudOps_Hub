@@ -211,7 +211,7 @@ async function getSecrets(project) {
 }
 
 /**
- * Salva segredos criptografados (Nunca salva em plaintext!)
+ * Salva segredos criptografados em repouso com AES-256-GCM (Nunca salva em plaintext!)
  */
 async function saveSecrets(project, secretsObj) {
   _memoryCache[project] = secretsObj;
@@ -223,23 +223,34 @@ async function saveSecrets(project, secretsObj) {
   
   fs.writeFileSync(encFile, JSON.stringify(encResult, null, 2), 'utf8');
 
-  // Se existir arquivo legado .env em texto puro deste projeto, apaga com segurança
-  const legacyEnvPath = path.join(__dirname, '..', '.env');
-  if (project === 'cloudops_hub' && fs.existsSync(legacyEnvPath)) {
-    try {
-      // Sobrescreve com zeros antes de apagar (secure wipe)
-      const len = fs.statSync(legacyEnvPath).size;
-      fs.writeFileSync(legacyEnvPath, '0'.repeat(len));
-      fs.unlinkSync(legacyEnvPath);
-      console.log('[SecretProvider] Arquivo legado .env em texto puro foi destruído com segurança.');
-    } catch (_) {}
-  }
-
   return {
     success: true,
     storage: isOciAvailable() && process.env.OCI_VAULT_ENABLED === 'true' ? 'OCI_VAULT_SYNCED' : 'AES_256_GCM_ENCRYPTED',
     timestamp: new Date().toISOString()
   };
+}
+
+/**
+ * Busca um segredo operacional prioritariamente de variáveis de ambiente ou do cofre AES-256-GCM local
+ */
+function getCoreSecretSync(key, defaultFallback = '') {
+  if (process.env[key] && String(process.env[key]).trim() !== '') {
+    return String(process.env[key]).trim();
+  }
+  if (_memoryCache.cloudops_hub && _memoryCache.cloudops_hub[key]) {
+    return _memoryCache.cloudops_hub[key];
+  }
+  const encFile = path.join(SECRETS_DIR, 'cloudops_hub.enc');
+  if (fs.existsSync(encFile)) {
+    try {
+      const rawEnc = JSON.parse(fs.readFileSync(encFile, 'utf8'));
+      const decryptedStr = decrypt(rawEnc.encrypted, rawEnc.iv, rawEnc.tag);
+      const parsed = JSON.parse(decryptedStr);
+      _memoryCache.cloudops_hub = parsed;
+      if (parsed && parsed[key]) return parsed[key];
+    } catch (_) {}
+  }
+  return defaultFallback;
 }
 
 /**
@@ -273,6 +284,7 @@ function getProviderStatus() {
 module.exports = {
   getSecrets,
   saveSecrets,
+  getCoreSecretSync,
   getDockerEnvFlags,
   getProviderStatus,
   fetchSecretFromOciVault

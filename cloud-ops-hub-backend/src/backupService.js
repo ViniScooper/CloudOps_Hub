@@ -1,7 +1,8 @@
 const { runRemoteSsh } = require('./deployService');
+const { getCoreSecretSync } = require('./secretProvider');
 
 function getMysqlPassword() {
-  return process.env.MYSQL_ROOT_PASSWORD || process.env.DB_ROOT_PASS || '***REDACTED_PASSWORD***';
+  return getCoreSecretSync('MYSQL_ROOT_PASSWORD', process.env.DB_PASS || '');
 }
 
 // Executa backup do banco MySQL (container boteco_db) com estratégia 3-2-1 (Local + OCI Bucket)

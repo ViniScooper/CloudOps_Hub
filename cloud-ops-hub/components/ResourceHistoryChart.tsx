@@ -30,14 +30,15 @@ interface ResourceHistoryChartProps {
 export function ResourceHistoryChart({ doAction }: ResourceHistoryChartProps) {
   const [history, setHistory] = useState<MetricPoint[]>([])
   const [loading, setLoading] = useState(false)
-  const [selectedMetric, setSelectedMetric] = useState<'ram' | 'cpu' | 'disk'>('ram')
+  const [selectedMetric, setSelectedMetric] = useState<'ram' | 'cpu' | 'disk' | 'all'>('ram')
+  const [timeWindow, setTimeWindow] = useState<12 | 36 | 72>(36)
   const [hoverIndex, setHoverIndex] = useState<number | null>(null)
   const [sourceInfo, setSourceInfo] = useState<{ source?: string; total?: number }>({})
 
-  const fetchHistory = async () => {
+  const fetchHistory = async (limitVal = timeWindow) => {
     try {
       setLoading(true)
-      const res = await fetch(getApiUrl('/api/metrics/history?limit=36'))
+      const res = await fetch(getApiUrl(`/api/metrics/history?limit=${limitVal}`))
       if (!res.ok) throw new Error('Falha ao buscar histórico')
       const data = await res.json()
       if (data.history && Array.isArray(data.history)) {
@@ -71,13 +72,13 @@ export function ResourceHistoryChart({ doAction }: ResourceHistoryChartProps) {
   }
 
   useEffect(() => {
-    fetchHistory()
-  }, [])
+    fetchHistory(timeWindow)
+  }, [timeWindow])
 
   // Extrair valores suportando tanto camelCase quanto snake_case da API
   const getValue = (p: MetricPoint): number => {
     if (selectedMetric === 'cpu') return Number(p.cpu_percent ?? p.cpuPercent ?? 0)
-    if (selectedMetric === 'ram') return Number(p.ram_percent ?? p.ramPercent ?? 0)
+    if (selectedMetric === 'ram' || selectedMetric === 'all') return Number(p.ram_percent ?? p.ramPercent ?? 0)
     if (selectedMetric === 'disk') return Number(p.disk_percent ?? p.diskPercent ?? 0)
     return 0
   }
@@ -109,25 +110,38 @@ export function ResourceHistoryChart({ doAction }: ResourceHistoryChartProps) {
     return { x, y, val, time: pt.timestamp || pt.recordedAt || '', point: pt }
   })
 
-  // Gerar caminho SVG com linha e área preenchida
+  // Gerar caminho SVG com linha e área preenchida (+ linhas secundárias no modo Combinado 'all')
   let linePath = ''
   let areaPath = ''
+  let cpuLinePath = ''
+  let diskLinePath = ''
 
   if (points.length > 0) {
     linePath = `M ${points[0].x} ${points[0].y}`
     for (let i = 1; i < points.length; i++) {
-      // Linha reta suave
       linePath += ` L ${points[i].x} ${points[i].y}`
     }
     const lastX = points[points.length - 1].x
     const firstX = points[0].x
     const bottomY = paddingY + usableHeight
     areaPath = `${linePath} L ${lastX} ${bottomY} L ${firstX} ${bottomY} Z`
+
+    if (selectedMetric === 'all') {
+      history.forEach((pt, idx) => {
+        const x = history.length <= 1 ? width / 2 : paddingX + (idx / (history.length - 1)) * usableWidth
+        const cpuVal = Math.min(Math.max(Number(pt.cpu_percent ?? pt.cpuPercent ?? 0), 0), 100)
+        const diskVal = Math.min(Math.max(Number(pt.disk_percent ?? pt.diskPercent ?? 0), 0), 100)
+        const yCpu = paddingY + usableHeight - (cpuVal / 100) * usableHeight
+        const yDisk = paddingY + usableHeight - (diskVal / 100) * usableHeight
+        cpuLinePath += idx === 0 ? `M ${x} ${yCpu}` : ` L ${x} ${yCpu}`
+        diskLinePath += idx === 0 ? `M ${x} ${yDisk}` : ` L ${x} ${yDisk}`
+      })
+    }
   }
 
   const metricColor = selectedMetric === 'cpu' 
     ? '#38bdf8' 
-    : selectedMetric === 'ram' 
+    : selectedMetric === 'ram' || selectedMetric === 'all'
       ? '#20d6c7' 
       : '#f59e0b'
 
@@ -135,7 +149,9 @@ export function ResourceHistoryChart({ doAction }: ResourceHistoryChartProps) {
     ? 'CPU' 
     : selectedMetric === 'ram' 
       ? 'Memória RAM' 
-      : 'Disco (/)'
+      : selectedMetric === 'all'
+        ? 'Combinado (RAM + CPU + Disco)'
+        : 'Disco (/)'
 
   const hoveredPoint = hoverIndex !== null && points[hoverIndex] ? points[hoverIndex] : null
 
@@ -225,6 +241,51 @@ export function ResourceHistoryChart({ doAction }: ResourceHistoryChartProps) {
             >
               <HardDrive size={11} /> Disco
             </button>
+            <button
+              onClick={() => setSelectedMetric('all')}
+              style={{
+                background: selectedMetric === 'all' ? 'rgba(168, 85, 247, 0.2)' : 'transparent',
+                color: selectedMetric === 'all' ? '#c084fc' : '#9ca3af',
+                border: selectedMetric === 'all' ? '1px solid rgba(168, 85, 247, 0.4)' : 'none',
+                padding: '3px 8px',
+                borderRadius: '5px',
+                fontSize: '10.5px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px'
+              }}
+              title="Exibir CPU, RAM e Disco combinados no mesmo gráfico (Estilo Grafana)"
+            >
+              <TrendingUp size={11} /> Todos
+            </button>
+          </div>
+
+          {/* Seletor de Janela de Tempo (2h / 6h / 12h) */}
+          <div style={{ background: 'rgba(255, 255, 255, 0.04)', padding: '2px', borderRadius: '6px', display: 'flex', gap: '2px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+            {([
+              { limit: 12, label: '2h' },
+              { limit: 36, label: '6h' },
+              { limit: 72, label: '12h' }
+            ] as const).map(w => (
+              <button
+                key={w.limit}
+                onClick={() => setTimeWindow(w.limit)}
+                style={{
+                  background: timeWindow === w.limit ? 'rgba(32, 214, 199, 0.16)' : 'transparent',
+                  color: timeWindow === w.limit ? '#20d6c7' : '#829396',
+                  border: 'none',
+                  padding: '3px 7px',
+                  borderRadius: '4px',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                {w.label}
+              </button>
+            ))}
           </div>
 
           <button
@@ -375,6 +436,29 @@ export function ResourceHistoryChart({ doAction }: ResourceHistoryChartProps) {
                   fill="none"
                   stroke={metricColor}
                   strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
+
+              {/* Linhas Secundárias quando modo Combinado ('all') está ativo */}
+              {selectedMetric === 'all' && cpuLinePath && (
+                <path
+                  d={cpuLinePath}
+                  fill="none"
+                  stroke="#38bdf8"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
+              {selectedMetric === 'all' && diskLinePath && (
+                <path
+                  d={diskLinePath}
+                  fill="none"
+                  stroke="#f59e0b"
+                  strokeWidth="1.8"
+                  strokeDasharray="5 3"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />

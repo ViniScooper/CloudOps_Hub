@@ -64,8 +64,25 @@ function isValidHostAddress(ip) {
   return ipv4Regex.test(trimmed);
 }
 
+/**
+ * Mascara automaticamente senhas, tokens, API keys e chaves privadas em logs e textos
+ * @param {string} text
+ * @returns {string}
+ */
+function maskSensitiveData(text) {
+  if (!text || typeof text !== 'string') return text;
+  return text
+    .replace(/(MYSQL_PWD=["']?)([^"'\s]+)(["']?)/gi, '$1[REDACTED_DB_PASS]$3')
+    .replace(/(-p)([^\s"']+)/g, '$1[REDACTED_PASS]')
+    .replace(/(apikey=)([^&\s]+)/gi, '$1[REDACTED_APIKEY]')
+    .replace(/(Authorization:\s*(?:Basic|Bearer)\s+)([^\s"']+)/gi, '$1[REDACTED_TOKEN]')
+    .replace(/(gsk_[a-zA-Z0-9]{20,})/g, '[REDACTED_GROQ_KEY]')
+    .replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g, '[REDACTED_SSH_PRIVATE_KEY]');
+}
+
 module.exports = {
   sanitizeBashCommand,
   extractClientIp,
-  isValidHostAddress
+  isValidHostAddress,
+  maskSensitiveData
 };

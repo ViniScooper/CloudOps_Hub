@@ -6,6 +6,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { maskSensitiveData } = require('./security');
 
 const LOGS_FILE = path.join(__dirname, '..', 'database', 'telemetry_logs.json');
 const MAX_LOGS = 500;
@@ -48,16 +49,17 @@ function recordLog({
   ip = '127.0.0.1',
   userAgent = ''
 }) {
+  const rawDetails = details ? (typeof details === 'object' ? JSON.stringify(details, null, 2) : String(details)) : null;
   const newLog = {
     id: `log-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     timestamp: new Date().toLocaleString('pt-BR'),
     level: String(level).toUpperCase(),
     source,
-    message: String(message),
+    message: maskSensitiveData(String(message)),
     path,
     method: String(method).toUpperCase(),
     statusCode: Number(statusCode) || 200,
-    details: details ? (typeof details === 'object' ? JSON.stringify(details, null, 2) : String(details)) : null,
+    details: rawDetails ? maskSensitiveData(rawDetails) : null,
     ip: ip.replace('::ffff:', ''),
     userAgent
   };

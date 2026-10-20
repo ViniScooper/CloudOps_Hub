@@ -238,6 +238,17 @@ export function DashboardView({
               <small style={{ color: '#9ca3af', display: 'block', fontSize: '11px', marginTop: '2px' }}>
                 Always Free OCI · Oracle Autonomous Transaction Processing · REST Data Services (ORDS)
               </small>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '7px' }}>
+                <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '4px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#d1d5db' }}>
+                  Tablespace DATA: <b style={{ color: '#20d6c7' }}>1.8 GB / 20 GB (9%)</b>
+                </span>
+                <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '4px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#d1d5db' }}>
+                  Sessões: <b style={{ color: '#a3e635' }}>Pool ORDS Ativo</b>
+                </span>
+                <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '4px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#d1d5db' }}>
+                  Cofre: <b style={{ color: '#fb923c' }}>AES-256-GCM / mTLS</b>
+                </span>
+              </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span className="status-text emerald" style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>

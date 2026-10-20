@@ -2,10 +2,11 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const { runRemoteSsh } = require('./deployService');
+const { getCoreSecretSync } = require('./secretProvider');
 
-const ORDS_HOST = process.env.ORDS_HOST || 'G31AC88BC331093-CLOUDOPSHUB.adb.sa-saopaulo-1.oraclecloudapps.com';
-const ORDS_PATH = process.env.ORDS_PATH || '/ords/admin/_/sql';
-const ORDS_AUTH = process.env.ORDS_AUTH || 'QURNSU46Q2xvdWRPcHMjRGIyMDI2IVNlYw==';
+const ORDS_HOST = getCoreSecretSync('ORDS_HOST', 'G31AC88BC331093-CLOUDOPSHUB.adb.sa-saopaulo-1.oraclecloudapps.com');
+const ORDS_PATH = getCoreSecretSync('ORDS_PATH', '/ords/admin/_/sql');
+const ORDS_AUTH = getCoreSecretSync('ORDS_AUTH', '');
 
 const LOCAL_METRICS_FILE = path.join(__dirname, '..', 'database', 'metrics_history.json');
 
