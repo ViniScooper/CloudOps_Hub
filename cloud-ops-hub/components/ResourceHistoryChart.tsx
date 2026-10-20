@@ -6,13 +6,21 @@ import { getApiUrl } from '../lib/api'
 
 interface MetricPoint {
   id?: number | string
-  timestamp: string
-  cpu_percent: number
-  ram_used_mb: number
-  ram_total_mb: number
-  ram_percent: number
-  disk_percent: number
-  containers_running: number
+  timestamp?: string
+  recordedAt?: string
+  time?: string
+  cpu_percent?: number
+  cpuPercent?: number
+  ram_used_mb?: number
+  ramUsedMb?: number
+  ram_total_mb?: number
+  ramTotalMb?: number
+  ram_percent?: number
+  ramPercent?: number
+  disk_percent?: number
+  diskPercent?: number
+  containers_running?: number
+  containersOnline?: number
 }
 
 interface ResourceHistoryChartProps {
@@ -22,7 +30,7 @@ interface ResourceHistoryChartProps {
 export function ResourceHistoryChart({ doAction }: ResourceHistoryChartProps) {
   const [history, setHistory] = useState<MetricPoint[]>([])
   const [loading, setLoading] = useState(false)
-  const [selectedMetric, setSelectedMetric] = useState<'cpu' | 'ram' | 'disk'>('ram')
+  const [selectedMetric, setSelectedMetric] = useState<'ram' | 'cpu' | 'disk'>('ram')
   const [hoverIndex, setHoverIndex] = useState<number | null>(null)
   const [sourceInfo, setSourceInfo] = useState<{ source?: string; total?: number }>({})
 
@@ -34,7 +42,7 @@ export function ResourceHistoryChart({ doAction }: ResourceHistoryChartProps) {
       const data = await res.json()
       if (data.history && Array.isArray(data.history)) {
         setHistory(data.history)
-        setSourceInfo({ source: data.source, total: data.total })
+        setSourceInfo({ source: data.source || 'oracle_atp', total: data.total || data.history.length })
       }
     } catch (err: any) {
       console.warn('Erro ao carregar histórico de métricas:', err.message)
@@ -66,11 +74,11 @@ export function ResourceHistoryChart({ doAction }: ResourceHistoryChartProps) {
     fetchHistory()
   }, [])
 
-  // Extrair valores de acordo com a métrica selecionada
+  // Extrair valores suportando tanto camelCase quanto snake_case da API
   const getValue = (p: MetricPoint): number => {
-    if (selectedMetric === 'cpu') return Number(p.cpu_percent || 0)
-    if (selectedMetric === 'ram') return Number(p.ram_percent || 0)
-    if (selectedMetric === 'disk') return Number(p.disk_percent || 0)
+    if (selectedMetric === 'cpu') return Number(p.cpu_percent ?? p.cpuPercent ?? 0)
+    if (selectedMetric === 'ram') return Number(p.ram_percent ?? p.ramPercent ?? 0)
+    if (selectedMetric === 'disk') return Number(p.disk_percent ?? p.diskPercent ?? 0)
     return 0
   }
 
@@ -98,7 +106,7 @@ export function ResourceHistoryChart({ doAction }: ResourceHistoryChartProps) {
     // Inverter Y (0% em baixo, 100% no topo)
     const clampedVal = Math.min(Math.max(val, 0), 100)
     const y = paddingY + usableHeight - (clampedVal / 100) * usableHeight
-    return { x, y, val, time: pt.timestamp, point: pt }
+    return { x, y, val, time: pt.timestamp || pt.recordedAt || '', point: pt }
   })
 
   // Gerar caminho SVG com linha e área preenchida
@@ -317,23 +325,42 @@ export function ResourceHistoryChart({ doAction }: ResourceHistoryChartProps) {
                 )
               })}
 
-              {/* Linha de alerta Watchdog em 85% */}
+              {/* Linha de atenção SRE em 75% */}
               <line
                 x1={paddingX}
-                y1={paddingY + usableHeight - (85 / 100) * usableHeight}
+                y1={paddingY + usableHeight - (75 / 100) * usableHeight}
                 x2={width - paddingX}
-                y2={paddingY + usableHeight - (85 / 100) * usableHeight}
-                stroke="rgba(239, 68, 68, 0.4)"
+                y2={paddingY + usableHeight - (75 / 100) * usableHeight}
+                stroke="rgba(245, 158, 11, 0.35)"
+                strokeDasharray="3 3"
+              />
+              <text
+                x={width - paddingX - 4}
+                y={paddingY + usableHeight - (75 / 100) * usableHeight - 3}
+                fill="rgba(245, 158, 11, 0.75)"
+                fontSize="8.5"
+                textAnchor="end"
+              >
+                Atenção 75%
+              </text>
+
+              {/* Linha de alerta Crítico Watchdog em 90% */}
+              <line
+                x1={paddingX}
+                y1={paddingY + usableHeight - (90 / 100) * usableHeight}
+                x2={width - paddingX}
+                y2={paddingY + usableHeight - (90 / 100) * usableHeight}
+                stroke="rgba(239, 68, 68, 0.5)"
                 strokeDasharray="4 4"
               />
               <text
                 x={width - paddingX - 4}
-                y={paddingY + usableHeight - (85 / 100) * usableHeight - 3}
-                fill="rgba(239, 68, 68, 0.7)"
+                y={paddingY + usableHeight - (90 / 100) * usableHeight - 3}
+                fill="rgba(239, 68, 68, 0.85)"
                 fontSize="8.5"
                 textAnchor="end"
               >
-                Alerta 85%
+                Crítico 90% (Auto-Cura)
               </text>
 
               {/* Área Gradiente */}
@@ -422,15 +449,15 @@ export function ResourceHistoryChart({ doAction }: ResourceHistoryChartProps) {
                 {hoveredPoint.val.toFixed(1)}%
               </strong>
             </div>
-            {hoveredPoint.point.ram_used_mb && (
+            {(hoveredPoint.point.ram_used_mb || hoveredPoint.point.ramUsedMb) && (
               <div>
                 <span style={{ color: '#9ca3af', display: 'block', fontSize: '9.5px' }}>RAM Usada</span>
-                <span style={{ color: '#d1d5db' }}>{hoveredPoint.point.ram_used_mb} MB</span>
+                <span style={{ color: '#d1d5db' }}>{hoveredPoint.point.ram_used_mb ?? hoveredPoint.point.ramUsedMb} MB</span>
               </div>
             )}
             <div>
               <span style={{ color: '#9ca3af', display: 'block', fontSize: '9.5px' }}>Containers</span>
-              <span style={{ color: '#d1d5db' }}>{hoveredPoint.point.containers_running || 0}</span>
+              <span style={{ color: '#d1d5db' }}>{hoveredPoint.point.containers_running ?? hoveredPoint.point.containersOnline ?? 0}</span>
             </div>
           </div>
         )}

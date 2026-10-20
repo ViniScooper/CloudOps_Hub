@@ -37,13 +37,13 @@ const navSections = [
     title: 'Workspace',
     items: [
       { label: 'Dashboard', icon: LayoutDashboard },
-      { label: 'Robôs & Bots da VM', icon: Cpu, badge: '2 Bots' },
       { label: 'Odisseu AI', icon: Bot, badge: 'Copilot' },
-      { label: 'Deploy', icon: Rocket, badge: 'CI/CD' },
-      { label: 'Vercel Frontend', icon: VercelIcon, badge: 'Edge' },
-      { label: 'Render Backend', icon: RenderIcon, badge: 'PaaS' },
-      { label: 'Monitoramento & Logs', icon: Activity, badge: 'Realtime' },
-      { label: 'Migração Multi-Cloud', icon: ArrowLeftRight, badge: '1-Click' },
+      { label: 'Monitoramento & Logs', icon: Activity, badge: 'Live' },
+      { label: 'Robôs & Bots da VM', icon: Cpu },
+      { label: 'Deploy', icon: Rocket },
+      { label: 'Vercel Frontend', icon: VercelIcon },
+      { label: 'Render Backend', icon: RenderIcon },
+      { label: 'Migração Multi-Cloud', icon: ArrowLeftRight },
     ]
   },
   {
@@ -54,21 +54,21 @@ const navSections = [
       { label: 'Tunnels', icon: Shield, badge: 'Zero Trust' },
       { label: 'Storage', icon: HardDrive },
       { label: 'Terminal', icon: TerminalSquare },
-      { label: 'Cofre & Variáveis', icon: KeyRound, badge: 'Vault' },
+      { label: 'Cofre & Variáveis', icon: KeyRound },
     ]
   },
   {
     title: 'Gerenciamento',
     items: [
       { label: 'Recursos & VMs', icon: Layers3 },
-      { label: 'Aprovações & Usuários', icon: Users, badge: 'Admin' },
-      { label: 'Configurações', icon: Settings, badge: 'Perfil' },
+      { label: 'Aprovações & Usuários', icon: Users },
+      { label: 'Configurações', icon: Settings },
     ]
   },
   {
     title: 'Suporte',
     items: [
-      { label: 'Ajuda & Guia', icon: CircleHelp, badge: 'Help' },
+      { label: 'Ajuda & Guia', icon: CircleHelp },
     ]
   }
 ]
@@ -121,20 +121,37 @@ function Metric({
   badge?: React.ReactNode;
   actionButton?: React.ReactNode;
 }) {
+  // Semáforo dinâmico SRE para métricas de recursos (CPU, RAM, Disco)
+  const isResourceMetric = label !== 'Status SSH'
+  const isCritical = isResourceMetric && progress >= 85
+  const isWarning = isResourceMetric && progress >= 70 && progress < 85
+  const dynamicColor = isCritical ? '#ff6b6b' : isWarning ? '#f59e0b' : undefined
+  const statusLabel = isCritical ? 'Crítico' : isWarning ? 'Atenção' : change
+
   return (
-    <article className="metric-card" style={{ position: 'relative' }}>
+    <article 
+      className="metric-card" 
+      style={{ 
+        position: 'relative',
+        borderColor: isCritical ? 'rgba(255, 107, 107, 0.5)' : isWarning ? 'rgba(245, 158, 11, 0.4)' : undefined
+      }}
+    >
       <div className="metric-topline">
-        <span className={`metric-icon ${tone}`}><Icon size={16} /></span>
+        <span className={`metric-icon ${tone}`} style={dynamicColor ? { color: dynamicColor, background: `${dynamicColor}22` } : undefined}>
+          <Icon size={16} />
+        </span>
         <span className="metric-label">{label}</span>
         {actionButton ? actionButton : <MoreHorizontal size={16} className="metric-more" />}
       </div>
-      <div className="metric-value">
+      <div className="metric-value" style={isCritical ? { color: '#ff6b6b' } : undefined}>
         {value}<span>{unit}</span>
       </div>
       <div className="metric-bottom" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span className="change positive">{change}</span>
-          <span className="muted">vs. last hour</span>
+          <span className="change positive" style={dynamicColor ? { color: dynamicColor, fontWeight: 700 } : undefined}>
+            {statusLabel}
+          </span>
+          <span className="muted">tempo real</span>
         </div>
         {badge && (
           <div style={{ fontSize: '11px', fontWeight: 600, color: '#f59e0b', background: 'rgba(245, 158, 11, 0.12)', padding: '2px 7px', borderRadius: '4px', border: '1px solid rgba(245, 158, 11, 0.25)' }}>
@@ -143,7 +160,14 @@ function Metric({
         )}
       </div>
       <div className="progress-track">
-        <div className={`progress-fill ${tone}`} style={{ width: `${progress}%` }} />
+        <div 
+          className={`progress-fill ${tone}`} 
+          style={{ 
+            width: `${Math.min(Math.max(progress, 0), 100)}%`,
+            background: dynamicColor || undefined,
+            transition: 'width 0.4s ease, background 0.3s ease'
+          }} 
+        />
       </div>
     </article>
   )
@@ -152,6 +176,7 @@ function Metric({
 export default function Page() {
   const [active, setActive] = useState('Dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
 
   const [serverList, setServerList] = useState<ServerType[]>([])
@@ -644,13 +669,24 @@ export default function Page() {
       <button className="mobile-menu" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Abrir menu"><Menu size={20} /></button>
       {sidebarOpen && <button className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} aria-label="Fechar menu" />}
       
-      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="brand">
-          <span className="brand-mark"><Cloud size={18} /></span>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <span className="brand-mark" onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ cursor: 'pointer' }} title={sidebarCollapsed ? 'Expandir Menu Lateral' : 'Recolher Menu Lateral'}>
+            <Cloud size={18} />
+          </span>
+          <div className="brand-text" style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: '15px', fontWeight: 700, color: '#e5f0ed', lineHeight: 1.1 }}>CloudOps <b>Hub</b></span>
-            <span style={{ fontSize: '9px', color: '#557277', letterSpacing: '0.8px', textTransform: 'uppercase', marginTop: '2px' }}>DevOps Cloud Console</span>
+            <span style={{ fontSize: '10px', color: '#6b8a8e', letterSpacing: '0.8px', textTransform: 'uppercase', marginTop: '2px' }}>DevOps Cloud Console</span>
           </div>
+          <button
+            type="button"
+            className="desktop-collapse-btn"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            title={sidebarCollapsed ? 'Expandir Menu Lateral' : 'Recolher Menu Lateral (Modo Ícones)'}
+            aria-label="Alternar largura da barra lateral"
+          >
+            <Menu size={16} />
+          </button>
           <button className="mobile-close" onClick={() => setSidebarOpen(false)} aria-label="Fechar menu"><X size={18} /></button>
         </div>
 
