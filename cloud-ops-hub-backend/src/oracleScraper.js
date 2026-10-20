@@ -2,11 +2,15 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const crypto = require('crypto');
+const { getCoreSecretSync } = require('./secretProvider');
 
-// Envio de Notificação via WhatsApp (CallMeBot)
+// Envio de Notificação via WhatsApp (CallMeBot) usando cofre criptografado / env
 function sendWhatsAppNotification(message) {
-  const phone = process.env.WHATSAPP_PHONE || '558195126839';
-  const apiKey = process.env.WHATSAPP_APIKEY || '7939819';
+  const phone = getCoreSecretSync('WHATSAPP_PHONE', '');
+  const apiKey = getCoreSecretSync('WHATSAPP_APIKEY', '');
+  if (!phone || !apiKey) {
+    return Promise.resolve({ success: false, error: 'WHATSAPP_PHONE/APIKEY não configurados no cofre.' });
+  }
   const encodedText = encodeURIComponent(message);
   const url = `https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodedText}&apikey=${apiKey}`;
 

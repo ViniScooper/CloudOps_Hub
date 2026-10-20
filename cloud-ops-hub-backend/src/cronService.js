@@ -43,6 +43,20 @@ function getJobs() {
       lastLatencyMs: null,
       lastError: null,
       history: []
+    },
+    {
+      id: 'cron_daily_mysql_backup',
+      name: 'Backup DBA Automático 3-2-1 (MySQL + OCI Bucket)',
+      description: 'Executa dump compactado (.sql.gz) do banco restaurante e sincroniza com Oracle Object Storage',
+      targetUrl: 'http://127.0.0.1:3005/api/backups/create',
+      method: 'POST',
+      intervalMinutes: 1440,
+      enabled: true,
+      lastRun: null,
+      lastStatus: null,
+      lastLatencyMs: null,
+      lastError: null,
+      history: []
     }
   ];
 }

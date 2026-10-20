@@ -1,6 +1,7 @@
 const https = require('https');
 const http = require('http');
 const { runRemoteSsh } = require('./deployService');
+const { getCoreSecretSync } = require('./secretProvider');
 
 let watchdogInterval = null;
 const state = {
@@ -29,10 +30,14 @@ const state = {
   lastAlertTimestamps: {}
 };
 
-// Envia mensagem WhatsApp via CallMeBot
+// Envia mensagem WhatsApp via CallMeBot usando segredos do cofre/env
 function sendWhatsApp(text) {
-  const phone = process.env.WHATSAPP_PHONE || '558195126839';
-  const apiKey = process.env.WHATSAPP_APIKEY || '7939819';
+  const phone = getCoreSecretSync('WHATSAPP_PHONE', '');
+  const apiKey = getCoreSecretSync('WHATSAPP_APIKEY', '');
+  if (!phone || !apiKey) {
+    console.warn('[Watchdog] WHATSAPP_PHONE ou WHATSAPP_APIKEY ausentes no cofre/env.');
+    return Promise.resolve({ success: false, error: 'Credenciais CallMeBot não configuradas no cofre.' });
+  }
   const encodedText = encodeURIComponent(text);
   const url = `https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodedText}&apikey=${apiKey}`;
 

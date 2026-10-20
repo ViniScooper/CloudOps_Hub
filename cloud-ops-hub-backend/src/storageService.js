@@ -3,6 +3,7 @@ const os = require('oci-objectstorage');
 const path = require('path');
 const fs = require('fs');
 const { runRemoteSsh } = require('./deployService');
+const { getCoreSecretSync } = require('./secretProvider');
 
 const BUCKET_NAME = 'boteco-sivirino-fotos';
 const NAMESPACE = 'gr88wz9mdro0';
@@ -39,8 +40,9 @@ async function listStorageObjects() {
     // 1. Consulta metadados de pratos cadastrados no MySQL para labels e preços
     const dishMap = new Map();
     try {
+      const dbPass = getCoreSecretSync('MYSQL_ROOT_PASSWORD', process.env.DB_PASS || '');
       const sql = "SELECT id, nome, categoria, imagem, preco, criado_em FROM restaurante.prato WHERE imagem IS NOT NULL AND imagem != '';";
-      const dbRes = await runRemoteSsh(`docker exec boteco_db mysql -u root -pviniZIKA3103 -e "${sql}" 2>/dev/null`);
+      const dbRes = await runRemoteSsh(`docker exec boteco_db sh -c 'MYSQL_PWD="${dbPass}" mysql -u root -e "${sql}"' 2>/dev/null`);
       if (dbRes.stdout) {
         const lines = dbRes.stdout.split('\n').filter(l => l.trim().length > 0).slice(1);
         for (const line of lines) {
