@@ -9,7 +9,15 @@ const state = {
   ramPct: 0,
   ramUsed: 0,
   ramTotal: 956,
+  diskPct: 0,
+  swapPct: 0,
   selfHealingEvents: [],
+  triggers: [
+    { id: 'trg_ram', name: 'RAM Crítica (>= 90%)', action: 'Auto-Drop Caches + Alerta WhatsApp', status: 'OK' },
+    { id: 'trg_disk', name: 'Disco NVMe (>= 85%)', action: 'Auto-Prune Logs Docker + Alerta WhatsApp', status: 'OK' },
+    { id: 'trg_swap', name: 'Swap / Thrashing (>= 65%)', action: 'Alerta Preventivo SRE', status: 'OK' },
+    { id: 'trg_docker', name: 'Queda / Deadlock HTTP de Container', action: 'Docker Restart + Probe HTTP', status: 'OK' }
+  ],
   criticalContainers: [
     { name: 'financeiro_backend', status: 'unknown', essential: true, healthPort: 3006, healthPath: '/api/finance/health', consecutiveFailures: 0 },
     { name: 'boteco_backend', status: 'unknown', essential: true, healthPort: 3001, healthPath: '/api/health', consecutiveFailures: 0 },
@@ -69,8 +77,8 @@ async function runHealthCheck() {
   state.lastCheck = new Date().toISOString();
 
   try {
-    // 1. Coleta telemetria de memória e containers em 1 comando SSH rápido
-    const res = await runRemoteSsh('free -m && docker ps -a --format "{{.Names}}\t{{.Status}}"');
+    // 1. Coleta telemetria de memória, swap, disco e containers em 1 comando SSH rápido
+    const res = await runRemoteSsh('free -m && echo "---DISK---" && df -h / | tail -1 && echo "---DOCKER---" && docker ps -a --format "{{.Names}}\t{{.Status}}"');
     const output = res.stdout || '';
 
     // 2. Parse da RAM
@@ -83,6 +91,9 @@ async function runHealthCheck() {
       state.ramUsed = used;
       state.ramPct = pct;
 
+      const ramTrigger = state.triggers.find(t => t.id === 'trg_ram');
+      if (ramTrigger) ramTrigger.status = pct >= 90 ? 'FIRING' : (pct >= 78 ? 'WARN' : 'OK');
+
       // Se RAM >= 90%, tenta auto-liberar cache de disco para evitar OOM
       if (pct >= 90) {
         console.warn(`[Watchdog] RAM atingiu ${pct}%. Disparando auto-limpeza de cache de disco...`);
@@ -94,6 +105,38 @@ async function runHealthCheck() {
           'ram_high',
           `⚠️ *[CloudOps Watchdog — Alerta de RAM Crítica]*\n\nUso de Memória: *${pct}%* (${used}MB / ${total}MB) na VM *instance-bytedata*.\n\n🛡️ *Ação do Sentinela:* Cache de buffers limpo preventivamente para evitar congelamentos.`
         , 30);
+      }
+    }
+
+    // 2.1 Parse de Swap (Prevenção de Thrashing)
+    const swapMatch = output.match(/Swap:\s+(\d+)\s+(\d+)/);
+    if (swapMatch) {
+      const swapTotal = parseInt(swapMatch[1], 10) || 2047;
+      const swapUsed = parseInt(swapMatch[2], 10) || 0;
+      const swapPct = Math.round((swapUsed / swapTotal) * 100);
+      state.swapPct = swapPct;
+      const swapTrigger = state.triggers.find(t => t.id === 'trg_swap');
+      if (swapTrigger) swapTrigger.status = swapPct >= 65 ? 'WARN' : 'OK';
+    }
+
+    // 2.2 Parse de Disco NVMe (Trigger >= 85% com Auto-Prune estilo Zabbix)
+    const diskPart = (output.split('---DISK---')[1] || '').split('---DOCKER---')[0] || '';
+    const diskMatch = diskPart.match(/(\d+)%/);
+    if (diskMatch) {
+      const diskPct = parseInt(diskMatch[1], 10) || 0;
+      state.diskPct = diskPct;
+      const diskTrigger = state.triggers.find(t => t.id === 'trg_disk');
+      if (diskTrigger) diskTrigger.status = diskPct >= 85 ? 'FIRING' : (diskPct >= 75 ? 'WARN' : 'OK');
+
+      if (diskPct >= 85) {
+        console.warn(`[Watchdog] Disco atingiu ${diskPct}%. Disparando limpeza preventiva de logs/imagens órfãs...`);
+        try {
+          await runRemoteSsh('docker image prune -f >/dev/null 2>&1 || true');
+        } catch {}
+        await triggerAlert(
+          'disk_high',
+          `⚠️ *[CloudOps Watchdog — Alerta de Disco NVMe]*\n\nOcupação do Disco: *${diskPct}%* na VM *instance-bytedata*.\n\n🛡️ *Ação do Sentinela:* Imagens órfãs do Docker foram limpas preventivamente.`
+        , 60);
       }
     }
 

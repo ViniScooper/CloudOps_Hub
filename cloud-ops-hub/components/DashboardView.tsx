@@ -70,6 +70,11 @@ export function DashboardView({
 
   return (
     <>
+      {/* Gráfico de Telemetria em Tempo Real no Topo (Padrão Grafana / Datadog) */}
+      {isMaster && !isMicro && (
+        <ResourceHistoryChart doAction={doAction} />
+      )}
+
       <div className="section-heading">
         <div>
           <h2>Infraestrutura Conectada</h2>
@@ -334,20 +339,20 @@ export function DashboardView({
                   </button>
                 </div>
 
-                {/* Card do Guardião Watchdog 24/7 */}
-                <div className="data-service" style={{ marginTop: '10px', borderLeft: '3px solid #10b981', background: 'rgba(16, 185, 129, 0.05)', padding: '10px 12px' }}>
+                {/* Card do Guardião Watchdog 24/7 (Triggers estilo Zabbix) */}
+                <div className="data-service" style={{ marginTop: '10px', borderLeft: '3px solid #10b981', background: 'rgba(16, 185, 129, 0.05)', padding: '12px 14px', flexWrap: 'wrap', gap: '10px' }}>
                   <span className="service-icon managed" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
                     <ShieldCheck size={16} />
                   </span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <strong style={{ color: '#f0fdfa', fontSize: '11.5px' }}>Guardião Watchdog 24/7</strong>
-                      <span style={{ fontSize: '8.5px', fontWeight: 800, padding: '1px 5px', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
-                        ATIVO (3M)
+                  <div style={{ flex: 1, minWidth: '180px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      <strong style={{ color: '#f0fdfa', fontSize: '12.5px' }}>Guardião Watchdog 24/7 (Triggers SRE)</strong>
+                      <span style={{ fontSize: '9.5px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
+                        AUTO-CURA ATIVA (3M)
                       </span>
                     </div>
-                    <small style={{ color: '#829d9c', fontSize: '10px', display: 'block', marginTop: '2px' }}>
-                      Vigiando RAM &gt; 90% e auto-cura de containers via WhatsApp
+                    <small style={{ color: '#9ab0af', fontSize: '11px', display: 'block', marginTop: '3px' }}>
+                      Triggers ativas: RAM &ge; 90% (Drop Cache) · Disco &ge; 85% (Prune) · Swap &ge; 65% · Containers HTTP Probe
                     </small>
                   </div>
                   <button
@@ -371,10 +376,10 @@ export function DashboardView({
                       background: 'rgba(32, 214, 199, 0.1)',
                       border: '1px solid rgba(32, 214, 199, 0.3)',
                       color: '#20d6c7',
-                      borderRadius: '5px',
-                      fontSize: '10px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
                       fontWeight: 600,
-                      padding: '4px 8px',
+                      padding: '6px 10px',
                       cursor: 'pointer',
                       whiteSpace: 'nowrap'
                     }}
@@ -387,8 +392,6 @@ export function DashboardView({
           })()}
         </section>
       </div>
-
-          <ResourceHistoryChart doAction={doAction} />
         </>
       )}
     </>
