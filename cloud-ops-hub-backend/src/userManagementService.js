@@ -89,10 +89,104 @@ function saveRequestsToJson(requests) {
   }
 }
 
+// Cria uma nova solicitação de acesso e persiste em disco e banco
+async function createAccessRequest({ name, email, note, clientIp }) {
+  if (!name || !email) {
+    throw new Error('Nome e e-mail são obrigatórios.');
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+  const cleanName = name.trim();
+  const cleanNote = note ? note.trim() : 'Solicitação de acesso ao CloudOps Hub';
+
+  let requests = [];
+  try {
+    if (fs.existsSync(REQUESTS_FILE)) {
+      requests = JSON.parse(fs.readFileSync(REQUESTS_FILE, 'utf8')) || [];
+    }
+  } catch {}
+
+  const existingIdx = requests.findIndex(r => (r.email || '').toLowerCase() === cleanEmail);
+  const now = new Date().toISOString();
+  let item;
+
+  if (existingIdx >= 0) {
+    item = {
+      ...requests[existingIdx],
+      name: cleanName,
+      note: cleanNote,
+      status: 'pending',
+      requested_at: now,
+      requestedAt: now,
+      ip: clientIp || requests[existingIdx].ip || '127.0.0.1'
+    };
+    requests[existingIdx] = item;
+  } else {
+    item = {
+      id: 'req-' + Date.now(),
+      name: cleanName,
+      email: cleanEmail,
+      note: cleanNote,
+      status: 'pending',
+      requested_at: now,
+      requestedAt: now,
+      ip: clientIp || '127.0.0.1',
+      project: 'CloudOps Hub'
+    };
+    requests.unshift(item);
+  }
+
+  saveRequestsToJson(requests);
+
+  // Tenta sincronizar com Oracle ATP
+  try {
+    await db.executeOracleSql(
+      `MERGE INTO access_requests r USING (SELECT :id as id, :name as name, :email as email, :note as note, :status as status FROM dual) val
+       ON (lower(r.email) = lower(val.email))
+       WHEN MATCHED THEN UPDATE SET r.name = val.name, r.note = val.note, r.status = val.status, r.requested_at = CURRENT_TIMESTAMP
+       WHEN NOT MATCHED THEN INSERT (id, name, email, note, status, requested_at) VALUES (val.id, val.name, val.email, val.note, val.status, CURRENT_TIMESTAMP)`,
+      { id: item.id, name: cleanName, email: cleanEmail, note: cleanNote, status: 'pending' }
+    );
+  } catch {}
+
+  // Notifica o administrador Master no WhatsApp via CallMeBot
+  try {
+    const phone = process.env.WHATSAPP_PHONE || '558195126839';
+    const apiKey = process.env.WHATSAPP_APIKEY || '7939819';
+    const alertText = encodeURIComponent(
+      `🔔 *CloudOps Hub - Nova Solicitação de Acesso!*\n\n` +
+      `👤 *Nome:* ${cleanName}\n` +
+      `✉️ *E-mail:* ${cleanEmail}\n` +
+      `📝 *Nota:* ${cleanNote}\n\n` +
+      `🔗 *Acesse para Aprovar:* https://cloudops-hub-dun.vercel.app/`
+    );
+    https.get(`https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${alertText}&apikey=${apiKey}`).on('error', () => {});
+  } catch {}
+
+  return item;
+}
+
 // Aprova uma solicitação de acesso no CloudOps Hub
-async function approveRequest({ requestId, email, name }) {
-  if (!requestId || !email) {
-    throw new Error('ID da solicitação e e-mail são obrigatórios.');
+async function approveRequest(param) {
+  let requestId = typeof param === 'string' ? param : (param?.requestId || param?.id);
+  let email = typeof param === 'object' ? param?.email : null;
+  let name = typeof param === 'object' ? param?.name : null;
+
+  if (!requestId && !email) {
+    throw new Error('ID da solicitação ou e-mail são obrigatórios.');
+  }
+
+  // Se não passou email ou nome, busca no access_requests.json
+  const allReqs = await getAccessRequests();
+  const existing = allReqs.find(r => r.id === requestId || (email && r.email && r.email.toLowerCase() === email.toLowerCase()));
+  if (existing) {
+    if (!requestId) requestId = existing.id;
+    if (!email) email = existing.email;
+    if (!name) name = existing.name;
+  }
+
+  if (!email) {
+    throw new Error('E-mail da solicitação não encontrado.');
   }
 
   const cleanEmail = email.trim().toLowerCase();
@@ -175,13 +269,20 @@ async function approveRequest({ requestId, email, name }) {
 }
 
 // Rejeita uma solicitação no CloudOps Hub
-async function rejectRequest({ requestId, reason }) {
+async function rejectRequest(param) {
+  const requestId = typeof param === 'string' ? param : (param?.requestId || param?.id);
+  const reason = (typeof param === 'object' && param?.reason) ? param.reason : 'Recusado pelo administrador';
+
+  if (!requestId) {
+    return { success: false, error: 'ID da solicitação é obrigatório.' };
+  }
+
   try {
     if (fs.existsSync(REQUESTS_FILE)) {
       const hubReqs = JSON.parse(fs.readFileSync(REQUESTS_FILE, 'utf8'));
       const updated = hubReqs.map(r => {
         if (r.id === requestId) {
-          return { ...r, status: 'rejected', rejectionReason: reason || 'Recusado pelo administrador' };
+          return { ...r, status: 'rejected', rejectionReason: reason };
         }
         return r;
       });
@@ -261,7 +362,10 @@ async function listRegisteredUsers() {
 
 module.exports = {
   getAccessRequests,
+  getPendingRequests: getAccessRequests,
+  createAccessRequest,
   approveRequest,
   rejectRequest,
-  listRegisteredUsers
+  listRegisteredUsers,
+  getAllUsers: listRegisteredUsers
 };

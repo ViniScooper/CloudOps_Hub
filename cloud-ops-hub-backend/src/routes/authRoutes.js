@@ -18,6 +18,13 @@ async function authRoutes(fastify, options) {
       return reply.code(400).send({ success: false, error: 'Nome e e-mail são obrigatórios.' });
     }
 
+    const reqItem = await userManagementService.createAccessRequest({
+      name: name.trim(),
+      email: email.trim(),
+      note: note ? note.trim() : '',
+      clientIp
+    });
+
     auditService.logEvent({
       user: email,
       action: 'REQUEST_ACCESS',
@@ -27,15 +34,16 @@ async function authRoutes(fastify, options) {
       details: `Solicitação de acesso por ${name}`
     });
 
-    await emailService.sendAccessRequestEmail({
+    emailService.sendAccessRequestEmail({
       name: name.trim(),
       email: email.trim(),
       note: note ? note.trim() : ''
-    });
+    }).catch(() => {});
 
     return {
       success: true,
-      message: 'Solicitação enviada ao administrador! Aguarde as instruções de acesso por e-mail.'
+      message: 'Solicitação enviada ao administrador! Aguarde as instruções de acesso por e-mail.',
+      requestId: reqItem.id
     };
   });
 
@@ -115,19 +123,24 @@ async function authRoutes(fastify, options) {
 
   // Gerenciamento Administrativo de Solicitações de Acesso
   fastify.get('/api/admin/requests', async (request, reply) => {
-    const list = await userManagementService.getPendingRequests();
+    const list = await userManagementService.getAccessRequests();
     return { success: true, requests: list };
   });
 
   fastify.post('/api/admin/approve-request', async (request, reply) => {
-    const { id } = request.body || {};
+    const body = request.body || {};
+    const requestId = body.requestId || body.id;
     const clientIp = extractClientIp(request);
-    const result = await userManagementService.approveRequest(id);
+    const result = await userManagementService.approveRequest({
+      requestId,
+      email: body.email,
+      name: body.name
+    });
 
     auditService.logEvent({
       user: 'admin',
       action: 'APPROVE_USER_REQUEST',
-      target: `request_${id}`,
+      target: `request_${requestId}`,
       ip: clientIp,
       status: result.success ? 'SUCCESS' : 'FAILED',
       details: result.message || result.error
@@ -137,14 +150,18 @@ async function authRoutes(fastify, options) {
   });
 
   fastify.post('/api/admin/reject-request', async (request, reply) => {
-    const { id } = request.body || {};
+    const body = request.body || {};
+    const requestId = body.requestId || body.id;
     const clientIp = extractClientIp(request);
-    const result = await userManagementService.rejectRequest(id);
+    const result = await userManagementService.rejectRequest({
+      requestId,
+      reason: body.reason
+    });
 
     auditService.logEvent({
       user: 'admin',
       action: 'REJECT_USER_REQUEST',
-      target: `request_${id}`,
+      target: `request_${requestId}`,
       ip: clientIp,
       status: result.success ? 'SUCCESS' : 'FAILED'
     });
@@ -153,7 +170,7 @@ async function authRoutes(fastify, options) {
   });
 
   fastify.get('/api/admin/users', async () => {
-    const users = await userManagementService.getAllUsers();
+    const users = await userManagementService.listRegisteredUsers();
     return { success: true, users };
   });
 
