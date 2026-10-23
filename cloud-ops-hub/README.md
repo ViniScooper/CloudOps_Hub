@@ -12,7 +12,7 @@
 
 **Painel Unificado de Observabilidade, Gestão de Infraestrutura Cloud e Bancos de Dados de Alta Performance.**
 
-[🌐 Acessar Sistema em Produção (Vercel)](https://cloudops-hub-dun.vercel.app/)
+[🌟 Ver Landing Page Oficial & Showcase Interativo](https://cloudops-hub-dun.vercel.app/landing) • [🌐 Acessar Painel ao Vivo](https://cloudops-hub-dun.vercel.app/)
 
 </div>
 

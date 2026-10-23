@@ -66,8 +66,9 @@ const navSections = [
     ]
   },
   {
-    title: 'Suporte',
+    title: 'Divulgação & Apresentação',
     items: [
+      { label: '🌟 Landing Page Oficial', icon: Globe2, badge: 'Pública' },
       { label: 'Ajuda & Guia', icon: CircleHelp },
     ]
   }
@@ -719,6 +720,10 @@ export default function Page() {
                     key={label} 
                     title={`Abrir módulo ${label}`}
                     onClick={() => {
+                      if (label === '🌟 Landing Page Oficial') {
+                        window.open('/landing', '_blank')
+                        return
+                      }
                       if (isVm) {
                         setActive('Dashboard')
                       } else if (isApproval) {
