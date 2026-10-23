@@ -25,7 +25,17 @@ export const metadata: Metadata = {
     'Oracle RMAN Backup PITR',
     'Security Headers Grade A+',
     'Cofre OCI Vault AES-256',
-    'SOC 2 Compliance Cloud'
+    'SOC 2 Compliance Cloud',
+    'Nginx Load Balancer Round Robin',
+    'Migração de Banco de Dados Zero Downtime',
+    'Oracle Object Storage Buckets vs S3',
+    'Monitoramento CPU RAM NVMe Linux',
+    'Watchdog Cron Jobs Anti Sleep OCI',
+    'Engenheiro SRE Brasil',
+    'DBA Oracle 23ai Brasil',
+    'Arquitetura Cloud Zero Trust',
+    'Docker Container Web UI',
+    'Painel Web Servidor Linux'
   ],
   authors: [
     {

@@ -8,7 +8,8 @@ import {
   Cpu, Lock, Zap, ArrowRight, CheckCircle2, Terminal, 
   Layers, Globe, Check, Eye, AlertTriangle, Sparkles,
   Container, Network, KeyRound, Shield, ArrowLeftRight, HardDrive, RefreshCw,
-  HelpCircle, FileCheck, Layers3, TerminalSquare, GitBranch, ShieldAlert, ChevronRight, UserCheck
+  HelpCircle, FileCheck, Layers3, TerminalSquare, GitBranch, ShieldAlert, ChevronRight, UserCheck,
+  Share2, MessageCircle, Copy, Search, Tag, Sliders
 } from 'lucide-react'
 
 const printsData = [
@@ -73,11 +74,19 @@ const printsData = [
 export default function LandingPage() {
   const [activePrint, setActivePrint] = useState(printsData[0])
   const [copiedLink, setCopiedLink] = useState(false)
+  const [copiedShare, setCopiedShare] = useState(false)
+  const [terminalMode, setTerminalMode] = useState<'magic' | 'pain'>('magic')
 
   const handleCopy = () => {
     navigator.clipboard.writeText('https://github.com/ViniScooper/CloudOps_Hub')
     setCopiedLink(true)
     setTimeout(() => setCopiedLink(false), 2500)
+  }
+
+  const handleCopyShare = () => {
+    navigator.clipboard.writeText('https://cloudops-hub-dun.vercel.app/landing')
+    setCopiedShare(true)
+    setTimeout(() => setCopiedShare(false), 2500)
   }
 
   return (
@@ -564,6 +573,99 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* 💻 Simulador de Terminal Interativo (A Dor do Manual vs A Magia do CloudOps Hub) */}
+      <section className="py-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[#152327]">
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <span className="text-xs font-mono uppercase tracking-widest text-[#20d6c7] bg-[#122326] px-3 py-1 rounded-full border border-[#20d6c7]/30">
+            Comparativo de Experiência do Desenvolvedor
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mt-4">
+            A Dor do DevOps Manual vs O Poder em 1 Clique
+          </h2>
+          <p className="mt-3 text-sm text-[#829fa3]">
+            Veja a diferença entre operar servidores manualmente via SSH contra a automação orquestrada pelo CloudOps Hub.
+          </p>
+
+          <div className="inline-flex p-1 mt-8 bg-[#091114] border border-[#1d353b] rounded-xl">
+            <button
+              onClick={() => setTerminalMode('magic')}
+              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all ${
+                terminalMode === 'magic'
+                  ? 'bg-gradient-to-r from-[#114b50] to-[#1e8d84] text-white shadow-[0_0_20px_rgba(32,214,199,0.3)]'
+                  : 'text-[#6c8b90] hover:text-white'
+              }`}
+            >
+              <Zap size={15} className="text-[#20d6c7]" />
+              <span>Modo CloudOps Hub (1 Clique)</span>
+            </button>
+            <button
+              onClick={() => setTerminalMode('pain')}
+              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all ${
+                terminalMode === 'pain'
+                  ? 'bg-red-950/70 text-red-200 border border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.2)]'
+                  : 'text-[#6c8b90] hover:text-white'
+              }`}
+            >
+              <AlertTriangle size={15} className="text-red-400" />
+              <span>Modo Manual (A Dor do SSH Tradicional)</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-[#04080a] border border-[#1b2f35] rounded-2xl overflow-hidden shadow-2xl">
+          <div className="bg-[#0b1417] px-4 py-3 border-b border-[#1b2f35] flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-red-500/80" />
+              <div className="w-3 h-3 rounded-full bg-amber-500/80" />
+              <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+              <span className="ml-2 text-xs font-mono text-[#6c8c91]">
+                {terminalMode === 'magic' ? 'cloudops-hub@production-orchestrator:~$' : 'ssh root@129.148.xx.xx (terminal manual frágil)'}
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-[#3d5d62]">bash / zsh v5.9</span>
+          </div>
+
+          <div className="p-6 font-mono text-xs sm:text-sm leading-relaxed overflow-x-auto min-h-[300px]">
+            {terminalMode === 'magic' ? (
+              <div className="space-y-3 text-emerald-300">
+                <p className="text-[#658b90]"># Solicitando criação de microsserviço com alta disponibilidade via UI</p>
+                <p className="text-white flex items-center gap-2">
+                  <span className="text-[#20d6c7] font-bold">cloudops &gt;</span> engine.deploy(&#39;service-api&#39;, &#123; replicas: 3, db: &#39;oracle23ai&#39;, zeroTrust: true &#125;)
+                </p>
+                <div className="text-xs text-[#82b4b9] pl-4 border-l-2 border-[#20d6c7]/40 space-y-1.5 my-3">
+                  <p className="text-[#20d6c7]">⚡ [00:00.08] Provisionando 3 contêineres Docker isolados em bridge interna (sem expor portas externas)...</p>
+                  <p className="text-emerald-400">✓ [00:00.32] Configurando Nginx Reverse Proxy com algoritmo Round-Robin e Active Healthchecks.</p>
+                  <p className="text-emerald-400">✓ [00:00.65] Injetando segredos e variáveis .env diretamente via OCI Vault (criptografia AES-256 HSM).</p>
+                  <p className="text-emerald-400">✓ [00:00.91] Abrindo túnel Cloudflare Zero Trust via conexão socket de saída (Portas de entrada 100% blindadas).</p>
+                  <p className="text-emerald-400">✓ [00:01.14] Conexão com Oracle Database 23ai validada via pool mTLS e snapshot PITR RMAN agendado.</p>
+                </div>
+                <p className="text-emerald-400 font-bold bg-[#092224] p-3 rounded-lg border border-[#1f6869]">
+                  🎉 DEPLOY CONCLUÍDO COM SUCESSO EM 1.2s • ZERO DOWNTIME • NOTA A+ NO SECURITYHEADERS
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3 text-red-300">
+                <p className="text-[#658b90]"># Tentando configurar tudo na mão via linha de comando...</p>
+                <p className="text-white">root@vm-manual:~# nano /etc/nginx/sites-available/default</p>
+                <p className="text-amber-400">root@vm-manual:~# nginx -t</p>
+                <p className="text-red-400 font-bold">nginx: [emerg] unexpected &#34;&#125;&#34; in /etc/nginx/sites-available/default:42 (Falta ponto e vírgula!)</p>
+                <p className="text-white mt-2">root@vm-manual:~# cat .env</p>
+                <p className="text-amber-300 bg-red-950/40 p-2 rounded border border-red-500/30">
+                  🚨 ALERTA CRÍTICO: Senha em texto plano gravada no disco e no .bash_history! (Risco de invasão SOC 2)
+                </p>
+                <p className="text-white mt-2">root@vm-manual:~# ufw status</p>
+                <p className="text-red-400">
+                  ⚠️ Portas 80, 443, 3000, 1521 abertas diretamente para a internet. Sofrendo 1.400 varreduras maliciosas por hora.
+                </p>
+                <p className="text-red-300 italic pt-2">
+                  Tempo gasto: 3 horas e 45 minutos. Servidor vulnerável, com downtime e sem observabilidade.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* ❓ Perguntas Frequentes (FAQ Técnico de Arquitetos e DBAs) */}
       <section className="py-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[#152327]">
         <div className="text-center max-w-3xl mx-auto mb-16">
@@ -613,6 +715,111 @@ export default function LandingPage() {
             </p>
           </div>
 
+          <div className="bg-[#0b1316] border border-[#1a2f35] rounded-xl p-5 sm:p-6">
+            <h4 className="text-base font-bold text-white flex items-center gap-2 mb-2">
+              <span className="text-[#20d6c7]">05.</span> Como o Nginx Load Balancer distribui o tráfego entre contêineres Docker?
+            </h4>
+            <p className="text-xs sm:text-sm text-[#829fa3] leading-relaxed">
+              O CloudOps Hub configura o bloco <code className="text-[#20d6c7]">upstream</code> do Nginx dinamicamente apontando para as instâncias ativas do contêiner. Utilizando o algoritmo <em>Round-Robin ponderado</em> com verificações passivas de integridade (<code className="text-[#20d6c7]">max_fails</code> e <code className="text-[#20d6c7]">fail_timeout</code>), qualquer contêiner com falha é retirado da rota em milissegundos sem que o usuário final sofra nenhum erro HTTP 502.
+            </p>
+          </div>
+
+          <div className="bg-[#0b1316] border border-[#1a2f35] rounded-xl p-5 sm:p-6">
+            <h4 className="text-base font-bold text-white flex items-center gap-2 mb-2">
+              <span className="text-[#20d6c7]">06.</span> Como o Cofre OCI Vault protege variáveis de ambiente (.env) contra vazamentos?
+            </h4>
+            <p className="text-xs sm:text-sm text-[#829fa3] leading-relaxed">
+              Em arquiteturas tradicionais, senhas ficam salvas em arquivos <code className="text-amber-400">.env</code> de texto plano no disco da máquina, correndo o risco de serem commitadas no GitHub ou lidas por invasores. Com o CloudOps Hub integrado ao OCI Vault, os segredos são criptografados por chaves mestras de Hardware (HSM AES-256) e injetados diretamente na memória do processo em tempo de execução via API autenticada por Resource Principal.
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      {/* 🏷️ Matriz Semântica de Palavras-Chave de Busca (Google SEO Semantic Index) */}
+      <section className="py-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[#152327]">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <span className="text-xs font-mono uppercase tracking-widest text-[#20d6c7] bg-[#122326] px-3 py-1 rounded-full border border-[#20d6c7]/30">
+            Índice de Tópicos & Tecnologias
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mt-4">
+            O que você encontra no CloudOps Hub
+          </h2>
+          <p className="mt-3 text-sm text-[#829fa3]">
+            Referência completa para quem busca ferramentas modernas de observabilidade SRE, infraestrutura em nuvem e cibersegurança.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          
+          <div className="bg-[#0b1316] border border-[#182b30] rounded-2xl p-6">
+            <div className="w-9 h-9 rounded-lg bg-[#142629] text-[#20d6c7] flex items-center justify-center mb-4">
+              <Container size={20} />
+            </div>
+            <h4 className="text-base font-bold text-white mb-2">Docker & Orquestração</h4>
+            <p className="text-xs text-[#7d9b9f] mb-4">
+              Gerenciamento visual completo de microsserviços sem precisar abrir o terminal SSH.
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#20d6c7] px-2 py-0.5 rounded border border-[#20d6c7]/20">Gerenciador Docker Web</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Portainer Alternativa</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Coolify Alternativa</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Nginx Load Balancer</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Port Inspection</span>
+            </div>
+          </div>
+
+          <div className="bg-[#0b1316] border border-[#182b30] rounded-2xl p-6">
+            <div className="w-9 h-9 rounded-lg bg-[#142629] text-[#20d6c7] flex items-center justify-center mb-4">
+              <ShieldCheck size={20} />
+            </div>
+            <h4 className="text-base font-bold text-white mb-2">Cibersegurança & Zero Trust</h4>
+            <p className="text-xs text-[#7d9b9f] mb-4">
+              Camadas rigorosas de proteção corporativa com certificação nos principais benchmarks de segurança.
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#20d6c7] px-2 py-0.5 rounded border border-[#20d6c7]/20">Cloudflare Tunnel</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">OCI Vault HSM</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">SecurityHeaders Grade A+</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Qualys SSL Labs A+</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">SOC 2 & ISO 27001</span>
+            </div>
+          </div>
+
+          <div className="bg-[#0b1316] border border-[#182b30] rounded-2xl p-6">
+            <div className="w-9 h-9 rounded-lg bg-[#142629] text-[#20d6c7] flex items-center justify-center mb-4">
+              <Database size={20} />
+            </div>
+            <h4 className="text-base font-bold text-white mb-2">Bancos de Dados & DBA</h4>
+            <p className="text-xs text-[#7d9b9f] mb-4">
+              Controle avançado de motores relacionais de alta volumetria e rotinas críticas de recuperação.
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#20d6c7] px-2 py-0.5 rounded border border-[#20d6c7]/20">Oracle Database 23ai</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Oracle RMAN PITR</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">MySQL 8.0 Cluster</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Zero-Downtime Migration</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">OCI Object Storage</span>
+            </div>
+          </div>
+
+          <div className="bg-[#0b1316] border border-[#182b30] rounded-2xl p-6">
+            <div className="w-9 h-9 rounded-lg bg-[#142629] text-[#20d6c7] flex items-center justify-center mb-4">
+              <Cpu size={20} />
+            </div>
+            <h4 className="text-base font-bold text-white mb-2">SRE & Confiabilidade</h4>
+            <p className="text-xs text-[#7d9b9f] mb-4">
+              Métricas em tempo real, robôs de auto-cura e telemetria profunda para servidores Linux na OCI.
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#20d6c7] px-2 py-0.5 rounded border border-[#20d6c7]/20">Oracle Always Free</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Watchdog Anti-Sleep</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Telemetria RAM & CPU</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Vercel Edge Global CDN</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Vinícius Lourenço</span>
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -649,7 +856,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ⭐ CTA Estrela no GitHub */}
+      {/* ⭐ CTA Estrela no GitHub & Compartilhamento Social */}
       <section className="py-20 relative overflow-hidden bg-gradient-to-b from-[#070b0e] via-[#0b1619] to-[#070b0e]">
         <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#166068] to-[#20d6c7] text-black flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(32,214,199,0.4)]">
@@ -684,6 +891,53 @@ export default function LandingPage() {
               <span>{copiedLink ? 'Link do GitHub Copiado!' : 'Copiar Link do Repositório'}</span>
             </button>
           </div>
+
+          {/* 📢 1-Click Social Sharing Matrix */}
+          <div className="mt-12 pt-8 border-t border-[#16272b] max-w-2xl mx-auto">
+            <p className="text-xs uppercase font-mono tracking-widest text-[#6c8c91] mb-4">
+              Divulgue para a comunidade de DevOps & Desenvolvedores
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent('🚀 Conheça o CloudOps Hub: Plataforma SRE, Gestão de Docker e Oracle Database com Zero Trust e Grade A+ em Cibersegurança desenvolvida por José Vinícius Lourenço: https://cloudops-hub-dun.vercel.app/landing')}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 bg-[#122822] hover:bg-[#18362e] border border-emerald-500/30 text-emerald-300 text-xs font-semibold px-4 py-2.5 rounded-xl transition-all"
+              >
+                <MessageCircle size={15} />
+                <span>WhatsApp</span>
+              </a>
+
+              <a
+                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent('https://cloudops-hub-dun.vercel.app/landing')}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 bg-[#0c2236] hover:bg-[#11314d] border border-sky-500/30 text-sky-300 text-xs font-semibold px-4 py-2.5 rounded-xl transition-all"
+              >
+                <Share2 size={15} />
+                <span>LinkedIn</span>
+              </a>
+
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('CloudOps Hub — Gestão de servidores Cloud, Docker e Oracle DB com Zero Trust e Grade A+ em Cibersegurança. Criado por @ViniScooper: https://cloudops-hub-dun.vercel.app/landing')}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 bg-[#171c24] hover:bg-[#202733] border border-slate-700 text-slate-300 text-xs font-semibold px-4 py-2.5 rounded-xl transition-all"
+              >
+                <ExternalLink size={15} />
+                <span>X (Twitter)</span>
+              </a>
+
+              <button
+                onClick={handleCopyShare}
+                className="flex items-center gap-2 bg-[#121c1f] hover:bg-[#1a272b] border border-[#254249] text-[#20d6c7] text-xs font-semibold px-4 py-2.5 rounded-xl transition-all"
+              >
+                {copiedShare ? <Check size={15} className="text-emerald-400" /> : <Copy size={15} />}
+                <span>{copiedShare ? 'Link Copiado!' : 'Copiar Link da Página'}</span>
+              </button>
+            </div>
+          </div>
+
         </div>
       </section>
 
