@@ -6,7 +6,8 @@ import Link from 'next/link'
 import { 
   ShieldCheck, Star, ExternalLink, Server, Database, 
   Cpu, Lock, Zap, ArrowRight, CheckCircle2, Terminal, 
-  Layers, Globe, Check, Eye, AlertTriangle, Sparkles
+  Layers, Globe, Check, Eye, AlertTriangle, Sparkles,
+  Container, Network, KeyRound, Shield, ArrowLeftRight, HardDrive, RefreshCw
 } from 'lucide-react'
 
 const printsData = [
@@ -328,6 +329,126 @@ export default function LandingPage() {
               <li className="flex items-start gap-2.5">
                 <Check size={16} className="text-[#20d6c7] mt-0.5" />
                 <span><strong className="text-white">Recuperação PITR:</strong> Estrutura auditável com RMAN para voltar dados no segundo exato.</span>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ⚡ Superpoderes do CloudOps Hub (Recursos em 1 Clique) */}
+      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[#152327]">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <span className="text-xs font-mono uppercase tracking-widest text-[#20d6c7] bg-[#122326] px-3 py-1 rounded-full border border-[#20d6c7]/30">
+            Produtividade & Automação SRE
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mt-4">
+            Operações Complexas de Nuvem em 1 Clique
+          </h2>
+          <p className="text-[#839ea2] mt-3 text-sm sm:text-base">
+            Elimine scripts manuais no terminal. Tudo o que você precisa para gerenciar contêineres, balanceamento de carga, túneis e cofres de senhas com simplicidade visual.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          {/* 1. Criar Containers com 1 Botão */}
+          <div className="bg-[#0b1316] border border-[#1b3137] hover:border-[#20d6c7]/50 rounded-2xl p-6 transition-all hover:shadow-[0_0_25px_rgba(32,214,199,0.15)] group">
+            <div className="w-12 h-12 rounded-xl bg-[#142e33] text-[#20d6c7] flex items-center justify-center mb-5 border border-[#20d6c7]/40 group-hover:scale-105 transition-transform">
+              <Container size={24} />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">🐳 Criar Contêineres com 1 Botão</h3>
+            <p className="text-xs sm:text-sm text-[#7f9c9f] leading-relaxed mb-4">
+              Esqueça comandos gigantes como <code className="text-[#20d6c7] bg-[#070b0e] px-1.5 py-0.5 rounded text-[11px]">docker run -d -p 3000:3000</code>. Basta selecionar a imagem, definir a porta e disparar. O contêiner sobe instantaneamente com telemetria e logs ao vivo.
+            </p>
+            <div className="text-[11px] font-mono text-[#a3c3c7] bg-[#070e10] p-2.5 rounded-lg border border-[#172b30] flex items-center gap-2">
+              <Check size={12} className="text-[#20d6c7]" />
+              <span>Start, Stop, Restart & Logs direto na tela</span>
+            </div>
+          </div>
+
+          {/* 2. Load Balancer Nginx */}
+          <div className="bg-[#0b1316] border border-[#1b3137] hover:border-[#20d6c7]/50 rounded-2xl p-6 transition-all hover:shadow-[0_0_25px_rgba(32,214,199,0.15)] group">
+            <div className="w-12 h-12 rounded-xl bg-[#142e33] text-[#20d6c7] flex items-center justify-center mb-5 border border-[#20d6c7]/40 group-hover:scale-105 transition-transform">
+              <Network size={24} />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">⚖️ Load Balancer Nginx em Segundos</h3>
+            <p className="text-xs sm:text-sm text-[#7f9c9f] leading-relaxed mb-4">
+              Crie balanceamento de carga e proxy reverso sem encostar em arquivos confusos de <code className="text-[#20d6c7] bg-[#070b0e] px-1.5 py-0.5 rounded text-[11px]">nginx.conf</code>. Distribua o tráfego entre nós e microsserviços com SSL automático e reinício transparente.
+            </p>
+            <div className="text-[11px] font-mono text-[#a3c3c7] bg-[#070e10] p-2.5 rounded-lg border border-[#172b30] flex items-center gap-2">
+              <Check size={12} className="text-[#20d6c7]" />
+              <span>Roteamento de subdomínios & Upstream dinâmico</span>
+            </div>
+          </div>
+
+          {/* 3. Cofre Oracle & .ENV */}
+          <div className="bg-[#0b1316] border border-[#1b3137] hover:border-[#20d6c7]/50 rounded-2xl p-6 transition-all hover:shadow-[0_0_25px_rgba(32,214,199,0.15)] group">
+            <div className="w-12 h-12 rounded-xl bg-[#142e33] text-[#20d6c7] flex items-center justify-center mb-5 border border-[#20d6c7]/40 group-hover:scale-105 transition-transform">
+              <KeyRound size={24} />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">🔐 Cofre OCI Vault & Variáveis .ENV</h3>
+            <p className="text-xs sm:text-sm text-[#7f9c9f] leading-relaxed mb-4">
+              Gere senhas criptografadas e armazene segredos no <strong>Cofre da Oracle Cloud (OCI Key Vault)</strong> com criptografia <strong>AES-256-GCM</strong>. As variáveis são injetadas em memória na inicialização — <strong>zero senhas em arquivos .txt ou no Git</strong>.
+            </p>
+            <div className="text-[11px] font-mono text-[#a3c3c7] bg-[#070e10] p-2.5 rounded-lg border border-[#172b30] flex items-center gap-2">
+              <Check size={12} className="text-[#20d6c7]" />
+              <span>Conforme SOC 2 CC6.1 & ISO 27001</span>
+            </div>
+          </div>
+
+          {/* 4. Cloudflare Zero Trust 1 Clique */}
+          <div className="bg-[#0b1316] border border-[#1b3137] hover:border-[#20d6c7]/50 rounded-2xl p-6 transition-all hover:shadow-[0_0_25px_rgba(32,214,199,0.15)] group">
+            <div className="w-12 h-12 rounded-xl bg-[#142e33] text-[#20d6c7] flex items-center justify-center mb-5 border border-[#20d6c7]/40 group-hover:scale-105 transition-transform">
+              <Shield size={24} />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">⚡ Cloudflare Zero Trust com 1 Clique</h3>
+            <p className="text-xs sm:text-sm text-[#7f9c9f] leading-relaxed mb-4">
+              Publique suas APIs e sistemas para a internet sem abrir <strong>nenhuma porta no firewall da nuvem</strong>. O túnel criptografado oculta seu IP público real, oferece proteção DDoS massiva e conexão TLS 1.3 de alta performance.
+            </p>
+            <div className="text-[11px] font-mono text-[#a3c3c7] bg-[#070e10] p-2.5 rounded-lg border border-[#172b30] flex items-center gap-2">
+              <Check size={12} className="text-[#20d6c7]" />
+              <span>Zero portas expostas (porta 80/443 fechadas)</span>
+            </div>
+          </div>
+
+          {/* 5. Migração de Bancos */}
+          <div className="bg-[#0b1316] border border-[#1b3137] hover:border-[#20d6c7]/50 rounded-2xl p-6 transition-all hover:shadow-[0_0_25px_rgba(32,214,199,0.15)] group">
+            <div className="w-12 h-12 rounded-xl bg-[#142e33] text-[#20d6c7] flex items-center justify-center mb-5 border border-[#20d6c7]/40 group-hover:scale-105 transition-transform">
+              <ArrowLeftRight size={24} />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">🔄 Migração de Bancos sem Fricção</h3>
+            <p className="text-xs sm:text-sm text-[#7f9c9f] leading-relaxed mb-4">
+              Mova schemas e dados com facilidade entre instâncias locais, <strong>MySQL 8.0</strong>, <strong>Oracle Database 23ai</strong> e <strong>Oracle Autonomous Database (ATP Serverless)</strong>. Rotinas integradas de exportação, importação e validação de consistência.
+            </p>
+            <div className="text-[11px] font-mono text-[#a3c3c7] bg-[#070e10] p-2.5 rounded-lg border border-[#172b30] flex items-center gap-2">
+              <Check size={12} className="text-[#20d6c7]" />
+              <span>Export/Import seguro sem parada de serviço</span>
+            </div>
+          </div>
+
+          {/* 6. Buckets & Object Storage */}
+          <div className="bg-[#0b1316] border border-[#1b3137] hover:border-[#20d6c7]/50 rounded-2xl p-6 transition-all hover:shadow-[0_0_25px_rgba(32,214,199,0.15)] group">
+            <div className="w-12 h-12 rounded-xl bg-[#142e33] text-[#20d6c7] flex items-center justify-center mb-5 border border-[#20d6c7]/40 group-hover:scale-105 transition-transform">
+              <HardDrive size={24} />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">🪣 Buckets OCI & Por Que Usá-los?</h3>
+            <p className="text-xs sm:text-sm text-[#7f9c9f] leading-relaxed mb-4">
+              Crie buckets no <strong>Oracle Object Storage</strong> em 1 clique para fotos e mídias. <br />
+              <strong className="text-white">Por que NUNCA guardar fotos na VM?</strong>
+            </p>
+            <ul className="space-y-1.5 text-xs text-[#a1c1c5] mb-2">
+              <li className="flex items-center gap-1.5">
+                <Check size={11} className="text-[#20d6c7]" />
+                <span><strong>Não estoura o disco:</strong> A VM tem apenas 45GB. O Bucket tem espaço infinito.</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <Check size={11} className="text-[#20d6c7]" />
+                <span><strong>Economiza RAM/CPU:</strong> O servidor não processa uploads pesados.</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <Check size={11} className="text-[#20d6c7]" />
+                <span><strong>CDN Global:</strong> Imagens entregues em milissegundos via borda.</span>
               </li>
             </ul>
           </div>
