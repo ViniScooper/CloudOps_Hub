@@ -7,7 +7,8 @@ import {
   ShieldCheck, Star, ExternalLink, Server, Database, 
   Cpu, Lock, Zap, ArrowRight, CheckCircle2, Terminal, 
   Layers, Globe, Check, Eye, AlertTriangle, Sparkles,
-  Container, Network, KeyRound, Shield, ArrowLeftRight, HardDrive, RefreshCw
+  Container, Network, KeyRound, Shield, ArrowLeftRight, HardDrive, RefreshCw,
+  HelpCircle, FileCheck, Layers3, TerminalSquare, GitBranch, ShieldAlert, ChevronRight, UserCheck
 } from 'lucide-react'
 
 const printsData = [
@@ -496,6 +497,154 @@ export default function LandingPage() {
             <p className="text-xs sm:text-sm text-[#7f9c9f] leading-relaxed">
               Deixe os agentes de auto-cura e cron jobs mantendo suas instâncias aquecidas e receba diagnósticos do Copilot Odisseu.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 🛡️ Matriz de Conformidade e Segurança (SOC 2, ISO 27001, OWASP) */}
+      <section id="seguranca" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[#152327]">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <span className="text-xs font-mono uppercase tracking-widest text-[#20d6c7] bg-[#122326] px-3 py-1 rounded-full border border-[#20d6c7]/30">
+            Conformidade & Blindagem Criptográfica
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mt-4">
+            Auditoria & Governança de Nível Bancário
+          </h2>
+          <p className="text-[#839ea2] mt-3 text-sm sm:text-base">
+            O CloudOps Hub foi construído seguindo rigorosamente os controles auditáveis exigidos por grandes corporações internacionais.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          
+          <div className="bg-[#0b1316] border border-[#1d3339] rounded-2xl p-6 relative">
+            <div className="w-10 h-10 rounded-xl bg-[#142e33] text-[#20d6c7] flex items-center justify-center mb-4 border border-[#20d6c7]/40">
+              <FileCheck size={20} />
+            </div>
+            <span className="text-[11px] font-mono text-[#20d6c7] uppercase font-bold tracking-wider">SOC 2 Type II</span>
+            <h4 className="text-base font-bold text-white mt-1 mb-2">Trust Services Criteria (CC6.1)</h4>
+            <p className="text-xs text-[#819e9f] leading-relaxed">
+              Cofre de chaves AES-256-GCM isolado com rotação periódica e segregação estrita de privilégios. Zero senhas hardcoded em disco ou git.
+            </p>
+          </div>
+
+          <div className="bg-[#0b1316] border border-[#1d3339] rounded-2xl p-6 relative">
+            <div className="w-10 h-10 rounded-xl bg-[#142e33] text-[#20d6c7] flex items-center justify-center mb-4 border border-[#20d6c7]/40">
+              <Lock size={20} />
+            </div>
+            <span className="text-[11px] font-mono text-[#20d6c7] uppercase font-bold tracking-wider">ISO/IEC 27001 & 27017</span>
+            <h4 className="text-base font-bold text-white mt-1 mb-2">Segurança em Nuvem & Dados</h4>
+            <p className="text-xs text-[#819e9f] leading-relaxed">
+              Criptografia TLS 1.3 ponta a ponta na borda e comunicação interna estritamente privada em rede isolada na Oracle Cloud.
+            </p>
+          </div>
+
+          <div className="bg-[#0b1316] border border-[#1d3339] rounded-2xl p-6 relative">
+            <div className="w-10 h-10 rounded-xl bg-[#142e33] text-[#20d6c7] flex items-center justify-center mb-4 border border-[#20d6c7]/40">
+              <ShieldAlert size={20} />
+            </div>
+            <span className="text-[11px] font-mono text-[#20d6c7] uppercase font-bold tracking-wider">OWASP Top 10</span>
+            <h4 className="text-base font-bold text-white mt-1 mb-2">Defesa Contra Ataques Web</h4>
+            <p className="text-xs text-[#819e9f] leading-relaxed">
+              Blindagem ativa contra injeção SQL, Cross-Site Scripting (XSS via CSP), clickjacking e ataques de enumeração via Rate-Limit.
+            </p>
+          </div>
+
+          <div className="bg-[#0b1316] border border-[#1d3339] rounded-2xl p-6 relative">
+            <div className="w-10 h-10 rounded-xl bg-[#142e33] text-[#20d6c7] flex items-center justify-center mb-4 border border-[#20d6c7]/40">
+              <Database size={20} />
+            </div>
+            <span className="text-[11px] font-mono text-[#20d6c7] uppercase font-bold tracking-wider">DR & Continuidade</span>
+            <h4 className="text-base font-bold text-white mt-1 mb-2">Oracle RMAN Point-In-Time</h4>
+            <p className="text-xs text-[#819e9f] leading-relaxed">
+              Rotinas auditáveis de backup a quente no Oracle 23ai com capacidade de recuperação no segundo exato anterior a qualquer desastre.
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ❓ Perguntas Frequentes (FAQ Técnico de Arquitetos e DBAs) */}
+      <section className="py-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[#152327]">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <span className="text-xs font-mono uppercase tracking-widest text-[#20d6c7] bg-[#122326] px-3 py-1 rounded-full border border-[#20d6c7]/30">
+            Dúvidas Técnicas Frequentes
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mt-4">
+            Perguntas & Respostas sobre a Arquitetura
+          </h2>
+        </div>
+
+        <div className="space-y-4">
+          
+          <div className="bg-[#0b1316] border border-[#1a2f35] rounded-xl p-5 sm:p-6">
+            <h4 className="text-base font-bold text-white flex items-center gap-2 mb-2">
+              <span className="text-[#20d6c7]">01.</span> Por que utilizar Buckets (Object Storage) em vez de gravar imagens no disco da VM?
+            </h4>
+            <p className="text-xs sm:text-sm text-[#829fa3] leading-relaxed">
+              A máquina virtual tem armazenamento NVMe finito (ex: 45 GB). Se os usuários começarem a fazer upload de fotos e notas fiscais diretamente no disco, o filesystem atinge 100% de uso rapidamente, o que trava o banco de dados Oracle/MySQL e corrompe arquivos do Linux. O Object Storage oferece capacidade ilimitada, não consome RAM/CPU do servidor para servir imagens estáticas e distribui os arquivos globalmente via CDN.
+            </p>
+          </div>
+
+          <div className="bg-[#0b1316] border border-[#1a2f35] rounded-xl p-5 sm:p-6">
+            <h4 className="text-base font-bold text-white flex items-center gap-2 mb-2">
+              <span className="text-[#20d6c7]">02.</span> Como o Cloudflare Tunnel funciona sem abrir nenhuma porta no firewall da nuvem?
+            </h4>
+            <p className="text-xs sm:text-sm text-[#829fa3] leading-relaxed">
+              Diferente de servidores tradicionais que abrem as portas 80, 443 e 3000 para a internet e ficam expostos a varreduras de bots, o agente do Cloudflare (<code className="text-[#20d6c7]">cloudflared</code>) cria uma conexão de <em>saída reversa criptografada</em> diretamente com o datacenter mais próximo da Cloudflare. As portas de entrada permanecem 100% fechadas e blindadas na Security List da OCI.
+            </p>
+          </div>
+
+          <div className="bg-[#0b1316] border border-[#1a2f35] rounded-xl p-5 sm:p-6">
+            <h4 className="text-base font-bold text-white flex items-center gap-2 mb-2">
+              <span className="text-[#20d6c7]">03.</span> O CloudOps Hub funciona no plano gratuito vitalício da Oracle Cloud (Always Free)?
+            </h4>
+            <p className="text-xs sm:text-sm text-[#829fa3] leading-relaxed">
+              Sim! Todo o projeto foi otimizado para rodar com eficiência máxima em instâncias gratuitas da Oracle Cloud. O backend em Node.js é gerenciado pelo PM2 consumindo apenas 25 MB a 40 MB de memória RAM, permitindo rodar bancos de dados Oracle Database 23ai Free, contêineres Docker e APIs sem custos de infraestrutura.
+            </p>
+          </div>
+
+          <div className="bg-[#0b1316] border border-[#1a2f35] rounded-xl p-5 sm:p-6">
+            <h4 className="text-base font-bold text-white flex items-center gap-2 mb-2">
+              <span className="text-[#20d6c7]">04.</span> Como funciona a recuperação a desastres Point-In-Time (PITR) com Oracle RMAN?
+            </h4>
+            <p className="text-xs sm:text-sm text-[#829fa3] leading-relaxed">
+              Em caso de um comando destrutivo acidental (como um <code className="text-red-400">TRUNCATE TABLE</code> que não vai para a lixeira do banco), o RMAN utiliza os backupsets e os Archivelogs gravados para restaurar os datafiles e reaplicar as transações até o milissegundo exato anterior ao erro, reabrindo o banco com <code className="text-[#20d6c7]">OPEN RESETLOGS</code> e preservando 100% dos dados.
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      {/* 🧑‍💻 Sobre o Criador & Engenharia */}
+      <section className="py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[#152327]">
+        <div className="bg-gradient-to-r from-[#0c181b] to-[#0d2125] border border-[#213f47] rounded-3xl p-8 sm:p-10 shadow-2xl relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#166068] to-[#20d6c7] text-black font-black text-2xl flex items-center justify-center shadow-[0_0_25px_rgba(32,214,199,0.4)] flex-shrink-0">
+              JV
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1.5">
+                <span className="text-xs font-mono bg-[#16353b] text-[#20d6c7] px-2.5 py-0.5 rounded-full font-bold border border-[#20d6c7]/40">
+                  Arquiteto & Engenheiro Criador
+                </span>
+                <span className="text-xs text-[#729297]">São Paulo, Brasil</span>
+              </div>
+              <h3 className="text-2xl font-bold text-white">José Vinícius Lourenço Marques de Sousa</h3>
+              <p className="text-xs sm:text-sm text-[#8baab0] mt-1.5 leading-relaxed">
+                Desenvolvedor Full-Stack & Especialista em Arquitetura Cloud (OCI / AWS) e Administração de Bancos de Dados Oracle Database. Criador do CloudOps Hub, focado em alta disponibilidade, engenharia de confiabilidade SRE e cibersegurança Zero Trust.
+              </p>
+              <div className="mt-4 flex flex-wrap items-center justify-center sm:justify-start gap-3 text-xs">
+                <a href="https://github.com/ViniScooper" target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-white hover:text-[#20d6c7] transition-colors font-semibold">
+                  <Star size={13} className="text-[#20d6c7]" />
+                  <span>GitHub: @ViniScooper</span>
+                </a>
+                <span className="text-[#3b595f]">•</span>
+                <a href="mailto:vviniciuslourenco@gmail.com" className="text-white hover:text-[#20d6c7] transition-colors font-semibold">
+                  vviniciuslourenco@gmail.com
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </section>
