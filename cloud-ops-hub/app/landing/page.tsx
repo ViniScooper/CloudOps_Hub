@@ -721,6 +721,101 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ⚖️ Comparativo: Jenkins vs CloudOps Hub */}
+      <section className="py-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[#152327]">
+        <div className="text-center max-w-3xl mx-auto mb-14">
+          <span className="text-xs font-mono uppercase tracking-widest text-[#20d6c7] bg-[#122326] px-3 py-1 rounded-full border border-[#20d6c7]/30">
+            Modernização de Infraestrutura
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mt-4">
+            Jenkins Tradicional vs CloudOps Hub: A Evolução
+          </h2>
+          <p className="mt-3 text-sm text-[#829fa3]">
+            Entenda por que o CloudOps Hub foi projetado como uma melhoria moderna e ultraleve sobre as antigas esteiras de automação em Java.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          {/* Card Jenkins */}
+          <div className="bg-[#0b1214] border border-red-500/20 rounded-2xl p-6 sm:p-8 relative">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-red-500/20">
+              <div>
+                <span className="text-xs font-mono text-red-400 uppercase tracking-widest font-bold">Arquitetura Legada</span>
+                <h3 className="text-2xl font-bold text-white mt-1">Jenkins CI/CD</h3>
+              </div>
+              <span className="text-2xl">☕</span>
+            </div>
+
+            <ul className="space-y-4 text-xs sm:text-sm text-[#889fa2]">
+              <li className="flex items-start gap-2.5">
+                <span className="text-red-400 font-bold mt-0.5">✕</span>
+                <div>
+                  <strong className="text-white">Alto Consumo de Memória:</strong> Baseado em Java JVM, consome de 1 GB a 2 GB de RAM mesmo ocioso, inviabilizando servidores menores ou instâncias gratuitas Always Free.
+                </div>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-red-400 font-bold mt-0.5">✕</span>
+                <div>
+                  <strong className="text-white">Vulnerabilidades em Plugins:</strong> Dependência de dezenas de plugins de terceiros frequentemente abandonados, com histórico de brechas críticas (CVEs).
+                </div>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-red-400 font-bold mt-0.5">✕</span>
+                <div>
+                  <strong className="text-white">Configuração Manual Frágil:</strong> Exige dominar sintaxe Groovy e escrever pipelines complexos em arquivos <code className="text-red-300">Jenkinsfile</code>.
+                </div>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-red-400 font-bold mt-0.5">✕</span>
+                <div>
+                  <strong className="text-white">Escopo Limitado:</strong> Apenas executa scripts e rotinas de build. Não gerencia contêineres Docker, nem telemetria SRE, nem bancos de dados.
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          {/* Card CloudOps Hub */}
+          <div className="bg-[#081619] border border-[#20d6c7]/50 rounded-2xl p-6 sm:p-8 relative shadow-[0_0_35px_rgba(32,214,199,0.15)]">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#20d6c7]/30">
+              <div>
+                <span className="text-xs font-mono text-[#20d6c7] uppercase tracking-widest font-bold">Nova Geração SRE</span>
+                <h3 className="text-2xl font-bold text-white mt-1">CloudOps Hub</h3>
+              </div>
+              <span className="text-2xl">⚡</span>
+            </div>
+
+            <ul className="space-y-4 text-xs sm:text-sm text-[#9abec2]">
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#20d6c7] font-bold mt-0.5">✓</span>
+                <div>
+                  <strong className="text-white">Pegada Ultraleve (~35 MB RAM):</strong> Motor de microsserviços em Fastify e Node.js de alta performance. Roda com folga no plano Always Free da Oracle Cloud.
+                </div>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#20d6c7] font-bold mt-0.5">✓</span>
+                <div>
+                  <strong className="text-white">Zero Trust & Zero CVEs:</strong> Auditado para 0 vulnerabilidades (Snyk), Nota A+ no SecurityHeaders e túnel reverso Cloudflare sem expor portas na internet.
+                </div>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#20d6c7] font-bold mt-0.5">✓</span>
+                <div>
+                  <strong className="text-white">Automação em 1 Clique com IA:</strong> Gerenciador visual de contêineres Docker, Nginx Load Balancers e Copiloto Inteligente integrado (Odisseu IA).
+                </div>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#20d6c7] font-bold mt-0.5">✓</span>
+                <div>
+                  <strong className="text-white">Hub Unificado Completo:</strong> Além de CI/CD, inclui observabilidade SRE em tempo real, cofre OCI Vault HSM e painel DBA para Oracle Database 23ai com backup RMAN PITR.
+                </div>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </section>
+
       {/* ❓ Perguntas Frequentes (FAQ Técnico de Arquitetos e DBAs) */}
       <section className="py-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[#152327]">
         <div className="text-center max-w-3xl mx-auto mb-16">
@@ -785,6 +880,15 @@ export default function LandingPage() {
             </h4>
             <p className="text-xs sm:text-sm text-[#829fa3] leading-relaxed">
               Em arquiteturas tradicionais, senhas ficam salvas em arquivos <code className="text-amber-400">.env</code> de texto plano no disco da máquina, correndo o risco de serem commitadas no GitHub ou lidas por invasores. Com o CloudOps Hub integrado ao OCI Vault, os segredos são criptografados por chaves mestras de Hardware (HSM AES-256) e injetados diretamente na memória do processo em tempo de execução via API autenticada por Resource Principal.
+            </p>
+          </div>
+
+          <div className="bg-[#0b1316] border border-[#1a2f35] rounded-xl p-5 sm:p-6">
+            <h4 className="text-base font-bold text-white flex items-center gap-2 mb-2">
+              <span className="text-[#20d6c7]">07.</span> O CloudOps Hub é uma evolução/melhoria em relação ao Jenkins?
+            </h4>
+            <p className="text-xs sm:text-sm text-[#829fa3] leading-relaxed">
+              Sim! Enquanto o Jenkins tradicional foi concebido há quase 20 anos em Java (consumindo 1 GB a 2 GB de memória RAM ocioso, dependendo de plugins quebradiços e expondo portas 8080 na internet com frequentes CVEs), o CloudOps Hub é uma <strong>evolução moderna e ultraleve</strong>: consome apenas 35 MB de RAM, opera com 0 vulnerabilidades (auditado pelo Snyk), blindado por Cloudflare Zero Trust sem portas abertas e unifica CI/CD, observabilidade SRE em tempo real, orquestração Docker e rotinas completas de DBA Oracle 23ai com backup RMAN num único painel.
             </p>
           </div>
 
