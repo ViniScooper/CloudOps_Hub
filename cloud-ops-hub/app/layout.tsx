@@ -142,6 +142,11 @@ const jsonLd = {
       'name': 'José Vinícius Lourenço Marques de Sousa',
       'alternateName': 'Vinícius Lourenço',
       'url': 'https://github.com/ViniScooper',
+      'sameAs': [
+        'https://www.linkedin.com/in/jose-vinicius-louren%C3%A7o-1a6b9014a/',
+        'https://github.com/ViniScooper',
+        'https://www.tabnews.com.br/viniScooper'
+      ],
       'jobTitle': 'Desenvolvedor Full-Stack & Arquiteto Cloud / DBA',
     },
   ],

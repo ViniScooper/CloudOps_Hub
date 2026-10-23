@@ -9,8 +9,17 @@ import {
   Layers, Globe, Check, Eye, AlertTriangle, Sparkles,
   Container, Network, KeyRound, Shield, ArrowLeftRight, HardDrive, RefreshCw,
   HelpCircle, FileCheck, Layers3, TerminalSquare, GitBranch, ShieldAlert, ChevronRight, UserCheck,
-  Share2, MessageCircle, Copy, Search, Tag, Sliders
+  Share2, MessageCircle, Copy, Search, Tag, Sliders,
+  Newspaper
 } from 'lucide-react'
+
+const LinkedinIcon = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+    <rect width="4" height="12" x="2" y="9" />
+    <circle cx="4" cy="4" r="2" />
+  </svg>
+)
 
 const printsData = [
   {
@@ -113,22 +122,41 @@ export default function LandingPage() {
             <a href="#arquitetura" className="hover:text-white transition-colors">Zero Trust</a>
             <a href="#comousar" className="hover:text-white transition-colors">Como Usar</a>
             <a href="#seguranca" className="hover:text-white transition-colors">Segurança</a>
+            <a 
+              href="https://www.tabnews.com.br/viniScooper/cansei-de-abrir-10-paineis-oracle-aws-hostinger-vercel-criei-um-hub-multi-cloud-com-ia-para-controlar-tudo-em-1-lugar" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="flex items-center gap-1.5 text-xs text-[#20d6c7] bg-[#102225] hover:bg-[#142d31] px-2.5 py-1 rounded-md border border-[#20d6c7]/30 transition-all font-medium"
+            >
+              <Newspaper size={12} />
+              <span>TabNews</span>
+            </a>
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <a
+              href="https://www.linkedin.com/in/jose-vinicius-louren%C3%A7o-1a6b9014a/"
+              target="_blank"
+              rel="noreferrer"
+              title="LinkedIn de José Vinícius Lourenço"
+              className="p-2 rounded-lg bg-[#101b1e] hover:bg-[#16272c] border border-[#264147] text-[#0077b5] hover:text-white transition-all shadow-sm"
+            >
+              <LinkedinIcon size={15} />
+            </a>
+
             <a
               href="https://github.com/ViniScooper/CloudOps_Hub"
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-2 bg-[#101b1e] hover:bg-[#16272c] border border-[#264147] hover:border-[#20d6c7]/60 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-all shadow-sm group"
+              className="flex items-center gap-2 bg-[#101b1e] hover:bg-[#16272c] border border-[#264147] hover:border-[#20d6c7]/60 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-all shadow-sm group"
             >
               <Star size={14} className="text-yellow-400 fill-yellow-400 group-hover:scale-110 transition-transform" />
-              <span>Star no GitHub</span>
+              <span className="hidden sm:inline">Star no GitHub</span>
             </a>
 
             <Link
               href="/"
-              className="bg-[#20d6c7] hover:bg-[#1ec3b5] text-black text-xs font-bold px-4 py-2 rounded-lg transition-all shadow-[0_0_15px_rgba(32,214,199,0.25)] flex items-center gap-1.5"
+              className="bg-[#20d6c7] hover:bg-[#1ec3b5] text-black text-xs font-bold px-3.5 py-2 rounded-lg transition-all shadow-[0_0_15px_rgba(32,214,199,0.25)] flex items-center gap-1.5"
             >
               <span>Acessar Painel</span>
               <ArrowRight size={13} />
@@ -177,6 +205,33 @@ export default function LandingPage() {
               <Zap size={16} className="text-[#20d6c7]" />
               <span>Testar Painel ao Vivo</span>
             </Link>
+          </div>
+
+          {/* 📰 Destaque TabNews */}
+          <div className="mt-10 max-w-3xl mx-auto bg-gradient-to-r from-[#0a181b] via-[#0e2428] to-[#0a181b] border border-[#20d6c7]/40 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_0_30px_rgba(32,214,199,0.15)] text-left hover:border-[#20d6c7] transition-all group">
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-[#14353a] text-[#20d6c7] flex items-center justify-center font-bold text-xl flex-shrink-0 border border-[#20d6c7]/40 group-hover:scale-105 transition-transform">
+                📰
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono uppercase bg-[#184449] text-[#20d6c7] px-2 py-0.5 rounded-full font-bold border border-[#20d6c7]/30">Publicação no TabNews</span>
+                  <span className="text-[11px] text-[#729297]">Artigo por @viniScooper</span>
+                </div>
+                <h3 className="text-xs sm:text-sm font-bold text-white mt-1 leading-snug">
+                  &quot;Cansei de abrir 10 painéis (Oracle, AWS, Hostinger, Vercel)... Criei um Hub Multi-Cloud com IA para controlar tudo em 1 lugar!&quot;
+                </h3>
+              </div>
+            </div>
+            <a
+              href="https://www.tabnews.com.br/viniScooper/cansei-de-abrir-10-paineis-oracle-aws-hostinger-vercel-criei-um-hub-multi-cloud-com-ia-para-controlar-tudo-em-1-lugar"
+              target="_blank"
+              rel="noreferrer"
+              className="flex-shrink-0 flex items-center gap-2 bg-[#20d6c7] hover:bg-[#1ec3b5] text-black font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all shadow-[0_0_15px_rgba(32,214,199,0.25)] whitespace-nowrap"
+            >
+              <span>Ler Artigo Completo</span>
+              <ExternalLink size={13} />
+            </a>
           </div>
 
           {/* Badges Oficiais de Segurança e Reconhecimento */}
@@ -835,19 +890,59 @@ export default function LandingPage() {
                 <span className="text-xs font-mono bg-[#16353b] text-[#20d6c7] px-2.5 py-0.5 rounded-full font-bold border border-[#20d6c7]/40">
                   Arquiteto & Engenheiro Criador
                 </span>
-                <span className="text-xs text-[#729297]">São Paulo, Brasil</span>
+                <span className="text-xs text-[#729297]">Recife, PE, Brasil • Remoto Global</span>
               </div>
               <h3 className="text-2xl font-bold text-white">José Vinícius Lourenço Marques de Sousa</h3>
               <p className="text-xs sm:text-sm text-[#8baab0] mt-1.5 leading-relaxed">
                 Desenvolvedor Full-Stack & Especialista em Arquitetura Cloud (OCI / AWS) e Administração de Bancos de Dados Oracle Database. Criador do CloudOps Hub, focado em alta disponibilidade, engenharia de confiabilidade SRE e cibersegurança Zero Trust.
               </p>
-              <div className="mt-4 flex flex-wrap items-center justify-center sm:justify-start gap-3 text-xs">
-                <a href="https://github.com/ViniScooper" target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-white hover:text-[#20d6c7] transition-colors font-semibold">
+              <div className="mt-5 flex flex-wrap items-center justify-center sm:justify-start gap-3 text-xs">
+                <a 
+                  href="https://www.linkedin.com/in/jose-vinicius-louren%C3%A7o-1a6b9014a/" 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="flex items-center gap-1.5 bg-[#0a1e2f] hover:bg-[#0f2c45] border border-sky-600/40 text-sky-300 px-3 py-1.5 rounded-lg transition-all font-semibold"
+                >
+                  <LinkedinIcon size={14} className="text-sky-400" />
+                  <span>LinkedIn</span>
+                  <ExternalLink size={12} />
+                </a>
+
+                <a 
+                  href="https://github.com/ViniScooper" 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="flex items-center gap-1.5 bg-[#121d21] hover:bg-[#1a292f] border border-[#233f46] text-white px-3 py-1.5 rounded-lg transition-all font-semibold"
+                >
                   <Star size={13} className="text-[#20d6c7]" />
                   <span>GitHub: @ViniScooper</span>
                 </a>
-                <span className="text-[#3b595f]">•</span>
-                <a href="mailto:vviniciuslourenco@gmail.com" className="text-white hover:text-[#20d6c7] transition-colors font-semibold">
+
+                <a 
+                  href="https://www.tabnews.com.br/viniScooper/cansei-de-abrir-10-paineis-oracle-aws-hostinger-vercel-criei-um-hub-multi-cloud-com-ia-para-controlar-tudo-em-1-lugar" 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="flex items-center gap-1.5 bg-[#102428] hover:bg-[#153238] border border-[#20d6c7]/40 text-[#20d6c7] px-3 py-1.5 rounded-lg transition-all font-semibold"
+                >
+                  <Newspaper size={13} />
+                  <span>Artigo no TabNews</span>
+                  <ExternalLink size={12} />
+                </a>
+
+                <a 
+                  href="https://wa.me/5581995126839" 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="flex items-center gap-1.5 bg-[#0d231d] hover:bg-[#13332a] border border-emerald-600/40 text-emerald-300 px-3 py-1.5 rounded-lg transition-all font-semibold"
+                >
+                  <MessageCircle size={13} className="text-emerald-400" />
+                  <span>WhatsApp (+55 81)</span>
+                </a>
+
+                <a 
+                  href="mailto:vviniciuslourenco@gmail.com" 
+                  className="text-[#8aaab0] hover:text-[#20d6c7] transition-colors font-medium px-2 py-1"
+                >
                   vviniciuslourenco@gmail.com
                 </a>
               </div>
@@ -949,8 +1044,10 @@ export default function LandingPage() {
             <p className="mt-1">Software Proprietário & Proteção Comercial (Lei Federal nº 9.609/1998 e 9.610/1998).</p>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6">
             <a href="https://github.com/ViniScooper/CloudOps_Hub" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">GitHub</a>
+            <a href="https://www.linkedin.com/in/jose-vinicius-louren%C3%A7o-1a6b9014a/" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">LinkedIn</a>
+            <a href="https://www.tabnews.com.br/viniScooper/cansei-de-abrir-10-paineis-oracle-aws-hostinger-vercel-criei-um-hub-multi-cloud-com-ia-para-controlar-tudo-em-1-lugar" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">TabNews</a>
             <Link href="/" className="hover:text-white transition-colors">Dashboard</Link>
             <a href="mailto:vviniciuslourenco@gmail.com" className="hover:text-white transition-colors">Contato</a>
           </div>
