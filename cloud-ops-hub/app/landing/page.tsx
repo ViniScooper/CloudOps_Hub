@@ -10,7 +10,7 @@ import {
   Container, Network, KeyRound, Shield, ArrowLeftRight, HardDrive, RefreshCw,
   HelpCircle, FileCheck, Layers3, TerminalSquare, GitBranch, ShieldAlert, ChevronRight, UserCheck,
   Share2, MessageCircle, Copy, Search, Tag, Sliders,
-  Newspaper
+  Newspaper, Code2, Coins, BellRing, GitPullRequest, ArrowDownRight
 } from 'lucide-react'
 
 const LinkedinIcon = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
@@ -518,7 +518,185 @@ export default function LandingPage() {
             </ul>
           </div>
 
+          {/* 7. Terraform & IaC */}
+          <div className="bg-[#0b1316] border border-[#1b3137] hover:border-[#20d6c7]/50 rounded-2xl p-6 transition-all hover:shadow-[0_0_25px_rgba(32,214,199,0.15)] group">
+            <div className="w-12 h-12 rounded-xl bg-[#142e33] text-[#20d6c7] flex items-center justify-center mb-5 border border-[#20d6c7]/40 group-hover:scale-105 transition-transform">
+              <Code2 size={24} />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">🏗️ Terraform & IaC Declarativo</h3>
+            <p className="text-xs sm:text-sm text-[#7f9c9f] leading-relaxed mb-4">
+              Compatível com infraestrutura como código via <strong>Terraform (HCL)</strong>. Provisione VCNs, Subnets e instâncias OCI de forma determinística, permitindo recriar todo o seu ecossistema em minutos sem drift de configuração.
+            </p>
+            <div className="text-[11px] font-mono text-[#a3c3c7] bg-[#070e10] p-2.5 rounded-lg border border-[#172b30] flex items-center gap-2">
+              <Check size={12} className="text-[#20d6c7]" />
+              <span>Terraform Ready para OCI & Cloudflare</span>
+            </div>
+          </div>
+
+          {/* 8. GitOps & Rollback Atômico */}
+          <div className="bg-[#0b1316] border border-[#1b3137] hover:border-[#20d6c7]/50 rounded-2xl p-6 transition-all hover:shadow-[0_0_25px_rgba(32,214,199,0.15)] group">
+            <div className="w-12 h-12 rounded-xl bg-[#142e33] text-[#20d6c7] flex items-center justify-center mb-5 border border-[#20d6c7]/40 group-hover:scale-105 transition-transform">
+              <GitPullRequest size={24} />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">🔄 GitOps & Rollback Atômico</h3>
+            <p className="text-xs sm:text-sm text-[#7f9c9f] leading-relaxed mb-4">
+              Esteira contínua com <strong>GitHub Webhooks</strong>: ao fazer git push, o contêiner atualiza com zero-downtime. Caso o healthcheck do Nginx detecte falha, o rollback atômico reverte a versão imediatamente e dispara alertas em tempo real.
+            </p>
+            <div className="text-[11px] font-mono text-[#a3c3c7] bg-[#070e10] p-2.5 rounded-lg border border-[#172b30] flex items-center gap-2">
+              <Check size={12} className="text-[#20d6c7]" />
+              <span>Zero-Downtime & Alertas Discord/Telegram</span>
+            </div>
+          </div>
+
         </div>
+      </section>
+
+      {/* 💰 Seção FinOps: Economia de Nuvem e Métricas SRE Corporativas */}
+      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[#152327]">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <span className="text-xs font-mono uppercase tracking-widest text-[#20d6c7] bg-[#122326] px-3 py-1 rounded-full border border-[#20d6c7]/30">
+            FinOps & Eficiência de Capital
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mt-4">
+            Infraestrutura Corporativa com Custo de R$ 0/mês
+          </h2>
+          <p className="text-[#839ea2] mt-3 text-sm sm:text-base">
+            Elimine o &quot;Cloud Bill Shock&quot;. Compare o custo de rodar uma arquitetura de alta disponibilidade na AWS contra o ecossistema otimizado do CloudOps Hub na Oracle Cloud Always Free.
+          </p>
+        </div>
+
+        {/* Comparativo de Custos AWS vs CloudOps Hub */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          
+          {/* Card AWS */}
+          <div className="bg-[#0c1214] border border-red-500/30 rounded-2xl p-6 sm:p-8 relative">
+            <div className="flex items-center justify-between pb-4 border-b border-red-500/20 mb-6">
+              <div>
+                <span className="text-xs font-mono text-red-400 uppercase tracking-widest font-bold">Arquitetura Tradicional</span>
+                <h3 className="text-xl font-bold text-white mt-1">Stack Equivalente na AWS</h3>
+              </div>
+              <span className="text-xs font-mono text-red-300 bg-red-950/60 px-3 py-1 rounded-full border border-red-500/30">
+                Faturamento Alto
+              </span>
+            </div>
+
+            <ul className="space-y-3 text-xs sm:text-sm text-[#929fa3]">
+              <li className="flex justify-between items-center py-1.5 border-b border-[#162125]">
+                <span>EC2 t3.large (Servidores & Aplicações)</span>
+                <span className="font-mono text-white">~$65,00/mês</span>
+              </li>
+              <li className="flex justify-between items-center py-1.5 border-b border-[#162125]">
+                <span>Amazon RDS Oracle Database Standard</span>
+                <span className="font-mono text-white">~$450,00/mês</span>
+              </li>
+              <li className="flex justify-between items-center py-1.5 border-b border-[#162125]">
+                <span>Application Load Balancer (ALB)</span>
+                <span className="font-mono text-white">~$25,00/mês</span>
+              </li>
+              <li className="flex justify-between items-center py-1.5 border-b border-[#162125]">
+                <span>NAT Gateway & Transferência de Dados</span>
+                <span className="font-mono text-white">~$42,00/mês</span>
+              </li>
+              <li className="flex justify-between items-center py-1.5 border-b border-[#162125]">
+                <span>AWS Secrets Manager & CloudWatch Logs</span>
+                <span className="font-mono text-white">~$18,00/mês</span>
+              </li>
+            </ul>
+
+            <div className="mt-6 pt-4 border-t border-red-500/30 flex items-center justify-between">
+              <div>
+                <span className="text-xs text-[#879ea2]">Custo Mensal Estimado:</span>
+                <div className="text-2xl font-black text-red-400">US$ 600,00 <span className="text-xs font-normal text-[#879ea2]">(~R$ 3.600/mês)</span></div>
+              </div>
+              <div className="text-right">
+                <span className="text-xs text-[#879ea2]">Gasto Anual:</span>
+                <div className="text-lg font-bold text-red-400">~R$ 43.200/ano</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card CloudOps Hub */}
+          <div className="bg-[#06171a] border border-[#20d6c7] rounded-2xl p-6 sm:p-8 relative shadow-[0_0_40px_rgba(32,214,199,0.2)]">
+            <div className="flex items-center justify-between pb-4 border-b border-[#20d6c7]/30 mb-6">
+              <div>
+                <span className="text-xs font-mono text-[#20d6c7] uppercase tracking-widest font-bold">Arquitetura FinOps Inteligente</span>
+                <h3 className="text-xl font-bold text-white mt-1">CloudOps Hub na OCI Always Free</h3>
+              </div>
+              <span className="text-xs font-mono text-[#20d6c7] bg-[#113136] px-3 py-1 rounded-full border border-[#20d6c7]/50 font-bold">
+                100% Gratuito Vitalício
+              </span>
+            </div>
+
+            <ul className="space-y-3 text-xs sm:text-sm text-[#9abec2]">
+              <li className="flex justify-between items-center py-1.5 border-b border-[#143237]">
+                <span>Compute OCI Always Free (Ubuntu Linux)</span>
+                <span className="font-mono text-[#20d6c7] font-bold">R$ 0,00</span>
+              </li>
+              <li className="flex justify-between items-center py-1.5 border-b border-[#143237]">
+                <span>Oracle Database 23ai Free + RMAN</span>
+                <span className="font-mono text-[#20d6c7] font-bold">R$ 0,00</span>
+              </li>
+              <li className="flex justify-between items-center py-1.5 border-b border-[#143237]">
+                <span>Nginx Reverse Proxy & Load Balancer Integrado</span>
+                <span className="font-mono text-[#20d6c7] font-bold">R$ 0,00</span>
+              </li>
+              <li className="flex justify-between items-center py-1.5 border-b border-[#143237]">
+                <span>Cloudflare Zero Trust Tunnel (Borda Global)</span>
+                <span className="font-mono text-[#20d6c7] font-bold">R$ 0,00</span>
+              </li>
+              <li className="flex justify-between items-center py-1.5 border-b border-[#143237]">
+                <span>OCI Vault Key Management (HSM AES-256)</span>
+                <span className="font-mono text-[#20d6c7] font-bold">R$ 0,00</span>
+              </li>
+            </ul>
+
+            <div className="mt-6 pt-4 border-t border-[#20d6c7]/40 flex items-center justify-between">
+              <div>
+                <span className="text-xs text-[#88b6bb]">Custo de Infraestrutura:</span>
+                <div className="text-2xl font-black text-[#20d6c7]">R$ 0,00/mês <span className="text-xs font-bold text-emerald-400">(Economia de 100%)</span></div>
+              </div>
+              <div className="text-right">
+                <span className="text-xs text-[#88b6bb]">Economia Anual:</span>
+                <div className="text-lg font-bold text-emerald-400">+R$ 43.200 economizados</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* 📊 Métricas de Engenharia SRE & DR */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="bg-[#0b1316] border border-[#1a2d32] rounded-xl p-4 text-center">
+            <span className="text-[11px] font-mono text-[#789ca0] uppercase">RPO (Perda Máx. Dados)</span>
+            <div className="text-xl sm:text-2xl font-black text-[#20d6c7] mt-1">~0s</div>
+            <span className="text-[10px] text-[#5e7e83]">Archivelogs Contínuos</span>
+          </div>
+
+          <div className="bg-[#0b1316] border border-[#1a2d32] rounded-xl p-4 text-center">
+            <span className="text-[11px] font-mono text-[#789ca0] uppercase">RTO (Tempo Recuperação)</span>
+            <div className="text-xl sm:text-2xl font-black text-[#20d6c7] mt-1">&lt; 5 min</div>
+            <span className="text-[10px] text-[#5e7e83]">RMAN Auto Restore</span>
+          </div>
+
+          <div className="bg-[#0b1316] border border-[#1a2d32] rounded-xl p-4 text-center">
+            <span className="text-[11px] font-mono text-[#789ca0] uppercase">Consumo de Memória</span>
+            <div className="text-xl sm:text-2xl font-black text-[#20d6c7] mt-1">~35 MB</div>
+            <span className="text-[10px] text-[#5e7e83]">Fastify Engine</span>
+          </div>
+
+          <div className="bg-[#0b1316] border border-[#1a2d32] rounded-xl p-4 text-center">
+            <span className="text-[11px] font-mono text-[#789ca0] uppercase">Vulnerabilidades</span>
+            <div className="text-xl sm:text-2xl font-black text-emerald-400 mt-1">0 CVEs</div>
+            <span className="text-[10px] text-[#5e7e83]">Auditado por Snyk</span>
+          </div>
+
+          <div className="bg-[#0b1316] border border-[#1a2d32] rounded-xl p-4 text-center col-span-2 md:col-span-1">
+            <span className="text-[11px] font-mono text-[#789ca0] uppercase">Alertas Proativos</span>
+            <div className="text-xl sm:text-2xl font-black text-[#20d6c7] mt-1">Tempo Real</div>
+            <span className="text-[10px] text-[#5e7e83]">Discord, Slack & Telegram</span>
+          </div>
+        </div>
+
       </section>
 
       {/* 🚀 Passo a Passo de Como Usar */}
@@ -892,6 +1070,24 @@ export default function LandingPage() {
             </p>
           </div>
 
+          <div className="bg-[#0b1316] border border-[#1a2f35] rounded-xl p-5 sm:p-6">
+            <h4 className="text-base font-bold text-white flex items-center gap-2 mb-2">
+              <span className="text-[#20d6c7]">08.</span> Como o CloudOps Hub se integra com Terraform e Infraestrutura como Código (IaC)?
+            </h4>
+            <p className="text-xs sm:text-sm text-[#829fa3] leading-relaxed">
+              O ecossistema é 100% compatível com manifestos <strong>Terraform (HCL)</strong>. Você pode versionar suas VCNs, Subnets privadas, Instâncias Compute e túneis no Git e provisioná-los com <code className="text-[#20d6c7]">terraform apply</code>. O CloudOps Hub assume a camada de orquestração de contêineres, observabilidade em tempo real e gestão de bancos logo após o provisionamento da máquina, garantindo zero drift de configuração.
+            </p>
+          </div>
+
+          <div className="bg-[#0b1316] border border-[#1a2f35] rounded-xl p-5 sm:p-6">
+            <h4 className="text-base font-bold text-white flex items-center gap-2 mb-2">
+              <span className="text-[#20d6c7]">09.</span> O que é a abordagem FinOps do CloudOps Hub e como ela economiza mais de R$ 40.000/ano?
+            </h4>
+            <p className="text-xs sm:text-sm text-[#829fa3] leading-relaxed">
+              Na nuvem tradicional (como AWS ou Azure), uma arquitetura contendo banco de dados relacional gerenciado, balanceador de carga, cofre de senhas e instâncias de aplicação custa facilmente mais de US$ 600/mês (~R$ 3.600/mês). O CloudOps Hub foi projetado com engenharia <strong>FinOps de alta densidade</strong>: aproveita o plano vitalício Always Free da Oracle Cloud (4 OCPUs ARM, 24 GB RAM e banco Oracle 23ai) associado ao túnel gratuito da Cloudflare, entregando o mesmo nível de resiliência corporativa com <strong>fatura de R$ 0,00</strong>.
+            </p>
+          </div>
+
         </div>
       </section>
 
@@ -921,10 +1117,10 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-wrap gap-1.5">
               <span className="text-[10px] font-mono bg-[#111e22] text-[#20d6c7] px-2 py-0.5 rounded border border-[#20d6c7]/20">Gerenciador Docker Web</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Terraform IaC HCL</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">GitOps Push-to-Deploy</span>
               <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Portainer Alternativa</span>
-              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Coolify Alternativa</span>
               <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Nginx Load Balancer</span>
-              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Port Inspection</span>
             </div>
           </div>
 
@@ -955,9 +1151,9 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-wrap gap-1.5">
               <span className="text-[10px] font-mono bg-[#111e22] text-[#20d6c7] px-2 py-0.5 rounded border border-[#20d6c7]/20">Oracle Database 23ai</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">RPO ~0s & RTO &lt; 5m</span>
               <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Oracle RMAN PITR</span>
               <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">MySQL 8.0 Cluster</span>
-              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Zero-Downtime Migration</span>
               <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">OCI Object Storage</span>
             </div>
           </div>
@@ -966,10 +1162,17 @@ export default function LandingPage() {
             <div className="w-9 h-9 rounded-lg bg-[#142629] text-[#20d6c7] flex items-center justify-center mb-4">
               <Cpu size={20} />
             </div>
-            <h4 className="text-base font-bold text-white mb-2">SRE & Confiabilidade</h4>
+            <h4 className="text-base font-bold text-white mb-2">SRE & FinOps</h4>
             <p className="text-xs text-[#7d9b9f] mb-4">
-              Métricas em tempo real, robôs de auto-cura e telemetria profunda para servidores Linux na OCI.
+              Métricas em tempo real, robôs de auto-cura e faturas de nuvem reduzidas a zero.
             </p>
+            <div className="flex flex-wrap gap-1.5">
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#20d6c7] px-2 py-0.5 rounded border border-[#20d6c7]/20">FinOps Custo R$ 0</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Alertas Discord & Slack</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Oracle Always Free</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Watchdog Anti-Sleep</span>
+              <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Vinícius Lourenço</span>
+            </div>
             <div className="flex flex-wrap gap-1.5">
               <span className="text-[10px] font-mono bg-[#111e22] text-[#20d6c7] px-2 py-0.5 rounded border border-[#20d6c7]/20">Oracle Always Free</span>
               <span className="text-[10px] font-mono bg-[#111e22] text-[#8aaab0] px-2 py-0.5 rounded border border-[#1b2b30]">Watchdog Anti-Sleep</span>
