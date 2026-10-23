@@ -4,6 +4,7 @@
 
 [![Security Headers](https://img.shields.io/badge/Security_Headers-Grade_A+-brightgreen?style=for-the-badge&logo=securityscorecard)](https://securityheaders.com/?q=https%3A%2F%2Fcloudops-hub-dun.vercel.app%2F&followRedirects=on)
 [![SSL Labs](https://img.shields.io/badge/Qualys_SSL_Labs-Grade_A+-blue?style=for-the-badge&logo=qualys)](https://www.ssllabs.com/ssltest/analyze.html?d=cloudops-hub-dun.vercel.app)
+[![Snyk Security](https://img.shields.io/badge/Snyk_Security-0_Vulnerabilities-brightgreen?style=for-the-badge&logo=snyk)](https://snyk.io/)
 [![OWASP Top 10](https://img.shields.io/badge/OWASP-Top_10_Compliant-00599C?style=for-the-badge&logo=owasp)](https://owasp.org)
 [![Next.js](https://img.shields.io/badge/Next.js_14-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel)](https://cloudops-hub-dun.vercel.app/)

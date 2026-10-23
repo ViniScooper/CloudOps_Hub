@@ -18,12 +18,12 @@
     "@fastify/websocket": "^11.3.1",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
-    "fastify": "^5.12.4",
+    "fastify": "^5.12.6",
     "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.24.4",
     "nodemailer": "^10.0.10",
     "oci-sdk": "^2.140.1",
-    "sharp": "^0.35.4",
+    "sharp": "^0.35.5",
     "ssh2": "^1.17.0"
   }
 }
