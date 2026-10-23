@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://cloudops-hub-dun.vercel.app'),
+  metadataBase: new URL('https://cloudopshub.com.br'),
   title: {
     default: 'CloudOps Hub — Plataforma de Gestão Cloud, Docker & Oracle DB',
     template: '%s | CloudOps Hub',
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'CloudOps Hub — Plataforma de Gestão Cloud, Docker & Oracle DB',
     description: 'A Nuvem sob o seu Comando Absoluto. Observabilidade SRE, Docker e Oracle Database 23ai blindados por Cloudflare Zero Trust e Vercel Edge.',
-    url: 'https://cloudops-hub-dun.vercel.app/landing',
+    url: 'https://cloudopshub.com.br/landing',
     siteName: 'CloudOps Hub',
     images: [
       {
@@ -144,7 +144,7 @@ const jsonLd = {
         'url': 'https://github.com/ViniScooper',
       },
       'description': 'Plataforma corporativa de observabilidade SRE, contêineres Docker e bancos de dados relacionais e autônomos na Oracle Cloud Infrastructure.',
-      'url': 'https://cloudops-hub-dun.vercel.app/landing',
+      'url': 'https://cloudopshub.com.br/landing',
     },
     {
       '@type': 'Person',

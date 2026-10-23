@@ -93,7 +93,7 @@ export default function LandingPage() {
   }
 
   const handleCopyShare = () => {
-    navigator.clipboard.writeText('https://cloudops-hub-dun.vercel.app/landing')
+    navigator.clipboard.writeText('https://cloudopshub.com.br/landing')
     setCopiedShare(true)
     setTimeout(() => setCopiedShare(false), 2500)
   }
@@ -1301,7 +1301,7 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3">
               <a
-                href={`https://api.whatsapp.com/send?text=${encodeURIComponent('🚀 Conheça o CloudOps Hub: Plataforma SRE, Gestão de Docker e Oracle Database com Zero Trust e Grade A+ em Cibersegurança desenvolvida por José Vinícius Lourenço: https://cloudops-hub-dun.vercel.app/landing')}`}
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent('🚀 Conheça o CloudOps Hub: Plataforma SRE, Gestão de Docker e Oracle Database com Zero Trust e Grade A+ em Cibersegurança desenvolvida por José Vinícius Lourenço: https://cloudopshub.com.br/landing')}`}
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-2 bg-[#122822] hover:bg-[#18362e] border border-emerald-500/30 text-emerald-300 text-xs font-semibold px-4 py-2.5 rounded-xl transition-all"
@@ -1311,7 +1311,7 @@ export default function LandingPage() {
               </a>
 
               <a
-                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent('https://cloudops-hub-dun.vercel.app/landing')}`}
+                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent('https://cloudopshub.com.br/landing')}`}
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-2 bg-[#0c2236] hover:bg-[#11314d] border border-sky-500/30 text-sky-300 text-xs font-semibold px-4 py-2.5 rounded-xl transition-all"
@@ -1321,7 +1321,7 @@ export default function LandingPage() {
               </a>
 
               <a
-                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('CloudOps Hub — Gestão de servidores Cloud, Docker e Oracle DB com Zero Trust e Grade A+ em Cibersegurança. Criado por @ViniScooper: https://cloudops-hub-dun.vercel.app/landing')}`}
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('CloudOps Hub — Gestão de servidores Cloud, Docker e Oracle DB com Zero Trust e Grade A+ em Cibersegurança. Criado por @ViniScooper: https://cloudopshub.com.br/landing')}`}
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-2 bg-[#171c24] hover:bg-[#202733] border border-slate-700 text-slate-300 text-xs font-semibold px-4 py-2.5 rounded-xl transition-all"
