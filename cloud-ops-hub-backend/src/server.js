@@ -22,7 +22,8 @@ const securityRoutes = require('./routes/securityRoutes');
 
 async function buildServer() {
   // 1. CORS restrito: origens permitidas via CORS_ORIGINS (separadas por vírgula) + localhost em dev
-  const allowedOrigins = (process.env.CORS_ORIGINS || 'https://cloudops-hub-dun.vercel.app')
+  const defaultOrigins = 'https://cloudops-hub-dun.vercel.app,https://cloudopshub.com.br,https://www.cloudopshub.com.br';
+  const allowedOrigins = (process.env.CORS_ORIGINS ? `${process.env.CORS_ORIGINS},${defaultOrigins}` : defaultOrigins)
     .split(',').map(s => s.trim()).filter(Boolean);
   await fastify.register(cors, {
     origin: (origin, cb) => {
