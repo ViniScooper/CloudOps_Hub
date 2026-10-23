@@ -168,24 +168,23 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          {/* Badges Oficiais de Segurança */}
-          <div className="mt-12 pt-8 border-t border-[#142327] flex flex-wrap items-center justify-center gap-4 text-xs">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0c1618] border border-[#1b3438]">
-              <ShieldCheck size={14} className="text-emerald-400" />
-              <span className="font-mono text-emerald-300 font-bold">SecurityHeaders: Grade A+</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0c1618] border border-[#1b3438]">
-              <Lock size={14} className="text-blue-400" />
-              <span className="font-mono text-blue-300 font-bold">Qualys SSL Labs: Grade A+</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0c1618] border border-[#1b3438]">
-              <CheckCircle2 size={14} className="text-purple-400" />
-              <span className="font-mono text-purple-300 font-bold">Snyk: 0 Vulnerabilities</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0c1618] border border-[#1b3438]">
-              <Globe size={14} className="text-cyan-400" />
-              <span className="font-mono text-cyan-300 font-bold">Cloudflare Zero Trust Criptografado</span>
-            </div>
+          {/* Badges Oficiais de Segurança e Reconhecimento */}
+          <div className="mt-12 pt-8 border-t border-[#142327] flex flex-wrap items-center justify-center gap-3">
+            <a href="https://github.com/ViniScooper/CloudOps_Hub" target="_blank" rel="noreferrer" className="hover:opacity-85 transition-opacity">
+              <img src="https://img.shields.io/github/stars/ViniScooper/CloudOps_Hub?style=for-the-badge&logo=github&color=gold" alt="GitHub Stars" className="h-7" />
+            </a>
+            <a href="https://snyk.io/test/github/ViniScooper/CloudOps_Hub" target="_blank" rel="noreferrer" className="hover:opacity-85 transition-opacity">
+              <img src="https://snyk.io/test/github/ViniScooper/CloudOps_Hub/badge.svg" alt="Snyk Security" className="h-7" />
+            </a>
+            <a href="https://securityheaders.com/?q=https%3A%2F%2Fcloudops-hub-dun.vercel.app%2F&followRedirects=on" target="_blank" rel="noreferrer" className="hover:opacity-85 transition-opacity">
+              <img src="https://img.shields.io/badge/Security_Headers-Grade_A+-brightgreen?style=for-the-badge&logo=securityscorecard" alt="Security Headers Grade A+" className="h-7" />
+            </a>
+            <a href="https://www.ssllabs.com/ssltest/analyze.html?d=cloudops-hub-dun.vercel.app" target="_blank" rel="noreferrer" className="hover:opacity-85 transition-opacity">
+              <img src="https://img.shields.io/badge/Qualys_SSL_Labs-Grade_A+-blue?style=for-the-badge&logo=qualys" alt="Qualys SSL Grade A+" className="h-7" />
+            </a>
+            <a href="https://owasp.org" target="_blank" rel="noreferrer" className="hover:opacity-85 transition-opacity">
+              <img src="https://img.shields.io/badge/OWASP-Top_10_Compliant-00599C?style=for-the-badge&logo=owasp" alt="OWASP Top 10" className="h-7" />
+            </a>
           </div>
 
         </div>
