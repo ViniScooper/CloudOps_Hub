@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Allow: /landing
+
+Sitemap: https://cloudops-hub-dun.vercel.app/sitemap.xml
+Host: https://cloudops-hub-dun.vercel.app
