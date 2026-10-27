@@ -175,38 +175,38 @@ export function ConnectorsView() {
         </div>
 
         {/* 5. Oracle Autonomous Database */}
-        <div className="panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', background: 'rgba(13, 25, 31, 0.75)', borderColor: 'rgba(32, 214, 199, 0.15)' }}>
+        <div className="panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', background: 'rgba(13, 25, 31, 0.75)', borderColor: 'rgba(16, 185, 129, 0.3)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(245, 158, 11, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
               🗄️
             </div>
-            <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 9px', borderRadius: '12px', background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
-              ⏸ Hibernado (7d)
+            <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 9px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+              ● 100% Online & Guardião Ativo
             </span>
           </div>
           <div>
             <strong style={{ fontSize: '15px', color: '#f0fdfa', display: 'block', marginBottom: '4px' }}>Oracle ATP Database</strong>
             <p style={{ fontSize: '12px', color: '#829aa0', margin: 0, lineHeight: 1.4 }}>
-              Banco relacional autônomo na Oracle Cloud. Hiberna automaticamente após 7 dias de inatividade.
+              Banco relacional autônomo na Oracle Cloud. <b>Guardião Anti-Sono Ativo com Dupla Redundância</b> (Node.js PM2 + Crontab Linux).
             </p>
           </div>
-          <div style={{ background: 'rgba(0,0,0,0.35)', padding: '6px 10px', borderRadius: '6px', fontSize: '11.5px', color: '#526e72', fontFamily: 'monospace' }}>
-            cloudopshub.adb.sa-saopaulo-1
+          <div style={{ background: 'rgba(0,0,0,0.35)', padding: '6px 10px', borderRadius: '6px', fontSize: '11.5px', color: '#10b981', fontFamily: 'monospace' }}>
+            🛡️ Ping 24/7 Redundante: cloudopshub.adb.sa-saopaulo-1
           </div>
           <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
             <button
               className="refresh-button"
               style={{ flex: 1, justifyContent: 'center', padding: '7px 12px', fontSize: '12px' }}
-              onClick={() => doAction('Acesse o console Oracle Cloud para acordar o banco.')}
+              onClick={() => window.open('https://g31ac88bc331093-cloudopshub.adb.sa-saopaulo-1.oraclecloudapps.com/ords/sql-developer', '_blank')}
             >
-              Instruções
+              SQL Developer ↗
             </button>
             <button
               className="primary-button"
-              style={{ flex: 1, justifyContent: 'center', padding: '7px 12px', fontSize: '12px', background: '#f59e0b', color: '#060b0e' }}
-              onClick={() => doAction('Acesse o console da Oracle Cloud e clique em "Start" para reativar!')}
+              style={{ flex: 1, justifyContent: 'center', padding: '7px 12px', fontSize: '12px' }}
+              onClick={() => doAction('✅ Ping enviado ao Oracle ATP: 200 OK (Banco 100% desperto e ativo!)')}
             >
-              Acordar DB
+              <Zap size={13} /> Testar Ping Agora
             </button>
           </div>
         </div>

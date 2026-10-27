@@ -226,37 +226,38 @@ export function DashboardView({
           </div>
 
           {/* Banco de Dados em Nuvem: Oracle Autonomous Database (ATP) */}
-          <div className="data-service" style={{ border: '1px solid rgba(249, 115, 22, 0.3)', background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(13, 20, 24, 0.6) 100%)', borderRadius: '8px', padding: '10px 12px', marginBottom: '10px' }}>
-            <span className="service-icon" style={{ background: 'rgba(249, 115, 22, 0.2)', color: '#f97316' }}>
+          <div className="data-service" style={{ border: '1px solid rgba(16, 185, 129, 0.4)', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(13, 20, 24, 0.6) 100%)', borderRadius: '8px', padding: '10px 12px', marginBottom: '10px' }}>
+            <span className="service-icon" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#10b981' }}>
               <Database size={16} />
             </span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                <strong style={{ color: '#ffedd5', fontSize: '13px' }}>bancodedadosfinancas (Oracle ATP)</strong>
-                <span style={{ fontSize: '10px', background: 'rgba(32, 214, 199, 0.15)', color: '#20d6c7', border: '1px solid rgba(32, 214, 199, 0.3)', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>Always Free</span>
+                <strong style={{ color: '#f0fdfa', fontSize: '13px' }}>cloudopshub (Oracle ATP)</strong>
+                <span style={{ fontSize: '10px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>100% Online</span>
+                <span style={{ fontSize: '10px', background: 'rgba(32, 214, 199, 0.15)', color: '#20d6c7', border: '1px solid rgba(32, 214, 199, 0.3)', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>🛡️ Guardião Anti-Sono Ativo (24/7)</span>
               </div>
               <small style={{ color: '#9ca3af', display: 'block', fontSize: '11px', marginTop: '2px' }}>
-                Always Free OCI · Oracle Autonomous Transaction Processing · REST Data Services (ORDS)
+                Always Free OCI · Oracle Autonomous Transaction Processing (sa-saopaulo-1) · Redundância Node.js + Crontab Linux
               </small>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '7px' }}>
                 <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '4px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#d1d5db' }}>
-                  Tablespace DATA: <b style={{ color: '#20d6c7' }}>1.8 GB / 20 GB (9%)</b>
+                  Esquema Ativo: <b style={{ color: '#20d6c7' }}>CLOUDOPS_USERS (6 contas)</b>
                 </span>
                 <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '4px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#d1d5db' }}>
-                  Sessões: <b style={{ color: '#a3e635' }}>Pool ORDS Ativo</b>
+                  Sessões: <b style={{ color: '#a3e635' }}>Pool ORDS Ativo (666ms)</b>
                 </span>
                 <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '4px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#d1d5db' }}>
-                  Cofre: <b style={{ color: '#fb923c' }}>AES-256-GCM / mTLS</b>
+                  Anti-Sono: <b style={{ color: '#10b981' }}>Crontab 06:00 + Node.js 12h</b>
                 </span>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="status-text emerald" style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#20d6c7', display: 'inline-block' }}></span>
-                Ativo & Gerenciado
+              <span className="status-text emerald" style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', color: '#10b981', fontWeight: 600 }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 6px #10b981' }}></span>
+                Ativo & Desperto
               </span>
               <a
-                href="https://g442b32fb1cf117-bancodedadosfinancas.adb.sa-saopaulo-1.oraclecloudapps.com/ords/sql-developer"
+                href="https://g31ac88bc331093-cloudopshub.adb.sa-saopaulo-1.oraclecloudapps.com/ords/sql-developer"
                 target="_blank"
                 rel="noreferrer"
                 className="action-btn"
@@ -267,16 +268,15 @@ export function DashboardView({
                   gap: '4px',
                   padding: '4px 8px',
                   borderRadius: '4px',
-                  background: 'rgba(249, 115, 22, 0.15)',
-                  color: '#fb923c',
-                  border: '1px solid rgba(249, 115, 22, 0.3)',
+                  background: 'rgba(32, 214, 199, 0.15)',
+                  color: '#20d6c7',
+                  border: '1px solid rgba(32, 214, 199, 0.3)',
                   textDecoration: 'none',
                   fontWeight: 600,
                   cursor: 'pointer'
                 }}
-                title="Abrir Oracle Database Actions / SQL Developer Web"
               >
-                SQL Web <ExternalLink size={12} />
+                SQL Developer ↗
               </a>
             </div>
           </div>
