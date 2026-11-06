@@ -13,7 +13,7 @@ async function createBackup() {
   const dbPass = getMysqlPassword();
 
   // Cria diretório se não existir, gera dump e compacta em gzip em tempo real
-  const cmd = `mkdir -p ${backupDir} && docker exec boteco_db sh -c 'MYSQL_PWD="${dbPass}" mysqldump -u root --single-transaction --quick --routines --triggers restaurante 2>/dev/null' | gzip -9 > ${backupDir}/${filename} && ls -lh ${backupDir}/${filename}`;
+  const cmd = `mkdir -p ${backupDir} && docker exec boteco_db sh -c 'MYSQL_PWD="${dbPass}" mysqldump -u root --single-transaction --quick --routines --triggers --databases restaurante furdunco_db 2>/dev/null' | gzip -9 > ${backupDir}/${filename} && ls -lh ${backupDir}/${filename}`;
 
   const res = await runRemoteSsh(cmd);
 

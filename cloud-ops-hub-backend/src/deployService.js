@@ -213,7 +213,7 @@ async function executeDeploy({ project = 'cardapio_digital', branch = 'main' }) 
           ? '/home/ubuntu/controle-financeiro'
           : (project === 'cloudops_hub' || project === 'cloudops-hub' || project === 'cloud-ops-hub'
             ? '/home/ubuntu/cloudops_hub'
-            : `/home/ubuntu/${project}`)));
+            : (project === 'furdunco' || project === 'furdunco_cafe_cultura' || project === 'furdunco_backend' ? '/home/ubuntu/furdunco_cafe_cultura' : `/home/ubuntu/${project}`))));
       
     logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Acessando diretório ${targetDir} na VM...`);
     logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Executando: git fetch origin && git checkout ${branch} && git pull origin ${branch}...`);
@@ -250,7 +250,9 @@ async function executeDeploy({ project = 'cardapio_digital', branch = 'main' }) 
     const newEntry = {
       id: `dep-${Date.now().toString().slice(-4)}`,
       timestamp: new Date().toLocaleString('pt-BR'),
-      project: (project === 'cardapio_digital' || project === 'boteco_backend') 
+      project: (project === 'furdunco' || project === 'furdunco_cafe_cultura' || project === 'furdunco_backend')
+        ? 'Furdunço Café & Cultura'
+        : (project === 'cardapio_digital' || project === 'boteco_backend') 
         ? 'Boteco Sivirino' 
         : (project === 'controle-financeiro' || project === 'controle_financeiro' || project === 'fincontrol'
           ? 'FinControl (Gestão Financeira)'
@@ -347,7 +349,9 @@ async function executeRollback({ project = 'app_service' }) {
     const newEntry = {
       id: `rol-${Date.now().toString().slice(-4)}`,
       timestamp: new Date().toLocaleString('pt-BR'),
-      project: (project === 'cardapio_digital' || project === 'boteco_backend') 
+      project: (project === 'furdunco' || project === 'furdunco_cafe_cultura' || project === 'furdunco_backend')
+        ? 'Furdunço Café & Cultura'
+        : (project === 'cardapio_digital' || project === 'boteco_backend') 
         ? 'Boteco Sivirino' 
         : (project === 'controle-financeiro' || project === 'controle_financeiro' || project === 'fincontrol'
           ? 'FinControl (Gestão Financeira)'

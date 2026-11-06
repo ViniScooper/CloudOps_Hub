@@ -12,6 +12,7 @@ export const initialServers: ServerType[] = [
 export const initialContainers: ContainerItem[] = [
   { name: 'financeiro_backend', image: 'node:20-alpine', status: 'Running', port: '3006:3006', cpu: '0.1%', memory: '42.5 MB', color: 'emerald' },
   { name: 'financeiro_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel (FinControl)', cpu: '0.1%', memory: '30.1 MB', color: 'emerald' },
+  { name: 'furdunco_backend', image: 'node:20-alpine', status: 'Running', port: '3004:3001', cpu: '0.1%', memory: '38.2 MB', color: 'emerald' },
   { name: 'boteco_backend', image: 'node:20-alpine', status: 'Running', port: '3002:3001', cpu: '0.0%', memory: '33.6 MB', color: 'emerald' },
   { name: 'boteco_db', image: 'mysql:8.0 (Buffer 64M)', status: 'Running', port: '3306:3306', cpu: '0.5%', memory: '9.2 MB', color: 'emerald' },
   { name: 'boteco_tunnel', image: 'cloudflare/cloudflared', status: 'Running', port: 'Tunnel', cpu: '0.1%', memory: '31.3 MB', color: 'emerald' },
@@ -21,11 +22,13 @@ export const initialContainers: ContainerItem[] = [
 ]
 
 export const initialBuckets: BucketItem[] = [
+  { name: 'furdunco-fotos', visibility: 'Public (ObjectRead)', tier: 'Standard Always Free', region: 'sa-saopaulo-1', count: '95 objetos (102 pratos)', size: '18.4 MB', url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/furdunco-fotos/o/' },
   { name: 'boteco-sivirino-fotos', visibility: 'Public (ObjectRead)', tier: 'Standard Always Free', region: 'sa-saopaulo-1', count: '142 objetos', size: '1.4 GB', url: 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/gr88wz9mdro0/b/boteco-sivirino-fotos/o/' },
   { name: 'boteco-db-backups', visibility: 'Private', tier: 'Archive', region: 'sa-saopaulo-1', count: '14 dumps (.sql.gz)', size: '420 MB', url: 'Private Vault' },
 ]
 
 export const initialProxies: ProxyHost[] = [
+  { domain: 'furdunco-cafe-cultura.vercel.app', forward: 'http://127.0.0.1:3004 (/furdunco-api)', ssl: 'Vercel Edge TLS (Ativo)', status: 'Online' },
   { domain: 'cardapio.botecosivirino.com.br', forward: 'http://127.0.0.1:3002', ssl: 'Let\'s Encrypt (Ativo)', status: 'Online' },
   { domain: 'api.lottus.com.br', forward: 'http://127.0.0.1:3001', ssl: 'Let\'s Encrypt (Ativo)', status: 'Online' },
   { domain: 'ingles.plataforma.com.br', forward: 'http://127.0.0.1:3003', ssl: 'Auto-Renew', status: 'Warning' },

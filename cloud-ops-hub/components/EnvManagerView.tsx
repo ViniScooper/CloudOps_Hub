@@ -59,6 +59,27 @@ const PROD_PROJECTS: ProjectConfig[] = [
     ]
   },
   {
+    id: 'furdunco_cafe_cultura',
+    name: 'Furdunço Café & Cultura (Cardápio Digital)',
+    containerName: 'furdunco_backend',
+    path: 'Cofre OCI Vault: furdunco_cafe_cultura (In-Memory)',
+    port: '3004',
+    tag: 'OCI VAULT • DOCKER INJECTION',
+    defaultEnvs: [
+      { key: 'PORT', value: '3004', isSecret: false, description: 'Porta do container furdunco_backend' },
+      { key: 'NODE_ENV', value: 'production', isSecret: false, description: 'Ambiente de execução' },
+      { key: 'DB_HOST', value: 'boteco_db', isSecret: false, description: 'Host do container MySQL' },
+      { key: 'DB_PORT', value: '3306', isSecret: false, description: 'Porta de conexão MySQL' },
+      { key: 'DB_NAME', value: 'furdunco_db', isSecret: false, description: 'Schema MySQL do Furdunço' },
+      { key: 'DB_USER', value: 'furdunco_app', isSecret: false, description: 'Usuário dedicado do banco' },
+      { key: 'DB_PASSWORD', value: '••••••••', isSecret: true, description: 'Senha criptografada do MySQL' },
+      { key: 'JWT_SECRET', value: '••••••••', isSecret: true, description: 'Chave de segurança JWT' },
+      { key: 'OCI_BUCKET', value: 'furdunco-fotos', isSecret: false, description: 'Bucket de fotos no Oracle Object Storage' },
+      { key: 'OCI_ACCESS_KEY', value: '••••••••', isSecret: true, description: 'Customer Secret Key ID da OCI' },
+      { key: 'OCI_SECRET_KEY', value: '••••••••', isSecret: true, description: 'Customer Secret Key da OCI' }
+    ]
+  },
+  {
     id: 'cardapio_digital',
     name: 'Boteco Sivirino (Cardápio Digital)',
     containerName: 'boteco_backend',

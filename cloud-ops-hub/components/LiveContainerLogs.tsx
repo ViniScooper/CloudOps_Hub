@@ -27,6 +27,7 @@ interface ContainerInfo {
 
 const DEFAULT_CONTAINERS: ContainerInfo[] = [
   { name: 'financeiro_backend', status: 'running' },
+  { name: 'furdunco_backend', status: 'running' },
   { name: 'boteco_backend', status: 'running' },
   { name: 'boteco_db', status: 'running' },
   { name: 'nginx-manager-nginx-1', status: 'running' },

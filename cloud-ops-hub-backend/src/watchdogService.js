@@ -21,7 +21,8 @@ const state = {
   ],
   criticalContainers: [
     { name: 'financeiro_backend', status: 'unknown', essential: true, healthPort: 3006, healthPath: '/api/finance/health', consecutiveFailures: 0 },
-    { name: 'boteco_backend', status: 'unknown', essential: true, healthPort: 3001, healthPath: '/api/health', consecutiveFailures: 0 },
+    { name: 'boteco_backend', status: 'unknown', essential: true, healthPort: 3002, healthPath: '/pratos', consecutiveFailures: 0 },
+    { name: 'furdunco_backend', status: 'unknown', essential: true, healthPort: 3004, healthPath: '/pratos', consecutiveFailures: 0 },
     { name: 'boteco_db', status: 'unknown', essential: true, consecutiveFailures: 0 },
     { name: 'boteco_tunnel', status: 'unknown', essential: true, consecutiveFailures: 0 },
     { name: 'nginx-manager-nginx-1', status: 'unknown', essential: true, consecutiveFailures: 0 }

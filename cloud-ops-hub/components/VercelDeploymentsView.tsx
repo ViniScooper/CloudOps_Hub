@@ -53,6 +53,15 @@ export const VERCEL_PROJECTS: VercelProjectConfig[] = [
     framework: 'React Vite PWA'
   },
   {
+    id: 'furdunco_cafe_cultura',
+    name: 'Furdunço Café & Cultura (Cardápio & Admin)',
+    repo: 'ViniScooper/furdunco-cafe-cultura',
+    domain: 'furdunco-cafe-cultura.vercel.app',
+    url: 'https://furdunco-cafe-cultura.vercel.app/',
+    branch: 'main',
+    framework: 'React Vite SPA + Express API'
+  },
+  {
     id: 'cardapio_digital',
     name: 'Boteco Sivirino (Cardápio Digital)',
     repo: 'cardapio_digital',

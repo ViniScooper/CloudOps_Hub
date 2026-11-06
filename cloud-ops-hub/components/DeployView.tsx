@@ -394,6 +394,68 @@ export function DeployView({ server, currentUser, doAction }: DeployViewProps) {
         </div>
       ) : (
       <div className="overview-grid" style={{ marginBottom: '20px' }}>
+        {/* Card do Furdunço Café & Cultura com Rollback */}
+        <div className="panel" style={{ padding: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <span className="status-dot emerald" />
+                <h3 style={{ margin: 0, fontSize: '15px' }}>Furdunço Café & Cultura (Cardápio Digital)</h3>
+              </div>
+              <small style={{ color: '#6f8387' }}>Repositório: furdunco_cafe_cultura | Host VM: 3004 ➔ 3001</small>
+            </div>
+            <span className="status-text emerald">Produção Ativa</span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', background: '#070a0c', padding: '12px', borderRadius: '6px', border: '1px solid #142023', marginBottom: '16px', fontSize: '11px' }}>
+            <div>
+              <span style={{ color: '#6f8387', display: 'block', fontSize: '9px', textTransform: 'uppercase' }}>Bucket & Banco</span>
+              <strong style={{ color: '#20d6c7', display: 'block', marginTop: '4px' }}>furdunco-fotos • furdunco_db</strong>
+            </div>
+            <div>
+              <span style={{ color: '#6f8387', display: 'block', fontSize: '9px', textTransform: 'uppercase' }}>Domínio Público</span>
+              <strong style={{ color: '#d9e2e1', display: 'block', marginTop: '4px' }}>furdunco-cafe-cultura.vercel.app</strong>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+            <span style={{ fontSize: '10px', color: '#52666a' }}>
+              Conexão SSH Real com a Oracle Cloud
+            </span>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button 
+                className="refresh-button"
+                disabled={isDeploying || isMerging || isRollingBack}
+                onClick={() => triggerRollback('furdunco_cafe_cultura')}
+                title="Desfaz a última alteração e restaura a versão anterior na VM"
+                style={{
+                  background: '#161009',
+                  borderColor: '#8c4b18',
+                  color: '#f59e0b',
+                  fontSize: '11px',
+                  padding: '7px 12px'
+                }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <RotateCcw size={12} /> Rollback
+                </span>
+              </button>
+
+              <button 
+                className="primary-button"
+                disabled={isDeploying || isMerging || isRollingBack}
+                onClick={() => triggerDeploy('furdunco_cafe_cultura')}
+                style={{ padding: '7px 16px', fontWeight: 600 }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Rocket size={14} /> Fazer Deploy Agora
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Card do Cardápio Digital com Rollback */}
         <div className="panel" style={{ padding: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>

@@ -39,6 +39,20 @@ async function envRoutes(fastify, options) {
         { key: 'JWT_SECRET', value: process.env.JWT_SECRET ? '••••••••' : 'fincontrol_jwt_secret_placeholder', isSecret: true, description: 'Chave de assinatura dos tokens do FinControl' },
         { key: 'CALLMEBOT_API_KEY', value: process.env.CALLMEBOT_API_KEY ? '••••••••' : 'callmebot_api_key_placeholder', isSecret: true, description: 'API Key do robô de notificações WhatsApp' }
       ],
+      furdunco_cafe_cultura: [
+        { key: 'PORT', value: '3004', isSecret: false, description: 'Porta do container furdunco_backend' },
+        { key: 'NODE_ENV', value: 'production', isSecret: false, description: 'Ambiente de execução' },
+        { key: 'DB_HOST', value: 'boteco_db', isSecret: false, description: 'Host do container MySQL' },
+        { key: 'DB_PORT', value: '3306', isSecret: false, description: 'Porta de conexão MySQL' },
+        { key: 'DB_NAME', value: 'furdunco_db', isSecret: false, description: 'Schema do banco Furdunço' },
+        { key: 'DB_USER', value: 'furdunco_app', isSecret: false, description: 'Usuário dedicado do MySQL' },
+        { key: 'DB_PASSWORD', value: '••••••••', isSecret: true, description: 'Senha criptografada do MySQL' },
+        { key: 'JWT_SECRET', value: '••••••••', isSecret: true, description: 'Chave de segurança JWT (96 chars)' },
+        { key: 'OCI_BUCKET', value: 'furdunco-fotos', isSecret: false, description: 'Bucket Oracle Object Storage' },
+        { key: 'OCI_ACCESS_KEY', value: '••••••••', isSecret: true, description: 'Customer Secret Key ID da OCI' },
+        { key: 'OCI_SECRET_KEY', value: '••••••••', isSecret: true, description: 'Customer Secret Key da OCI' },
+        { key: 'APP_ALLOWED_ORIGINS', value: 'https://furdunco-cafe-cultura.vercel.app', isSecret: false, description: 'Origens autorizadas no CORS' }
+      ],
       cardapio_digital: [
         { key: 'PORT', value: '3002', isSecret: false, description: 'Porta do container boteco_backend' },
         { key: 'NODE_ENV', value: 'production', isSecret: false, description: 'Ambiente de execução' },
@@ -59,7 +73,8 @@ async function envRoutes(fastify, options) {
       ]
     };
 
-    const templateList = baseTemplates[project] || baseTemplates.cloudops_hub;
+    const normProject = project === "furdunco" ? "furdunco_cafe_cultura" : project;
+    const templateList = baseTemplates[normProject] || baseTemplates.cloudops_hub;
 
     // Busca segredos salvos no OCI Vault ou no arquivo encriptado local
     let savedSecrets = {};
@@ -118,6 +133,9 @@ async function envRoutes(fastify, options) {
       if (project === 'controle_financeiro' || project === 'fincontrol') {
         await deployService.runRemoteSsh('sudo docker restart financeiro_backend');
         restartMsg = 'Container financeiro_backend reiniciado com sucesso com segredos em memória!';
+      } else if (project === 'furdunco_cafe_cultura' || project === 'furdunco' || project === 'furdunco_backend') {
+        await deployService.runRemoteSsh('sudo docker restart furdunco_backend');
+        restartMsg = 'Container furdunco_backend reiniciado com sucesso com segredos em memória!';
       } else if (project === 'cardapio_digital' || project === 'boteco_backend') {
         await deployService.runRemoteSsh('sudo docker restart boteco_backend');
         restartMsg = 'Container boteco_backend reiniciado com sucesso com segredos em memória!';
