@@ -149,18 +149,21 @@ async function createAccessRequest({ name, email, note, clientIp }) {
     );
   } catch {}
 
-  // Notifica o administrador Master no WhatsApp via CallMeBot
+  // Notifica o administrador Master no WhatsApp via CallMeBot (apenas se configurado no .env)
   try {
-    const phone = process.env.WHATSAPP_PHONE || '558195126839';
-    const apiKey = process.env.WHATSAPP_APIKEY || '7939819';
-    const alertText = encodeURIComponent(
-      `🔔 *CloudOps Hub - Nova Solicitação de Acesso!*\n\n` +
-      `👤 *Nome:* ${cleanName}\n` +
-      `✉️ *E-mail:* ${cleanEmail}\n` +
-      `📝 *Nota:* ${cleanNote}\n\n` +
-      `🔗 *Acesse para Aprovar:* https://cloudops-hub-dun.vercel.app/`
-    );
-    https.get(`https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${alertText}&apikey=${apiKey}`).on('error', () => {});
+    const phone = process.env.WHATSAPP_PHONE || '';
+    const apiKey = process.env.WHATSAPP_APIKEY || '';
+    if (phone && apiKey) {
+      const appUrl = process.env.APP_URL || 'https://cloudopshub.com.br/';
+      const alertText = encodeURIComponent(
+        `🔔 *CloudOps Hub - Nova Solicitação de Acesso!*\n\n` +
+        `👤 *Nome:* ${cleanName}\n` +
+        `✉️ *E-mail:* ${cleanEmail}\n` +
+        `📝 *Nota:* ${cleanNote}\n\n` +
+        `🔗 *Acesse para Aprovar:* ${appUrl}`
+      );
+      https.get(`https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${alertText}&apikey=${apiKey}`).on('error', () => {});
+    }
   } catch {}
 
   return item;
@@ -240,20 +243,21 @@ async function approveRequest(param) {
     }).catch(err => console.warn('[UserManagement] Falha ao enviar email:', err.message));
   }
 
-  // 4. Notifica o administrador Master no WhatsApp via CallMeBot
-  const phone = process.env.WHATSAPP_PHONE || '558195126839';
-  const apiKey = process.env.WHATSAPP_APIKEY || '7939819';
-  const appUrl = 'https://cloudops-hub-dun.vercel.app/';
-
-  const alertText = encodeURIComponent(
-    `✅ *CloudOps Hub - Acesso Aprovado!*\n\n` +
-    `👤 *Usuário:* ${cleanName}\n` +
-    `✉️ *E-mail:* ${cleanEmail}\n` +
-    `🔑 *Senha Temporária:* ${tempPassword}\n\n` +
-    `🔗 *Link do Console:* ${appUrl}\n\n` +
-    `_O usuário já pode fazer login no CloudOps Hub._`
-  );
-  https.get(`https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${alertText}&apikey=${apiKey}`).on('error', () => {});
+  // 4. Notifica o administrador Master no WhatsApp via CallMeBot (apenas se configurado no .env)
+  const phone = process.env.WHATSAPP_PHONE || '';
+  const apiKey = process.env.WHATSAPP_APIKEY || '';
+  if (phone && apiKey) {
+    const appUrl = process.env.APP_URL || 'https://cloudopshub.com.br/';
+    const alertText = encodeURIComponent(
+      `✅ *CloudOps Hub - Acesso Aprovado!*\n\n` +
+      `👤 *Usuário:* ${cleanName}\n` +
+      `✉️ *E-mail:* ${cleanEmail}\n` +
+      `🔑 *Senha Temporária:* ${tempPassword}\n\n` +
+      `🔗 *Link do Console:* ${appUrl}\n\n` +
+      `_O usuário já pode fazer login no CloudOps Hub._`
+    );
+    https.get(`https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${alertText}&apikey=${apiKey}`).on('error', () => {});
+  }
 
   return {
     success: true,

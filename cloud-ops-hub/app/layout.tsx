@@ -176,7 +176,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         {children}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        {process.env.NEXT_PUBLIC_ENABLE_VERCEL_ANALYTICS === 'true' && <Analytics />}
       </body>
     </html>
   )

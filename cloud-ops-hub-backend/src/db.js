@@ -8,10 +8,22 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 
-// Configurações do Oracle Autonomous Database (ORDS)
-const ORDS_HOST = process.env.ORDS_HOST || 'https://g31ac88bc331093-cloudopshub.adb.sa-saopaulo-1.oraclecloudapps.com';
+// Configurações do Oracle Autonomous Database (ORDS) — estritamente via variáveis de ambiente
+const ORDS_HOST = process.env.ORDS_HOST || '';
 const ORDS_PATH = process.env.ORDS_PATH || '/ords/admin/_/sql';
-const ORDS_AUTH = process.env.ORDS_AUTH || 'QURNSU46Q2xvdWRPcHMjRGIyMDI2IVNlYw=='; // ADMIN:CloudOps#Db2026!Sec
+const ORDS_AUTH = process.env.ORDS_AUTH || '';
+
+function bindOracleSql(sqlText, binds = {}) {
+  if (!binds || typeof binds !== 'object' || Array.isArray(binds)) return sqlText;
+  return sqlText.replace(/:([a-zA-Z_][a-zA-Z0-9_]*)/g, (full, key) => {
+    if (!Object.prototype.hasOwnProperty.call(binds, key)) return full;
+    const val = binds[key];
+    if (val === null || val === undefined) return 'NULL';
+    if (typeof val === 'number') return Number.isFinite(val) ? String(val) : 'NULL';
+    if (typeof val === 'boolean') return val ? '1' : '0';
+    return `'${String(val).replace(/'/g, "''")}'`;
+  });
+}
 
 // Diretório de dados local (Fallback seguro caso ocorra indisponibilidade de rede)
 const DATA_DIR = path.join(__dirname, '..', 'database');
@@ -25,11 +37,15 @@ const REQUESTS_FILE = path.join(DATA_DIR, 'access_requests.json');
 /**
  * Executa uma instrução SQL no Oracle Autonomous Database via ORDS REST API
  */
-async function executeOracleSql(sqlText) {
+async function executeOracleSql(sqlText, binds = {}) {
+  if (!ORDS_HOST || !ORDS_AUTH) {
+    return null;
+  }
+  const boundSql = bindOracleSql(sqlText, binds);
   return new Promise((resolve) => {
     try {
       const url = new URL(ORDS_PATH, ORDS_HOST);
-      const postData = Buffer.from(sqlText, 'utf8');
+      const postData = Buffer.from(boundSql, 'utf8');
 
       const options = {
         hostname: url.hostname,

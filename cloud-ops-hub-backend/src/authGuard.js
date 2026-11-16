@@ -89,7 +89,7 @@ async function authGuard(request, reply) {
   }
   request.user = user;
 
-  if (user.role === 'admin') return; // admin: acesso total (já autenticado)
+  if (user.role === 'admin' || user.role === 'master') return; // admin/master: acesso total (já autenticado)
 
   // ----- Usuário comum -----
   if (USER_ROUTES.some((r) => matches(r, method, path))) return;

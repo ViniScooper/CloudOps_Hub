@@ -9,8 +9,8 @@ const { sanitizeBashCommand } = require('./security');
 const HISTORY_FILE = path.join(__dirname, '..', 'database', 'deploy_history.json');
 
 function getSshKey() {
-  const keyPath = process.env.VM_SSH_KEY_PATH || 'C:\\Users\\vini\\Documents\\CHAVES_SSH_ORACLE_HOJE\\ssh-key-2026-02-20 (1).key';
-  if (fs.existsSync(keyPath)) {
+  const keyPath = process.env.VM_SSH_KEY_PATH || '';
+  if (keyPath && fs.existsSync(keyPath)) {
     return fs.readFileSync(keyPath);
   }
   return null;

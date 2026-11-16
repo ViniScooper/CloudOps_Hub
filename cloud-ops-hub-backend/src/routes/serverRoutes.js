@@ -279,16 +279,10 @@ async function serverRoutes(fastify, options) {
     const defaultKey = privateKey || process.env.VM_SSH_KEY || '';
 
     if (!defaultKey) {
-      // Mock responsivo caso nao haja chave SSH
-      let mockOutput = `[${user || 'user'}@cloudops-vps:~]$ ${command}\nExecuted successfully.\n`;
-      if (command.includes('docker ps')) {
-        mockOutput = 'NAMES                  STATUS          PORTS\nboteco_backend         Up 4 hours      0.0.0.0:3002->3001/tcp\nboteco_db              Up 4 hours      0.0.0.0:3306->3306/tcp\nboteco_tunnel          Up 4 hours      \nnginx-manager-nginx-1  Up 4 hours      0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp\n';
-      } else if (command.includes('df -h')) {
-        mockOutput = 'Filesystem      Size  Used Avail Use% Mounted on\n/dev/sda1        45G   15G   28G  35% /\n';
-      } else if (command.includes('free -m')) {
-        mockOutput = '               total        used        free      shared  buff/cache   available\nMem:             956         378         210           8         368         540\nSwap:           2047         112        1935\n';
-      }
-      return { success: true, command, output: mockOutput };
+      return reply.status(503).send({
+        success: false,
+        error: 'Chave SSH não configurada para este servidor.'
+      });
     }
 
     if (process.platform === 'linux' && (!ip || ip === '127.0.0.1' || ip === 'localhost' || ip === '137.131.185.243' || ip === '137.131.187.54')) {

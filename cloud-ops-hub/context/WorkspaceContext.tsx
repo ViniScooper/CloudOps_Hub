@@ -538,9 +538,21 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }
   }, [active, server?.id, server?.ip])
 
-  // Checagem de solicitações pendentes de acesso
+  // Checagem de solicitações pendentes de acesso (apenas autenticado como admin)
   useEffect(() => {
+    const isAdmin =
+      currentUser?.role === 'admin' ||
+      currentUser?.role === 'master' ||
+      (currentUser?.email || '').trim().toLowerCase() === 'vviniciuslourenco@gmail.com'
+
+    if (!currentUser || !isAdmin) {
+      setPendingRequestsCount(0)
+      return
+    }
+
     const checkRequests = () => {
+      const token = localStorage.getItem('cloudops_token') || sessionStorage.getItem('cloudops_token')
+      if (!token) return
       fetch(getApiUrl('/api/admin/requests'))
         .then(res => res.json())
         .then(data => {

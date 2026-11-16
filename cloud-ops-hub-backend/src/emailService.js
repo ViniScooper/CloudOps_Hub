@@ -6,10 +6,22 @@ const db = require('./db');
 
 const REQUESTS_FILE = path.join(__dirname, '..', 'database', 'access_requests.json');
 
-// Envia alerta imediato no WhatsApp do Vinícius via CallMeBot
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Envia alerta imediato no WhatsApp via CallMeBot (apenas se configurado no .env)
 function sendWhatsAppAlert(name, email, note = '') {
-  const phone = process.env.WHATSAPP_PHONE || '558195126839';
-  const apiKey = process.env.WHATSAPP_APIKEY || '7939819';
+  const phone = process.env.WHATSAPP_PHONE || '';
+  const apiKey = process.env.WHATSAPP_APIKEY || '';
+  if (!phone || !apiKey) {
+    return Promise.resolve({ success: false, skipped: true });
+  }
   const text = `🚀 *CloudOps Hub - Novo Pedido de Acesso!*\n\n👤 *Nome:* ${name}\n✉️ *E-mail:* ${email}${note ? `\n📝 *Nota:* ${note}` : ''}\n\nResponda enviando as credenciais de teste para o solicitante.`;
   const encodedText = encodeURIComponent(text);
   const url = `https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodedText}&apikey=${apiKey}`;
@@ -79,13 +91,11 @@ async function saveAccessRequest({ name, email, note }) {
   return record;
 }
 
-// Dispara e-mail para vviniciuslourenco@gmail.com
+// Dispara e-mail para o administrador (sem duplicar gravação em JSON/WhatsApp já feita pelo userManagementService)
 async function sendAccessRequestEmail({ name, email, note }) {
-  // Salva a solicitação
-  await saveAccessRequest({ name, email, note });
-
-  // Dispara alerta WhatsApp em background
-  sendWhatsAppAlert(name, email, note).catch(() => {});
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safeNote = escapeHtml(note);
 
   try {
     let transporter;
@@ -118,13 +128,13 @@ async function sendAccessRequestEmail({ name, email, note }) {
           <h2 style="color: #20d6c7; margin-top: 0;">🚀 Nova Solicitação de Acesso ao CloudOps Hub</h2>
           <p>Um novo usuário solicitou acesso para testar a plataforma:</p>
           <div style="background: #142226; padding: 16px; border-radius: 8px; border-left: 4px solid #20d6c7; margin: 16px 0;">
-            <p style="margin: 4px 0;"><strong>Nome:</strong> ${name}</p>
-            <p style="margin: 4px 0;"><strong>E-mail:</strong> <a href="mailto:${email}" style="color: #20d6c7;">${email}</a></p>
-            ${note ? `<p style="margin: 4px 0;"><strong>Observação:</strong> ${note}</p>` : ''}
+            <p style="margin: 4px 0;"><strong>Nome:</strong> ${safeName}</p>
+            <p style="margin: 4px 0;"><strong>E-mail:</strong> <a href="mailto:${safeEmail}" style="color: #20d6c7;">${safeEmail}</a></p>
+            ${safeNote ? `<p style="margin: 4px 0;"><strong>Observação:</strong> ${safeNote}</p>` : ''}
             <p style="margin: 4px 0; font-size: 12px; color: #829d9c;"><strong>Data:</strong> ${new Date().toLocaleString('pt-BR')}</p>
           </div>
           <p style="margin-top: 16px; font-size: 13px; color: #a1b5b3;">
-            Clique em responder para enviar os dados de acesso diretamente a <strong>${email}</strong>.
+            Clique em responder para enviar os dados de acesso diretamente a <strong>${safeEmail}</strong>.
           </p>
         </div>
       `
