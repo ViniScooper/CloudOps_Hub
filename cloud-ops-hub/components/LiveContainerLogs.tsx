@@ -78,21 +78,49 @@ export function LiveContainerLogs({ server, doAction }: { server?: any; doAction
     }
   }
 
-  // Buscar logs do container selecionado na VM correta
+  // Buscar logs do container selecionado na VM correta (com timeout + 1 retry automático)
   const fetchLogs = async (silent = false) => {
     if (!selectedContainer) return
     if (!silent) setLoading(true)
+
+    const ipParam = server?.ip ? `&ip=${encodeURIComponent(server.ip)}` : ''
+    const url = getApiUrl(`/api/docker/logs/${encodeURIComponent(selectedContainer)}?tail=${tailLines}${ipParam}`)
+
+    const attemptFetch = async () => {
+      const controller = new AbortController()
+      const timer = setTimeout(() => controller.abort(), 12000)
+      try {
+        const res = await fetch(url, { signal: controller.signal })
+        const text = await res.text()
+        let data: any = {}
+        try { data = JSON.parse(text) } catch {}
+        if (!res.ok) {
+          throw new Error(data?.error || `HTTP ${res.status}`)
+        }
+        return data
+      } finally {
+        clearTimeout(timer)
+      }
+    }
+
     try {
-      const ipParam = server?.ip ? `&ip=${encodeURIComponent(server.ip)}` : ''
-      const res = await fetch(getApiUrl(`/api/docker/logs/${encodeURIComponent(selectedContainer)}?tail=${tailLines}${ipParam}`))
-      const data = await res.json()
-      if (data.success && typeof data.logs === 'string') {
+      let data: any
+      try {
+        data = await attemptFetch()
+      } catch {
+        await new Promise(r => setTimeout(r, 700))
+        data = await attemptFetch()
+      }
+
+      if (data?.success && typeof data.logs === 'string') {
         setRawLogs(data.logs)
-      } else if (data.error) {
+      } else if (data?.error) {
         setRawLogs(`[ERRO AO BUSCAR LOGS]: ${data.error}`)
       }
     } catch (err: any) {
-      setRawLogs(`[FALHA DE REDE]: ${err.message}`)
+      if (!silent || !rawLogs) {
+        setRawLogs(`[FALHA DE REDE]: ${err?.name === 'AbortError' ? 'Timeout ao conectar no túnel da VM (12s)' : err.message}`)
+      }
     } finally {
       if (!silent) setLoading(false)
     }
