@@ -3,17 +3,19 @@
 export const LIVE_TUNNEL_URL = 'https://departmental-sussex-reveals-comparative.trycloudflare.com';
 
 function resolveBaseUrl() {
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL;
-  }
+  const envUrl = process.env.NEXT_PUBLIC_API_URL || '';
   if (typeof window !== 'undefined') {
     const host = window.location.hostname;
     if (host === 'localhost' || host === '127.0.0.1') {
-      return 'http://localhost:3005';
+      return envUrl || 'http://localhost:3005';
+    }
+    // Em produção, só usa NEXT_PUBLIC_API_URL se for um domínio fixo (ignora trycloudflare.com antigo da Vercel)
+    if (envUrl && !envUrl.includes('trycloudflare.com')) {
+      return envUrl;
     }
     return LIVE_TUNNEL_URL;
   }
-  return LIVE_TUNNEL_URL;
+  return envUrl || LIVE_TUNNEL_URL;
 }
 
 export const API_BASE_URL = resolveBaseUrl();
