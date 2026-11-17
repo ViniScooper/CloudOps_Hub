@@ -36,9 +36,9 @@ const PROD_PROJECTS: ProjectConfig[] = [
       { key: 'ORDS_HOST', value: 'https://g442b32fb1cf117-bancodedadosfinancas.adb.sa-saopaulo-1.oraclecloudapps.com', isSecret: false, description: 'Endpoint REST do Oracle Autonomous Database' },
       { key: 'ORDS_PATH', value: '/ords/admin/_/sql', isSecret: false, description: 'Caminho REST SQL no Oracle Cloud' },
       { key: 'ORDS_ENABLED', value: 'true', isSecret: false, description: 'Persistência no Oracle Cloud (Zero consumo RAM na VM)' },
-      { key: 'WHATSAPP_PHONE', value: '558195126839', isSecret: false, description: 'WhatsApp do Admin para Alertas' },
-      { key: 'WHATSAPP_APIKEY', value: '7939819', isSecret: true, description: 'API Key CallMeBot WhatsApp' },
-      { key: 'JWT_SECRET', value: 'cloudops_jwt_secret_key_prod_master_2026', isSecret: true, description: 'Chave secreta para autenticação JWT Master' }
+      { key: 'WHATSAPP_PHONE', value: '••••••••', isSecret: true, description: 'WhatsApp do Admin para Alertas' },
+      { key: 'WHATSAPP_APIKEY', value: '••••••••', isSecret: true, description: 'API Key CallMeBot WhatsApp' },
+      { key: 'JWT_SECRET', value: '••••••••', isSecret: true, description: 'Chave secreta para autenticação JWT Master' }
     ]
   },
   {
@@ -54,8 +54,8 @@ const PROD_PROJECTS: ProjectConfig[] = [
       { key: 'ORDS_HOST', value: 'https://g442b32fb1cf117-bancodedadosfinancas.adb.sa-saopaulo-1.oraclecloudapps.com', isSecret: false, description: 'Endpoint REST do Oracle ATP Cloud' },
       { key: 'ADMIN_EMAIL', value: 'vviniciuslourenco@gmail.com', isSecret: false, description: 'E-mail do Administrador Master' },
       { key: 'ADMIN_NAME', value: 'Vinícius Lourenço', isSecret: false, description: 'Nome do Administrador' },
-      { key: 'JWT_SECRET', value: 'fincontrol_jwt_secret_key_default', isSecret: true, description: 'Chave de assinatura dos tokens do FinControl' },
-      { key: 'CALLMEBOT_API_KEY', value: '7939819', isSecret: true, description: 'API Key do robô de notificações WhatsApp' }
+      { key: 'JWT_SECRET', value: '••••••••', isSecret: true, description: 'Chave de assinatura dos tokens do FinControl' },
+      { key: 'CALLMEBOT_API_KEY', value: '••••••••', isSecret: true, description: 'API Key do robô de notificações WhatsApp' }
     ]
   },
   {
@@ -92,8 +92,8 @@ const PROD_PROJECTS: ProjectConfig[] = [
       { key: 'DB_HOST', value: '127.0.0.1', isSecret: false, description: 'Host do MySQL' },
       { key: 'DB_PORT', value: '3306', isSecret: false, description: 'Porta de conexão MySQL' },
       { key: 'DB_USER', value: 'boteco_user', isSecret: false, description: 'Usuário do banco de dados' },
-      { key: 'DB_PASSWORD', value: 'Boteco@Sec2026!Oracle', isSecret: true, description: 'Senha criptografada do MySQL' },
-      { key: 'JWT_SECRET', value: 'c09f7a8b6e5d4c3b2a109876543210ab', isSecret: true, description: 'Chave de segurança de autenticação' }
+      { key: 'DB_PASSWORD', value: '••••••••', isSecret: true, description: 'Senha criptografada do MySQL' },
+      { key: 'JWT_SECRET', value: '••••••••', isSecret: true, description: 'Chave de segurança de autenticação' }
     ]
   }
 ]

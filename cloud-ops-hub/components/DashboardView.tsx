@@ -5,6 +5,7 @@ import {
   MoreHorizontal, ArrowUpRight, RotateCcw, Database, Cloud, Archive, Copy, ExternalLink, Server, ShieldCheck
 } from 'lucide-react'
 import { getApiUrl } from '../lib/api'
+import { useWorkspace } from '../context/WorkspaceContext'
 import { ResourceHistoryChart } from './ResourceHistoryChart'
 import { VmBotsSection } from './VmBotsSection'
 import { ThreatShieldCard } from './ThreatShieldCard'
@@ -28,6 +29,7 @@ export function DashboardView({
   setActive,
   doAction
 }: DashboardViewProps) {
+  const { setConnectModalOpen } = useWorkspace()
   if (!server) {
     return (
       <div style={{
@@ -57,7 +59,7 @@ export function DashboardView({
         <button
           className="primary-button"
           style={{ padding: '10px 20px', fontSize: '13px', margin: '0 auto' }}
-          onClick={() => doAction('Abra o menu superior para conectar uma VM')}
+          onClick={() => setConnectModalOpen(true)}
         >
           + Conectar Minha Primeira VM / VPS (SSH)
         </button>

@@ -74,21 +74,29 @@ async function executeJob(job) {
   let latencyMs = 0;
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s timeout
+    if (job.id === 'cron_daily_mysql_backup' || (job.targetUrl && job.targetUrl.includes('/api/backups/create'))) {
+      const backupService = require('./backupService');
+      const result = await backupService.createBackup();
+      latencyMs = Date.now() - start;
+      status = result?.success ? 200 : 500;
+      if (!result?.success) error = result?.error || 'Falha ao executar backup interno';
+    } else {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s timeout
 
-    const res = await fetch(job.targetUrl, {
-      method: job.method || 'GET',
-      headers: {
-        'User-Agent': 'CloudOps-Hub-CronWatcher/1.0',
-        'Accept': '*/*'
-      },
-      signal: controller.signal
-    });
+      const res = await fetch(job.targetUrl, {
+        method: job.method || 'GET',
+        headers: {
+          'User-Agent': 'CloudOps-Hub-CronWatcher/1.0',
+          'Accept': '*/*'
+        },
+        signal: controller.signal
+      });
 
-    clearTimeout(timeoutId);
-    latencyMs = Date.now() - start;
-    status = res.status;
+      clearTimeout(timeoutId);
+      latencyMs = Date.now() - start;
+      status = res.status;
+    }
   } catch (err) {
     latencyMs = Date.now() - start;
     error = err.name === 'AbortError' ? 'Timeout (12s)' : err.message;

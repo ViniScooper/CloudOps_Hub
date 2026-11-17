@@ -50,8 +50,8 @@ async function login(email, password) {
     return { success: false, error: 'Credenciais inválidas.' };
   }
 
-  // Compara senha usando bcrypt
-  const valid = bcrypt.compareSync(password, user.password_hash);
+  // Compara senha usando bcrypt (assíncrono para não bloquear o event loop)
+  const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) {
     return { success: false, error: 'Credenciais inválidas.' };
   }
@@ -112,16 +112,17 @@ async function changePassword(email, currentPassword, newPassword) {
   if (!user && MASTER_EMAIL && MASTER_HASH && cleanEmail === MASTER_EMAIL) {
     user = { id: 'usr-master-01', name: 'Vinicius Lourenco (Master)', email: MASTER_EMAIL, password_hash: MASTER_HASH, role: 'admin' };
   }
-  if (!user || !bcrypt.compareSync(currentPassword, user.password_hash)) {
+  if (!user || !(await bcrypt.compare(currentPassword, user.password_hash))) {
     return { success: false, status: 401, error: 'Senha atual incorreta.' };
   }
 
+  const newHash = await bcrypt.hash(newPassword, 12);
   const saved = await db.saveUser({
     id: user.id,
     name: user.name,
     email: cleanEmail,
     role: user.role,
-    password_hash: bcrypt.hashSync(newPassword, 12)
+    password_hash: newHash
   });
   if (!saved) {
     return { success: false, status: 500, error: 'Não foi possível salvar a nova senha.' };

@@ -569,11 +569,11 @@ export function VercelDeploymentsView({ server, currentUser, doAction, onSwitchS
             </a>
           </div>
           <div style={{ fontSize: '16px', fontWeight: 700, color: '#f0fdfa' }}>
-            {currentProject.name}
+            {currentProject?.name}
           </div>
           <div style={{ fontSize: '11px', color: '#88a6aa', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <GitBranch size={13} style={{ color: '#20d6c7' }} />
-            <span>Repositório: <b style={{ color: '#fff' }}>{currentProject.repo}</b> ({currentProject.branch})</span>
+            <span>Repositório: <b style={{ color: '#fff' }}>{currentProject?.repo}</b> ({currentProject?.branch})</span>
           </div>
         </div>
 
@@ -589,17 +589,17 @@ export function VercelDeploymentsView({ server, currentUser, doAction, onSwitchS
           </div>
           <div style={{ fontSize: '15px', fontWeight: 700, color: '#f0fdfa', fontFamily: 'monospace' }}>
             <a
-              href={currentProject.url}
+              href={currentProject?.url}
               target="_blank"
               rel="noreferrer"
               style={{ color: '#20d6c7', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
             >
-              {currentProject.domain} <ExternalLink size={13} />
+              {currentProject?.domain} <ExternalLink size={13} />
             </a>
           </div>
           <div style={{ fontSize: '11px', color: '#88a6aa', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Globe size={13} style={{ color: '#20d6c7' }} />
-            <span>Framework: <b>{currentProject.framework}</b></span>
+            <span>Framework: <b>{currentProject?.framework}</b></span>
           </div>
         </div>
 

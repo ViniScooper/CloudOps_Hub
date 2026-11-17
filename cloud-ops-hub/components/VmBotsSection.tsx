@@ -131,7 +131,7 @@ export function VmBotsSection({ server, doAction, onOpenScraperModal }: VmBotsSe
           })
           setBotLogs(prev => {
             const existingMsgs = new Set(prev.map(p => p.message))
-            const newEntries = dynamicLogs.filter(d => !existingMsgs.has(d.message))
+            const newEntries = dynamicLogs.filter((d: any) => !existingMsgs.has(d.message))
             return [...newEntries, ...prev]
           })
         }

@@ -60,19 +60,7 @@ export function LoginView({ onSuccess }: LoginViewProps) {
           }
         }
       } catch (apiErr: any) {
-        // Fallback de segurança para o usuário Master
-        if (
-          email.trim().toLowerCase() === 'vviniciuslourenco@gmail.com' &&
-          (password === 'k7#Qm2vL-9xRt!pZc4WbN' || password === 'CloudOps#Master2026!')
-        ) {
-          user = {
-            id: 'usr-master-01',
-            name: 'Vinicius Lourenco (Master)',
-            email: 'vviniciuslourenco@gmail.com',
-            role: 'admin'
-          }
-          token = 'client-fallback-jwt-master-' + Date.now()
-        } else if (apiErr.message && (apiErr.message.includes('incorretos') || apiErr.message.includes('inválidas'))) {
+        if (apiErr.message && (apiErr.message.includes('incorretos') || apiErr.message.includes('inválidas'))) {
           throw apiErr
         } else {
           throw new Error('Falha de comunicação com a API. Verifique sua conexão.')
@@ -378,7 +366,7 @@ export function LoginView({ onSuccess }: LoginViewProps) {
                 Lembrar-me neste dispositivo
               </label>
               <span style={{ fontSize: '11px', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <CheckCircle2 size={12} /> Sessão Ativa
+                <CheckCircle2 size={12} /> JWT 7 dias
               </span>
             </div>
 

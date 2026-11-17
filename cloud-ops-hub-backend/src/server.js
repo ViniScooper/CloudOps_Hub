@@ -1,5 +1,5 @@
 require('dotenv').config();
-const fastify = require('fastify')({ logger: true });
+const fastify = require('fastify')({ logger: true, trustProxy: true });
 const cors = require('@fastify/cors');
 const rateLimit = require('@fastify/rate-limit');
 const websocket = require('@fastify/websocket');
@@ -50,7 +50,7 @@ async function buildServer() {
 
   // 3.1 Guarda global de autenticação/autorização (deny-by-default) e headers de segurança.
   // Deve ser registrada ANTES das rotas para que o hook valha para todas elas.
-  fastify.addHook('onRequest', authGuard);
+  fastify.addHook('preHandler', authGuard);
   fastify.addHook('onSend', securityHeaders);
 
   // 4. Verificação de Saúde

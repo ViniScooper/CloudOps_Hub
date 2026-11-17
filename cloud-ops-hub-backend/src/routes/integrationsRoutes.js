@@ -158,8 +158,14 @@ async function integrationsRoutes(fastify, options) {
   // ==========================================
   // VERCEL EDGE & FRONTEND
   // ==========================================
+  function maskSecret(val) {
+    if (!val || typeof val !== 'string') return '';
+    return val.length <= 8 ? '********' : `${val.slice(0, 4)}****${val.slice(-4)}`;
+  }
+
   fastify.get('/api/vercel/config', async () => {
-    return vercelService.getVercelConfig();
+    const cfg = vercelService.getVercelConfig() || {};
+    return { ...cfg, token: maskSecret(cfg.token), hasToken: Boolean(cfg.token) };
   });
 
   fastify.post('/api/vercel/config', async (request) => {
@@ -195,7 +201,8 @@ async function integrationsRoutes(fastify, options) {
   // RENDER PAAS & MICROSERVICES
   // ==========================================
   fastify.get('/api/render/config', async () => {
-    return renderService.getRenderConfig();
+    const cfg = renderService.getRenderConfig() || {};
+    return { ...cfg, apiKey: maskSecret(cfg.apiKey), hasApiKey: Boolean(cfg.apiKey) };
   });
 
   fastify.post('/api/render/config', async (request) => {

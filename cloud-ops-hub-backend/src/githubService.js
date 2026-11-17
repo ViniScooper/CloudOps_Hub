@@ -1,4 +1,4 @@
-const { exec } = require('child_process');
+const { execFile } = require('child_process');
 const https = require('https');
 const path = require('path');
 const fs = require('fs');
@@ -7,9 +7,18 @@ const DEFAULT_REPO_PATH = process.env.LOCAL_REPO_PATH || process.cwd();
 const DEFAULT_OWNER = process.env.GITHUB_OWNER || '';
 const DEFAULT_REPO = process.env.GITHUB_REPO || '';
 
-function runGitCommand(cmd, cwd = DEFAULT_REPO_PATH) {
+function assertSafeBranchName(branch) {
+  if (!branch || typeof branch !== 'string' || !/^[a-zA-Z0-9._\/-]+$/.test(branch) || branch.includes('..')) {
+    throw new Error(`Nome de branch inválido: ${branch}`);
+  }
+  return branch;
+}
+
+function runGitCommand(args, cwd = DEFAULT_REPO_PATH) {
+  const argList = Array.isArray(args) ? args : String(args).trim().split(/\s+/);
+  const gitArgs = argList[0] === 'git' ? argList.slice(1) : argList;
   return new Promise((resolve, reject) => {
-    exec(cmd, { cwd }, (error, stdout, stderr) => {
+    execFile('git', gitArgs, { cwd }, (error, stdout, stderr) => {
       if (error) {
         return reject(new Error(stderr || stdout || error.message));
       }
@@ -131,20 +140,22 @@ async function processPullRequestAndMerge({
 
   // Fallback / Método Direto via Git Local autenticado
   try {
+    const safeTarget = assertSafeBranchName(targetBranch);
+    const safeSource = assertSafeBranchName(sourceBranch);
     logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Sincronizando repositório local em ${repoPath}...`);
-    await runGitCommand('git fetch origin', repoPath);
+    await runGitCommand(['fetch', 'origin'], repoPath);
     
-    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Alternando para a branch ${targetBranch}...`);
-    await runGitCommand(`git checkout ${targetBranch}`, repoPath);
-    await runGitCommand(`git pull origin ${targetBranch}`, repoPath);
+    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Alternando para a branch ${safeTarget}...`);
+    await runGitCommand(['checkout', safeTarget], repoPath);
+    await runGitCommand(['pull', 'origin', safeTarget], repoPath);
 
-    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Mesclando ${sourceBranch} dentro da ${targetBranch}...`);
-    const mergeOutput = await runGitCommand(`git merge origin/${sourceBranch} -m "Merge automatizado: ${sourceBranch} em ${targetBranch}"`, repoPath);
+    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Mesclando ${safeSource} dentro da ${safeTarget}...`);
+    const mergeOutput = await runGitCommand(['merge', `origin/${safeSource}`, '-m', `Merge automatizado: ${safeSource} em ${safeTarget}`], repoPath);
     logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Resultado do Merge: ${mergeOutput.split('\n')[0]}`);
 
-    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Enviando versão atualizada para o GitHub (git push origin ${targetBranch})...`);
-    await runGitCommand(`git push origin ${targetBranch}`, repoPath);
-    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] 🚀 Branch ${targetBranch} atualizada no GitHub com sucesso!`);
+    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] Enviando versão atualizada para o GitHub (git push origin ${safeTarget})...`);
+    await runGitCommand(['push', 'origin', safeTarget], repoPath);
+    logs.push(`[${new Date().toLocaleTimeString('pt-BR')}] 🚀 Branch ${safeTarget} atualizada no GitHub com sucesso!`);
 
     return {
       success: true,

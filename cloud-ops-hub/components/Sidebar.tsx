@@ -10,23 +10,21 @@ import { VercelIcon } from './VercelDeploymentsView'
 import { RenderIcon } from './RenderDeploymentsView'
 import { useWorkspace } from '../context/WorkspaceContext'
 
-export const navSections = [
+export const navSections: Array<{
+  title: string
+  items: Array<{ label: string; icon: any; badge?: string }>
+}> = [
   {
-    title: 'Workspace',
+    title: 'Principal',
     items: [
       { label: 'Dashboard', icon: LayoutDashboard },
-      { label: 'Conectores Hub', icon: Shield, badge: 'Novo' },
-      { label: 'Odisseu AI', icon: Bot, badge: 'Copilot' },
       { label: 'Monitoramento & Logs', icon: Activity, badge: 'Live' },
-      { label: 'Robôs & Bots da VM', icon: Cpu },
-      { label: 'Deploy', icon: Rocket },
-      { label: 'Vercel Frontend', icon: VercelIcon },
-      { label: 'Render Backend', icon: RenderIcon },
-      { label: 'Migração Multi-Cloud', icon: ArrowLeftRight },
+      { label: 'Odisseu AI', icon: Bot, badge: 'Copilot' },
+      { label: 'Conectores Hub', icon: Shield },
     ]
   },
   {
-    title: 'Infraestrutura & Serviços',
+    title: 'Infraestrutura',
     items: [
       { label: 'Docker', icon: Container },
       { label: 'Nginx', icon: Network },
@@ -37,17 +35,22 @@ export const navSections = [
     ]
   },
   {
-    title: 'Gerenciamento',
+    title: 'Deploys & Automação',
+    items: [
+      { label: 'Deploy', icon: Rocket },
+      { label: 'Vercel Frontend', icon: VercelIcon },
+      { label: 'Render Backend', icon: RenderIcon },
+      { label: 'Robôs & Bots da VM', icon: Cpu },
+      { label: 'Migração Multi-Cloud', icon: ArrowLeftRight },
+    ]
+  },
+  {
+    title: 'Administração',
     items: [
       { label: 'Recursos & VMs', icon: Layers3 },
       { label: 'Aprovações & Usuários', icon: Users },
       { label: 'Configurações', icon: Settings },
-    ]
-  },
-  {
-    title: 'Divulgação & Apresentação',
-    items: [
-      { label: '🌟 Landing Page Oficial', icon: Globe2, badge: 'Pública' },
+      { label: '🌟 Landing Page Oficial', icon: Globe2 },
       { label: 'Ajuda & Guia', icon: CircleHelp },
     ]
   }
